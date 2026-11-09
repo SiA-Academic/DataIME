@@ -18,6 +18,7 @@
  if(!years.length)years.push(...Array.from({length:14},(_,i)=>2012+i));
  const titles={overview:['INDICADORES DA PÓS-GRADUAÇÃO','Pós-graduação em números','Compare programas, acompanhe a evolução e consulte a origem de cada valor.'],series:['SÉRIES HISTÓRICAS · 2012–2025','Formação e matrículas','Titulações, matrículas regulares e especiais em universos separados.'],disciplines:['OFERECIMENTO E PARTICIPAÇÃO','Disciplinas e turmas','Contagens de turmas e indicadores de participação nos relatórios anuais do Janus.'],requested:['QUADRO COMPARATIVO · 2024–2025','Indicadores para a Congregação','Cargas, turmas, vínculos de matrícula, ativos em 1º de abril e diplomados.'],sources:['TRANSPARÊNCIA DOS INDICADORES','Fontes, cobertura e critérios','Cada número conserva sua referência. Ausência de informação não é zero.']};
  const levels={ME:'Mestrado',DO:'Doutorado',DD:'Doutorado direto',DO_DD:'Doutorado (DO + DD)',total:'Total'};
+ titles.graduation=['GRADUAÇÃO · 2012–2025','Graduação no IME','Compare cursos, consulte estoques semestrais e acompanhe os conjuntos de disciplinas em seus próprios recortes.'];
  const disciplineLabels={courses:'Disciplinas oferecidas',sections:'Turmas',applications:'Inscrições aproximadas',enrollments:'Matrículas em disciplinas',approvals:'Aprovações aproximadas',enrollments_per_section:'Matrículas médias por turma',approval_rate:'Taxa de aprovação aproximada'};
  const requestedLabels={nominal_class_hours:'Carga horária nominal de aulas',sections:'Número de turmas',enrollments:'Matrículas em disciplinas',sections_lt5:'Turmas com menos de 5 matriculados',sections_gt30:'Turmas com mais de 30 matriculados',active_april1:'Alunos ativos em 1º de abril',degrees:'Diplomados',credits_offered:'Créditos ofertados',curricular_hours:'Carga horária curricular total'};
  const state={view:'overview',start:2012,end:2025,selected:new Set(programOrder),seriesMetric:'degrees',seriesLevel:'total',seriesMode:'count',disciplineMetric:'enrollments_per_section',quadroYear:'both'};
@@ -155,9 +156,10 @@
   derived=new Map();nextDerived=0;chartCount=0;exportRows=[];
   $$('#main-nav a').forEach(a=>{a.classList.toggle('active',a.dataset.view===state.view);if(a.dataset.view===state.view)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   const t=titles[state.view];$('#page-eyebrow').textContent=t[0];$('#page-title').textContent=t[1];$('#page-description').textContent=t[2];
-  $('#filters').hidden=state.view==='sources';$('#year-controls').hidden=state.view==='requested';
+  $('#filters').hidden=state.view==='sources'||state.view==='graduation';$('#year-controls').hidden=state.view==='requested';
   $('#filter-caption').textContent=`${selectedYears().length} ano(s) · ${state.selected.size} programa(s)`;
-  $('#view-content').innerHTML=state.view!=='sources'&&!state.selected.size?empty():({overview,series,disciplines,requested,sources})[state.view]();
+  if(state.view==='graduation'){$('#view-content').innerHTML='<div id="grad-root"></div>';window.SIAPOS_GRADUACAO?.mount($('#grad-root'));}
+  else $('#view-content').innerHTML=state.view!=='sources'&&!state.selected.size?empty():({overview,series,disciplines,requested,sources})[state.view]();
   $('#chart-tooltip').hidden=true;
  }
  function sourceFor(record){return sourceRef(record);}

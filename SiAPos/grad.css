@@ -1,0 +1,23 @@
+.grad-tabs{display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:20px}
+.grad-tabs button{border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12px;font-weight:600;padding:9px 13px}
+.grad-tabs button.active{background:var(--navy);color:var(--surface);border-color:var(--navy)}
+.grad-filters .year-controls{border-top:1px solid var(--line)}
+.grad-course-filter[hidden]{display:none}
+.grad-course-card .program-snapshot-heading{min-height:65px}
+.grad-course-card dd{font-size:23px}
+.grad-data-panel{margin-top:18px;margin-bottom:25px}
+.grad-value-label{fill:var(--ink);font-weight:650}
+.grad-curricula-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr))}
+.grad-source-ref{white-space:normal!important;min-width:230px;font-size:10px!important;overflow-wrap:anywhere}
+#grad-source-content{padding:20px 22px;max-height:65vh;overflow:auto}
+#grad-source-content p{font-size:12px;color:var(--muted);margin:8px 0}
+#grad-source-content .source-value{font-size:30px;color:var(--navy);font-weight:700}
+#grad-root .source-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr))}
+#grad-root .program-chip .full-name{max-width:230px}
+.grad-inconsistent{background:var(--amber-bg)}
+.grad-inconsistent td:last-child{color:var(--amber);font-size:11px;white-space:normal}
+.grad-curriculum-table th{white-space:normal;min-width:85px}
+.grad-curriculum-table td:nth-child(2){white-space:normal;min-width:150px}
+.grad-department-controls label{flex-wrap:wrap}
+@media(max-width:650px){.grad-tabs{gap:5px}.grad-tabs button{font-size:11px;padding:8px 10px}.grad-course-card .program-snapshot-heading{min-height:0}.grad-filters .program-chip{align-items:flex-start}.grad-filters .program-dot{margin-top:4px}.grad-filters .full-name{white-space:normal}.grad-filters .year-controls{flex-wrap:wrap}}
+@media print{.grad-tabs,.grad-filters,[data-grad-svg],[data-grad-action=csv]{display:none!important}.grad-course-card{break-inside:avoid}#grad-root .chart-grid{grid-template-columns:1fr 1fr}.grad-data-panel{break-inside:avoid}}
