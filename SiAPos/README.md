@@ -16,7 +16,7 @@ Selecione programas e anos para comparar as séries. A visão geral apresenta um
 
 Titulações são diplomas concedidos. Matrículas regulares anuais, matrículas em disciplinas e ativos em 1º de abril são universos diferentes. Matrículas em disciplinas representam vínculos estudante–turma, não pessoas distintas. Nas titulações e nos ativos, o doutorado reúne DO e DD quando indicado; a série de matrículas regulares segue a classificação da fonte.
 
-`ND` significa informação não disponível ou não determinada; `NA`, indicador não aplicável; zero significa zero documentado. O doutorado do MPEM é tratado como não aplicável no quadro. Aproximações conservam o sinal `≈`. Anos ausentes não entram como zero nas médias. As médias são aritméticas dos valores anuais disponíveis, com aviso quando os programas têm coberturas diferentes.
+`ND` significa informação não disponível ou não determinada; `NA`, indicador não aplicável; zero significa zero documentado. No quadro, os ativos de doutorado do MPEM são `NA`; as titulações conservam o zero informado pela fonte. Aproximações conservam o sinal `≈`. Anos ausentes não entram como zero nas médias. As médias são aritméticas dos valores anuais disponíveis, com aviso quando os programas têm coberturas diferentes.
 
 O quadro usa cargas nominais curriculares, não horas efetivamente ministradas por docente. Quando necessário, os componentes de uma ficha são aplicados a uma versão anterior sob a hipótese de manutenção da carga. A classificação de ofertas dos demais programas pela área atual da ficha adota a hipótese de manutenção do vínculo histórico, quando indicada na origem. O prefixo do código de disciplina não define o programa.
 
