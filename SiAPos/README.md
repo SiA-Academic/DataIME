@@ -1,0 +1,39 @@
+# SiAPos
+
+Painel de indicadores agregados da pós-graduação do IME-USP.
+
+## Uso
+
+Abra `index.html` no endereço publicado ou localmente. Mantenha `app.js`, `model.js`, `styles.css` e `data.js` na mesma pasta. Os arquivos usam referências relativas, sem CDN ou consultas externas durante a navegação.
+
+Selecione programas e anos para comparar as séries. A visão geral apresenta um quadro por programa e, separadamente, os totais da seleção. O quadro de 2024–2025 mantém seu próprio filtro de ano e mostra todos os indicadores em gráficos. Valores e marcadores abrem os detalhes da fonte. Há exportação de tabelas em CSV e de gráficos em SVG.
+
+## Cobertura e leitura
+
+- Titulações e matrículas anuais nos programas: 2012–2025, cinco programas do IME.
+- Disciplinas: CC e MAT em 2012–2025; MAP, PE e MPEM em 2024–2025. A cobertura de cada média é indicada no painel.
+- Quadro comparativo: 2024 e 2025, incluindo ativos na data exata de 1º de abril, cargas, créditos, matrículas em disciplinas e cortes de tamanho das turmas.
+
+Titulações são diplomas concedidos. Matrículas regulares anuais, matrículas em disciplinas e ativos em 1º de abril são universos diferentes. Matrículas em disciplinas representam vínculos estudante–turma, não pessoas distintas. Nas titulações e nos ativos, o doutorado reúne DO e DD quando indicado; a série de matrículas regulares segue a classificação da fonte.
+
+`ND` significa informação não disponível ou não determinada; `NA`, indicador não aplicável; zero significa zero documentado. O doutorado do MPEM é tratado como não aplicável no quadro. Aproximações conservam o sinal `≈`. Anos ausentes não entram como zero nas médias. As médias são aritméticas dos valores anuais disponíveis, com aviso quando os programas têm coberturas diferentes.
+
+O quadro usa cargas nominais curriculares, não horas efetivamente ministradas por docente. Quando necessário, os componentes de uma ficha são aplicados a uma versão anterior sob a hipótese de manutenção da carga. A classificação de ofertas dos demais programas pela área atual da ficha adota a hipótese de manutenção do vínculo histórico, quando indicada na origem. O prefixo do código de disciplina não define o programa.
+
+Os cortes são estritos: menos de cinco exclui cinco; mais de trinta exclui trinta. Contagens individuais não são reconstruídas a partir de desvios padrão arredondados. Ofertas encontradas no catálogo e ausentes do relatório anual não são convertidas em matrículas zero nem incorporadas automaticamente à atividade observada.
+
+## Fontes e recorte público
+
+As referências de cada valor preservam o arquivo e a localização de origem: aba/célula de planilha ou localizador de relatório HTML. Hashes e notas registram a procedência quando disponíveis. O painel também documenta as ressalvas das fontes históricas.
+
+`data.js` é um recorte agregado para consulta pública. Não contém nomes ou identificadores de alunos e docentes, credenciais, cookies, estado de sessão ou caminhos locais privados. Os documentos autenticados e as fontes de trabalho não são distribuídos neste repositório; uma referência de origem não implica que o arquivo correspondente esteja disponível publicamente para download.
+
+## Atualização
+
+1. Coletar as fontes oficiais fora deste repositório, usando acesso autorizado e preservando sua proveniência.
+2. Conferir programas, períodos, versões, multiplicidades e universos; registrar lacunas e hipóteses sem preencher ausências com zero.
+3. Gerar uma nova base agregada, revisar cálculos e referências e retirar metadados privados.
+4. Substituir `data.js` pela versão revisada. Alterações na interface devem manter os cinco arquivos compatíveis.
+5. Verificar cálculos, filtros, exportações, referências e apresentação antes de publicar a atualização.
+
+Os coletores e o processamento das fontes permanecem no ambiente de trabalho privado. A coleta não atualiza este painel automaticamente.

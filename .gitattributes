@@ -1,0 +1,4 @@
+SiAPos/*.html -text
+SiAPos/*.js -text
+SiAPos/*.css -text
+*.md text eol=lf
