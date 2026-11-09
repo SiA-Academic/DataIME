@@ -53,3 +53,19 @@
 .compact-comparison .panel-foot{font-size:10px;line-height:1.5;padding:10px 15px 14px}
 @media(max-width:650px){.requested-comparison-grid,.program-snapshot-grid{grid-template-columns:1fr}.program-snapshot-heading{min-height:0}.program-snapshot{padding:15px}}
 @media print{.requested-comparison-grid{grid-template-columns:1fr 1fr}.program-snapshot-grid{grid-template-columns:repeat(3,1fr)}.requested-group{break-inside:auto}.compact-comparison{break-inside:avoid}.selection-total:not([open]){display:none}}
+
+/* First select an academic area, then a view within that area. */
+.sidebar{overflow-y:auto}
+.sidebar nav[hidden]{display:none}
+.sidebar .area-nav{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:0 12px}
+.sidebar .area-nav a{justify-content:center;text-align:center;padding:9px 5px;border-color:var(--line)}
+.sidebar .area-nav strong{font-size:11px}
+.section-nav-label{padding-top:21px}
+@media(max-width:900px){
+ .sidebar{overflow:visible}
+ .sidebar .nav-label{display:block;padding:7px 14px 3px;font-size:9px}
+ .sidebar .area-nav{display:flex;overflow-x:auto;padding:0 10px 4px}
+ .sidebar .area-nav a{flex:0 0 auto;padding:7px 15px}
+ .sidebar .section-nav-label{padding-top:7px}
+ .sidebar nav[hidden]{display:none}
+}

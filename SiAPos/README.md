@@ -24,15 +24,22 @@ Os cortes são estritos: menos de cinco exclui cinco; mais de trinta exclui trin
 
 ## Graduação
 
-A área de [graduação](https://sia-academic.github.io/SiA/SiAPos/#graduation) tem filtros próprios e cinco visões: retrato por curso, séries, conjuntos de disciplinas, currículos e fontes.
+A área de [graduação](https://sia-academic.github.io/SiA/SiAPos/#graduation) tem filtros próprios e seis visões: retrato por curso, séries, conjuntos de disciplinas, estatísticas do Anuário, currículos e fontes.
 
 - Seis cursos do IME, 2012–2025: matriculados, não matriculados/trancamentos e cadastrados em cada semestre; vagas e concluintes anuais do Anuário USP.
+- Ingressantes de 2012–2024 no Censo da Educação Superior/Inep: 52 contagens anuais para BCC, BM, BE e LM. Os 26 totais de BMA/BMAC permanecem `ND`, com as contagens públicas da área básica de ingresso (ABI) consultáveis na origem. Os seis valores de 2025 também permanecem `ND`.
 - Disciplinas MAC em 2020–2025 e MAT em 2024–2025, a partir dos arquivos fornecidos. O conjunto adicional de ministrantes MAC se sobrepõe aos dois anteriores e é apresentado separadamente.
+- Os 132 campos históricos de créditos-aula e carga nominal desses conjuntos foram preenchidos cruzando as ofertas fornecidas com as versões públicas datadas do Júpiter e o calendário oficial. A carga nominal corresponde a 15 horas-aula por crédito-aula e por oferta.
+- Estatísticas do Anuário, 2012–2025: disciplinas, turmas e dimensões médias dos quatro departamentos, na tabela 3.02; matrículas em disciplinas, aprovações e reprovações do IME como unidade, na tabela 3.07. O código interdepartamental 450 tem cobertura a partir de 2017.
 - Referências curriculares de 2024 e 2025: 36 variantes de curso, habilitação ou turno. Essas alternativas não são somadas; os subtotais impressos e as ressalvas das fontes são preservados.
 
 Estoques do primeiro e do segundo semestre permanecem separados. Vagas não equivalem a ingressantes. Os conjuntos de disciplinas não identificam o curso de cada aluno nem certificam a lotação dos ministrantes. O grupo de turmas com sufixos 45/52 conserva o critério da planilha fornecida.
 
-Ingresso por curso e cargas/créditos históricos das ofertas permanecem `ND` quando não comprovados pelas fontes. Fichas consultadas em 2026 não foram usadas para preencher cargas históricas. A média de notas é a média das médias publicadas por turma, ponderada pelos matriculados; não reconstrói notas individuais. As taxas conservam os denominadores descritos no painel.
+As lacunas de ingresso e de ofertas anteriores aos arquivos fornecidos permanecem `ND`. As contagens ABI não foram convertidas em ingresso total de BMA/BMAC, pois a passagem da ABI às habilitações impede uma soma sem risco de duplicidade. A série do Inep mantém sua definição própria e suas fontes; os demais indicadores do Anuário foram preservados.
+
+As versões históricas das fichas confirmam créditos válidos no período da oferta. Não se aplicou indiscriminadamente a ficha atual aos anos anteriores. A carga é curricular nominal, não a carga efetivamente ministrada por professor. A média de notas é a média das médias publicadas por turma, ponderada pelos matriculados; não reconstrói notas individuais. As taxas conservam os denominadores descritos no painel.
+
+As estatísticas por departamento e por unidade não são repartidas pelos seis cursos. Dimensões médias arredondadas não permitem reconstruir matrículas exatas; disciplinas nos dois semestres não são códigos únicos no ano. Cada gráfico, tabela e exportação mantém o escopo e o semestre correspondentes.
 
 As comparações Anuário/DataUSP e arquivos fornecidos/Anuário ficam na visão de fontes. Divergências publicadas permanecem sinalizadas: cinco em subtotais curriculares e uma turma MAC de 2023 com 59 matrículas e 58 resultados. Os números originais foram preservados.
 
@@ -42,12 +49,14 @@ As referências de cada valor preservam o arquivo e a localização de origem: a
 
 `data.js` e `graduacao-data.js` são recortes agregados para consulta pública. Não contêm nomes ou identificadores de alunos e docentes, credenciais, cookies, estado de sessão ou caminhos locais privados. Os documentos autenticados e as fontes de trabalho não são distribuídos neste repositório; uma referência de origem não implica que o arquivo correspondente esteja disponível publicamente para download. Fontes oficiais abertas e arquivos fornecidos são identificados separadamente.
 
+Na graduação, os resultados não públicos ainda necessários vêm dos relatórios detalhados MAC 2020–2025 e MAT 2024–2025. Seus agregados incluem matrículas, resultados, notas, trancamentos e cortes de tamanho. O arquivo do conjunto adicional MAC 2024–2025 delimita um recorte sobreposto, sem acrescentar resultados independentes aos dois relatórios principais. Créditos e cargas dessas ofertas têm origem mista: créditos públicos e turmas fornecidas. Arquivos de concluintes/vagas recebidos serviram apenas de conferência; os indicadores principais usam o Anuário público. A visão de fontes permite filtrar origens públicas, fornecidas não públicas e mistas, com prioridade inicial às públicas.
+
 ## Atualização
 
-1. Coletar as fontes oficiais fora deste repositório, usando acesso autorizado e preservando sua proveniência.
+1. Priorizar fontes oficiais públicas fora deste repositório, preservando URL, data, localizador e hash. Os coletores públicos não recorrem a sessões autenticadas quando um dado falta; registram a lacuna para revisão.
 2. Conferir programas, períodos, versões, multiplicidades e universos; registrar lacunas e hipóteses sem preencher ausências com zero.
 3. Gerar uma nova base agregada, revisar cálculos e referências e retirar metadados privados.
 4. Substituir `data.js` ou `graduacao-data.js` pela versão revisada. Alterações na interface devem manter os oito arquivos compatíveis.
 5. Verificar cálculos, filtros, exportações, referências e apresentação antes de publicar a atualização.
 
-Os coletores e o processamento das fontes permanecem no ambiente de trabalho privado. A coleta não atualiza este painel automaticamente.
+O ambiente de manutenção conserva seis entradas canônicas e um construtor reproduzível, com auditorias dos valores, fontes, lacunas e exportações. Coletas completas, arquivos redundantes e estratégias anteriores ficam no arquivo histórico. A coleta não atualiza este painel automaticamente.

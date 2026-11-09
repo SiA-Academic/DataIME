@@ -21,7 +21,7 @@
  titles.graduation=['GRADUAÇÃO · 2012–2025','Graduação no IME','Compare cursos, consulte estoques semestrais e acompanhe os conjuntos de disciplinas em seus próprios recortes.'];
  const disciplineLabels={courses:'Disciplinas oferecidas',sections:'Turmas',applications:'Inscrições aproximadas',enrollments:'Matrículas em disciplinas',approvals:'Aprovações aproximadas',enrollments_per_section:'Matrículas médias por turma',approval_rate:'Taxa de aprovação aproximada'};
  const requestedLabels={nominal_class_hours:'Carga horária nominal de aulas',sections:'Número de turmas',enrollments:'Matrículas em disciplinas',sections_lt5:'Turmas com menos de 5 matriculados',sections_gt30:'Turmas com mais de 30 matriculados',active_april1:'Alunos ativos em 1º de abril',degrees:'Diplomados',credits_offered:'Créditos ofertados',curricular_hours:'Carga horária curricular total'};
- const state={view:'overview',start:2012,end:2025,selected:new Set(programOrder),seriesMetric:'degrees',seriesLevel:'total',seriesMode:'count',disciplineMetric:'enrollments_per_section',quadroYear:'both'};
+ const state={view:'overview',gradTab:'snapshot',start:2012,end:2025,selected:new Set(programOrder),seriesMetric:'degrees',seriesLevel:'total',seriesMode:'count',disciplineMetric:'enrollments_per_section',quadroYear:'both'};
  let derived=new Map(),nextDerived=0,chartCount=0,exportRows=[],copyText='',toastTimer;
  const sourceRef=r=>r?.source||{};
  function get(section,metric,year,program,level=null){return index.get([section,metric,year,program,level||''].join('|'))||{section,metric,year,program,level,value:null,status:'ND',semantic_note:'Não há valor documentado na base disponível para este programa, ano e indicador.'};}
@@ -154,11 +154,16 @@
  }
  function render(){
   derived=new Map();nextDerived=0;chartCount=0;exportRows=[];
-  $$('#main-nav a').forEach(a=>{a.classList.toggle('active',a.dataset.view===state.view);if(a.dataset.view===state.view)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+  const graduation=state.view==='graduation';
+  $('#main-nav').hidden=graduation;$('#graduation-nav').hidden=!graduation;
+  $('#section-nav-label').textContent=graduation?'GRADUAÇÃO':'PÓS-GRADUAÇÃO';
+  $$('#area-nav a').forEach(a=>{const current=(a.dataset.area==='graduation')===graduation;a.classList.toggle('active',current);if(current)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current');});
+  $$('#main-nav a').forEach(a=>{const current=!graduation&&a.dataset.view===state.view;a.classList.toggle('active',current);if(current)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+  $$('#graduation-nav a').forEach(a=>{const current=graduation&&a.dataset.gradView===state.gradTab;a.classList.toggle('active',current);if(current)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   const t=titles[state.view];$('#page-eyebrow').textContent=t[0];$('#page-title').textContent=t[1];$('#page-description').textContent=t[2];
   $('#filters').hidden=state.view==='sources'||state.view==='graduation';$('#year-controls').hidden=state.view==='requested';
   $('#filter-caption').textContent=`${selectedYears().length} ano(s) · ${state.selected.size} programa(s)`;
-  if(state.view==='graduation'){$('#view-content').innerHTML='<div id="grad-root"></div>';window.SIAPOS_GRADUACAO?.mount($('#grad-root'));}
+  if(state.view==='graduation'){$('#view-content').innerHTML='<div id="grad-root"></div>';window.SIAPOS_GRADUACAO?.setTab(state.gradTab);window.SIAPOS_GRADUACAO?.mount($('#grad-root'));}
   else $('#view-content').innerHTML=state.view!=='sources'&&!state.selected.size?empty():({overview,series,disciplines,requested,sources})[state.view]();
   $('#chart-tooltip').hidden=true;
  }
@@ -192,6 +197,7 @@
  $('#start-year').addEventListener('change',e=>{state.start=+e.target.value;if(state.start>state.end){state.end=state.start;$('#end-year').value=state.end;}render();});
  $('#end-year').addEventListener('change',e=>{state.end=+e.target.value;if(state.end<state.start){state.start=state.end;$('#start-year').value=state.start;}render();});
  $('#reset-filters').addEventListener('click',reset);$('#theme-toggle').addEventListener('click',()=>{document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';});$('#print-view').addEventListener('click',()=>window.print());
+ $('.skip-link').addEventListener('click',e=>{e.preventDefault();$('#content').focus();});
  document.addEventListener('click',e=>{const a=e.target.closest('[data-source]');if(a){const key=a.dataset.source;showSource(key[0]==='d'?derived.get(key):records[+key]);return;}const svg=e.target.closest('[data-export-svg]');if(svg){exportSVG(svg.dataset.exportSvg);return;}const l=e.target.closest('[data-level]');if(l){state.seriesLevel=l.dataset.level;render();return;}const mode=e.target.closest('[data-series-mode]');if(mode){state.seriesMode=mode.dataset.seriesMode;render();return;}const q=e.target.closest('[data-quadro-year]');if(q){state.quadroYear=q.dataset.quadroYear;render();return;}const action=e.target.closest('[data-action]')?.dataset.action;if(action==='reset')reset();if(action==='csv')exportCSV();});
  document.addEventListener('change',e=>{if(e.target.id==='series-metric'){state.seriesMetric=e.target.value;render();}if(e.target.id==='discipline-metric'){state.disciplineMetric=e.target.value;render();}});
  document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('svg [data-source]')){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
@@ -199,5 +205,5 @@
  document.addEventListener('pointerover',e=>{const t=e.target.closest('[data-tip]');if(t)tip(t,e.clientX,e.clientY);});document.addEventListener('pointerout',e=>{if(e.target.closest('[data-tip]'))$('#chart-tooltip').hidden=true;});document.addEventListener('focusin',e=>{const t=e.target.closest('[data-tip]');if(t){const b=t.getBoundingClientRect();tip(t,b.x,b.y);}});document.addEventListener('focusout',()=>$('#chart-tooltip').hidden=true);
  const close=()=>$('#source-dialog').close();$('#close-dialog').addEventListener('click',close);$('#done-dialog').addEventListener('click',close);$('#source-dialog').addEventListener('click',e=>{if(e.target===$('#source-dialog')){const b=e.target.getBoundingClientRect();if(e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom)close();}});
  $('#copy-source').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(copyText);notify('Referência copiada.');}catch{const t=document.createElement('textarea');t.value=copyText;$('#source-dialog').appendChild(t);t.select();const ok=document.execCommand('copy');t.remove();notify(ok?'Referência copiada.':'Selecione e copie a referência exibida.');}});
- function viewFromHash(){const value=location.hash.slice(1);state.view=titles[value]?value:'overview';render();}window.addEventListener('hashchange',viewFromHash);viewFromHash();
+ function viewFromHash(){const value=location.hash.slice(1),parts=value.split('/');if(parts[0]==='graduation'){state.view='graduation';state.gradTab=['snapshot','series','department','anuario','curricula','sources'].includes(parts[1])?parts[1]:'snapshot';}else state.view=titles[value]?value:'overview';render();}window.addEventListener('hashchange',viewFromHash);viewFromHash();
 })();

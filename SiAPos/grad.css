@@ -19,5 +19,14 @@
 .grad-curriculum-table th{white-space:normal;min-width:85px}
 .grad-curriculum-table td:nth-child(2){white-space:normal;min-width:150px}
 .grad-department-controls label{flex-wrap:wrap}
+.grad-anuario-controls label{flex-wrap:wrap}
+.grad-anuario-departments{display:flex;flex-wrap:wrap;gap:8px;margin:15px 0 20px}
+.grad-access-label{display:inline-block;font-size:10px;letter-spacing:.025em;color:var(--muted);border:1px solid var(--line);padding:3px 7px;border-radius:4px;margin-bottom:10px}
+.grad-linked-sources{margin:16px 0;font-size:12px;color:var(--muted)}
+.grad-linked-sources summary{cursor:pointer;color:var(--ink);font-weight:650}
+.grad-linked-sources ul{padding-left:20px;display:grid;gap:6px}
+.grad-linked-sources a{color:var(--accent);overflow-wrap:anywhere}
+.grad-offering-source{padding:8px 0;border-bottom:1px solid var(--line)}
+.grad-offering-source code{font-size:10px;overflow-wrap:anywhere}
 @media(max-width:650px){.grad-tabs{gap:5px}.grad-tabs button{font-size:11px;padding:8px 10px}.grad-course-card .program-snapshot-heading{min-height:0}.grad-filters .program-chip{align-items:flex-start}.grad-filters .program-dot{margin-top:4px}.grad-filters .full-name{white-space:normal}.grad-filters .year-controls{flex-wrap:wrap}}
 @media print{.grad-tabs,.grad-filters,[data-grad-svg],[data-grad-action=csv]{display:none!important}.grad-course-card{break-inside:avoid}#grad-root .chart-grid{grid-template-columns:1fr 1fr}.grad-data-panel{break-inside:avoid}}
