@@ -204,7 +204,9 @@
 
   const values=points.filter(x=>M.numeric(x.record)).map(x=>isRatio(x.record)?x.record.value*100:x.record.value);
 
-  const W=580,H=290,L=51,R=18,T=29,B=43,iw=W-L-R,ih=H-T-B;
+  const compact=state.view==='series';
+  const W=compact?464:580,H=compact?203:290;
+  const L=51,R=18,T=29,B=43,iw=W-L-R,ih=H-T-B;
 
   let inner='',trendControl='';
 

@@ -115,6 +115,25 @@
 .post-indicator-section+.post-indicator-section{border-top:1px solid var(--line);padding-top:20px}
 .post-indicator-section h2[id]{scroll-margin-top:150px}
 .post-indicator-section .panel-heading{min-height:70px}
+
+/* Smaller plots for the postgraduate degree and enrollment series. */
+[data-post-series] .chart-grid{width:80%;column-gap:12.8px}
+[data-post-series] .panel-heading{min-height:49px;padding:9px 12px 5px;gap:6px}
+[data-post-series] .chart-container{min-height:168px;padding-inline:9.5px}
+[data-post-series] .legend{gap:5px 10px;padding:0 8px 5px}
+@media(min-width:1600px){[data-post-series] .chart-container{min-height:210px}}
+@media(max-width:1150px){[data-post-series] .chart-container{min-height:140px}}
+@media(max-width:900px){
+  [data-post-series] .chart-grid{column-gap:9.6px}
+  [data-post-series] .chart-container{min-height:147px}
+}
+@media screen and (max-width:650px){
+  /* Let wrapped headings use the space between the plot and its legend. */
+  [data-post-series] .panel{display:flex;flex-direction:column;min-height:215px}
+  [data-post-series] .panel:has(.legend){min-height:235px}
+  [data-post-series] .chart-container{flex:1;min-height:0}
+}
+@media print{[data-post-series] .chart-container{min-height:0}}
 .post-indicator-period+.post-indicator-period{margin-top:22px}
 .indicators-download{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px;padding:22px}
 .indicators-download h2{font-size:17px;margin-bottom:7px}
