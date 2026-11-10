@@ -1,14 +1,24 @@
 # SiAPos
 
-Painel de indicadores agregados da graduação e da pós-graduação do IME-USP.
+Painel de indicadores agregados de docentes, graduação e pós-graduação do IME-USP.
 
 ## Uso
 
-O menu esquerdo mantém as duas áreas sempre disponíveis: graduação acima e pós-graduação na metade inferior. Cada item abre sua visão diretamente, sem um seletor prévio de área.
+O menu esquerdo mantém Geral, Graduação e Pós-graduação sempre disponíveis. Geral reúne o item Docentes; graduação e pós mantêm suas visões próprias. Cada item abre sua visão diretamente, sem um seletor prévio de área.
 
-Abra `index.html` no endereço publicado ou localmente. Mantenha `app.js`, `model.js`, `styles.css`, `data.js`, `grad.js`, `grad.css` e `graduacao-data.js` na mesma pasta. Os arquivos usam referências relativas, sem CDN ou consultas externas durante a navegação.
+Abra `index.html` no endereço publicado ou localmente. Mantenha `app.js`, `model.js`, `styles.css`, `data.js`, `grad.js`, `grad.css`, `graduacao-data.js`, `docentes.js`, `docentes.css` e `docentes-data.js` na mesma pasta. Os arquivos usam referências relativas, sem CDN ou consultas externas durante a navegação.
 
 A pós-graduação abre em Titulações e matrículas. Selecione programas e anos para comparar as séries. As visões principais usam os programas configurados e os mesmos critérios de cobertura para cada indicador e período. A base principal admite fontes públicas e consultas do Janus independentes da coleção original de CC/MAT. O item 3 do menu, destacado em outra cor, reúne os dados de acesso específico, com filtros e exportações próprios. Fontes e critérios fica no item 4, em cinza discreto. Valores e marcadores abrem os detalhes da fonte. Os filtros da graduação e da pós usam barras compactas fixas durante a rolagem, com as seleções e o período na primeira linha e as opções da visão na segunda, quando existem. Borda e sombra destacam a barra quando ela chega ao topo. As tabelas das visões principais ficam reunidas em um botão de download CSV por seção, respeitando os filtros. Os arquivos incluem valores, médias e suas coberturas, além das fontes; Cobertura e Fontes também exportam seus quadros detalhados. Os gráficos podem ser baixados em SVG. As tabelas de comprovação permanecem nos detalhes de origem abertos pelos valores dos gráficos.
+
+## Docentes
+
+O item Geral → Docentes (`#docentes`) apresenta uma posição de 10/11/2026 do quadro docente por departamento e do credenciamento vigente no Janus nos cinco programas do IME. Seniores ficam excluídos de todas as contagens desta visão. O critério de participação na pós é o credenciamento vigente; não exige orientação em andamento ou disciplina ministrada. Inclui os tipos Pleno, Específico, Coorientador e Acadêmico vigentes; exclui vínculos futuros, encerrados e do tipo Vencido com Orientando.
+
+As contagens distinguem o total do departamento, pessoas credenciadas nos programas associados, nos demais programas do IME, em algum dos cinco programas e sem credenciamento nesse conjunto. Os programas associados são Ciência da Computação para MAC, Matemática e Mestrado Profissional em Ensino de Matemática para MAT, Matemática Aplicada para MAP e Probabilidade e Estatística para MAE. O vínculo é uma regra explícita da comparação; programas de pós-graduação não equivalem a departamentos. A matriz por programa conserva cada vínculo observado. Programas de outras unidades e interunidades, como Bioinformática, ficam fora desta versão.
+
+As colunas de programas associados e de outros programas podem conter as mesmas pessoas. Credenciamentos em mais de um nível, área ou programa não multiplicam a contagem de pessoas em cada grupo. Os totais de pessoas são calculados na preparação dos dados; a interface não soma as colunas da matriz para reconstruí-los. A ausência de credenciamento só se refere aos programas com cobertura comprovada; nenhuma lacuna de consulta é tratada como zero.
+
+Cada contagem abre seus critérios, fontes, data de consulta e cobertura. `ND` identifica contagem não determinada; `NA`, recorte não aplicável; zero exige comprovação. O filtro de departamentos e o CSV desta visão são independentes dos filtros de graduação e pós. O CSV inclui as contagens, a matriz por programa e as referências da seleção, conservando o código do programa e sua unidade para distinguir programas homônimos. A unidade informada nos dados também aparece nos cabeçalhos e detalhes de origem. O arquivo público `docentes-data.js` contém somente agregados, sem nomes ou identificadores de docentes.
 
 ## Pós-graduação: cobertura e leitura
 
@@ -56,7 +66,7 @@ As comparações Anuário/DataUSP ficam na visão de fontes, com seus universos 
 
 As referências de cada valor preservam o arquivo e a localização de origem: aba/célula de planilha ou localizador de relatório HTML. Hashes e notas registram a procedência quando disponíveis. O painel também documenta as ressalvas das fontes históricas.
 
-`data.js` e `graduacao-data.js` são recortes agregados para consulta pública. Não contêm nomes ou identificadores de alunos e docentes, credenciais, cookies, estado de sessão ou caminhos locais privados. Os documentos autenticados e as fontes de trabalho não são distribuídos neste repositório; uma referência de origem não implica que o arquivo correspondente esteja disponível publicamente para download. Na graduação, a visão de fontes distingue fontes públicas, consultas autenticadas comprovadas e origens mistas entre essas duas categorias.
+`data.js`, `graduacao-data.js` e `docentes-data.js` são recortes agregados para consulta pública. Não contêm nomes ou identificadores de alunos e docentes, credenciais, cookies, estado de sessão ou caminhos locais privados. Os documentos autenticados e as fontes de trabalho não são distribuídos neste repositório; uma referência de origem não implica que o arquivo correspondente esteja disponível publicamente para download. Na graduação, a visão de fontes distingue fontes públicas, consultas autenticadas comprovadas e origens mistas entre essas duas categorias.
 
 Na graduação, a coleta comum de 09/11/2026 usou dez CSV do Júpiter autenticado, no Relatório de Disciplinas e Turmas. As leituras anônimas dessa rota redirecionaram ao login. O acesso verificado não permitiu obter os resultados históricos por departamento. O PDF MAT preexistente, embora identifique o Júpiter, não documenta a obtenção original e foi excluído junto com os CSV MAC e seus derivados. Vagas e concluintes usam exclusivamente as fontes oficiais públicas. O histórico de proveniência da manutenção distingue envio pelo usuário de cópia encontrada no Drive.
 
@@ -65,7 +75,7 @@ Na graduação, a coleta comum de 09/11/2026 usou dez CSV do Júpiter autenticad
 1. Priorizar fontes oficiais públicas fora deste repositório, preservando URL, data, localizador e hash. Os coletores públicos não recorrem a sessões autenticadas quando um dado falta; registram a lacuna para revisão.
 2. Conferir programas, períodos, versões, multiplicidades e universos; registrar lacunas e hipóteses sem preencher ausências com zero.
 3. Gerar uma nova base agregada, revisar cálculos e referências e retirar metadados privados.
-4. Substituir `data.js` ou `graduacao-data.js` pela versão revisada. Alterações na interface devem manter os oito arquivos compatíveis.
+4. Substituir `data.js`, `graduacao-data.js` ou `docentes-data.js` pela versão revisada. Alterações na interface devem manter os arquivos de dados, apresentação e interação compatíveis.
 5. Verificar cálculos, filtros, exportações, referências e apresentação antes de publicar a atualização.
 
 O ambiente de manutenção conserva as entradas canônicas admitidas e um construtor reproduzível, com auditorias dos valores, fontes, lacunas e exportações. As versões públicas das fichas são coletadas sem autenticação e cruzadas com as turmas autenticadas. Coletas completas, materiais excluídos, arquivos redundantes e estratégias anteriores ficam no arquivo histórico. A coleta não atualiza este painel automaticamente.

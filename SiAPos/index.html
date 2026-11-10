@@ -10,25 +10,31 @@
 
   <meta name="color-scheme" content="light dark">
 
-  <meta name="description" content="SiAPos — graduação e pós-graduação do IME-USP. Cursos, programas, titulações e matrículas, disciplinas e currículos, com fontes e cobertura explícitas.">
+  <meta name="description" content="SiAPos — docentes, graduação e pós-graduação do IME-USP. Quadro docente, credenciamentos, cursos, programas, titulações e matrículas, com fontes e cobertura explícitas.">
 
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'self'">
 
   <title>SiAPos · Graduação e pós-graduação do IME-USP</title>
 
-  <link rel="stylesheet" href="styles.css?v=titulos-menu-20261110-22">
+  <link rel="stylesheet" href="styles.css?v=docentes-20261110-1">
 
-  <link rel="stylesheet" href="grad.css?v=titulos-menu-20261110-22">
+  <link rel="stylesheet" href="grad.css?v=docentes-20261110-1">
 
-  <script src="data.js?v=titulos-menu-20261110-22" defer></script>
+  <link rel="stylesheet" href="docentes.css?v=docentes-20261110-1">
 
-  <script src="model.js?v=titulos-menu-20261110-22" defer></script>
+  <script src="data.js?v=docentes-20261110-1" defer></script>
 
-  <script src="graduacao-data.js?v=titulos-menu-20261110-22" defer></script>
+  <script src="model.js?v=docentes-20261110-1" defer></script>
 
-  <script src="grad.js?v=titulos-menu-20261110-22" defer></script>
+  <script src="graduacao-data.js?v=docentes-20261110-1" defer></script>
 
-  <script src="app.js?v=titulos-menu-20261110-22" defer></script>
+  <script src="grad.js?v=docentes-20261110-1" defer></script>
+
+  <script src="docentes-data.js?v=docentes-20261110-1" defer></script>
+
+  <script src="docentes.js?v=docentes-20261110-1" defer></script>
+
+  <script src="app.js?v=docentes-20261110-1" defer></script>
 
 </head>
 
@@ -41,6 +47,12 @@
     <a href="#series" class="brand" aria-label="SiAPos — início"><span class="brand-mark">Si</span><span><strong>SiAPos</strong><small>Graduação e pós · IME-USP</small></span></a>
 
     <div class="sidebar-sections">
+      <section class="sidebar-section sidebar-section-general" aria-labelledby="general-nav-label">
+        <h2 class="nav-label" id="general-nav-label">Geral</h2>
+        <nav aria-label="Visões gerais" id="general-nav">
+          <a href="#docentes" data-general-view="docentes"><span class="nav-number">01</span><span><strong>Docentes</strong><small>Quadro e credenciamento na pós</small></span></a>
+        </nav>
+      </section>
       <section class="sidebar-section" aria-labelledby="graduation-nav-label">
         <h2 class="nav-label" id="graduation-nav-label">Graduação</h2>
     <nav aria-label="Visões da graduação" id="graduation-nav">

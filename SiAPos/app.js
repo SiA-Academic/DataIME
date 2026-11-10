@@ -93,6 +93,8 @@
 
  titles.graduation=['','Graduação no IME',''];
 
+ titles.docentes=['QUADRO DOCENTE E PÓS-GRADUAÇÃO','Docentes','Lotação departamental e credenciamento vigente na pós-graduação.'];
+
  const disciplineLabels={courses:'Disciplinas oferecidas',sections:'Turmas',enrollments:'Matrículas em disciplinas',approvals:'Aprovações aproximadas',enrollments_per_section:'Matrículas médias por turma',approval_rate:'Taxa de aprovação aproximada'};
 
  const requestedLabels={sections:'Número de turmas',enrollments:'Matrículas em disciplinas',sections_lt5:'Turmas com menos de 5 matriculados',sections_5_to_30:'Turmas com 5 a 30 matriculados',sections_gt30:'Turmas com mais de 30 matriculados',degrees:'Diplomados',credits_offered:'Créditos ofertados',curricular_hours:'Carga horária curricular total'};
@@ -491,6 +493,8 @@
 
   $$('#main-nav a').forEach(a=>{const current=!graduation&&a.dataset.view===state.view;a.classList.toggle('active',current);if(current)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
 
+  $$('#general-nav a').forEach(a=>{const current=a.dataset.generalView===state.view;a.classList.toggle('active',current);if(current)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+
   const commonDepartments=window.SIAPOS_GRADUACAO?.hasCommonDepartments===true;
 
   const extraMAC=$('#graduation-nav [data-grad-view="mac-adicional"]');if(extraMAC)extraMAC.hidden=!commonDepartments;
@@ -505,13 +509,17 @@
 
   if(!graduation){const brand=$('.brand small');if(brand&&D.site_subtitle)brand.textContent=D.site_subtitle;const restrictedLink=$('#main-nav [data-view="restricted"] small');if(restrictedLink)restrictedLink.textContent='Originais fornecidos'+(restrictedPrograms.length?' · '+restrictedPrograms.map(p=>p.id).join('/'):'');}
 
-  $('#filters').hidden=state.view==='sources'||state.view==='graduation'||state.view==='restricted';$('#year-controls').hidden=false;
+  $('#filters').hidden=['sources','graduation','restricted','docentes'].includes(state.view);$('#year-controls').hidden=false;
 
   $('#filter-caption').textContent=`${selectedYears().length} ano(s) · ${state.selected.size} programa(s)`;
 
   if(state.view==='graduation'){$('#view-content').innerHTML='<div id="grad-root"></div>';window.SIAPOS_GRADUACAO?.setTab(state.gradTab);window.SIAPOS_GRADUACAO?.mount($('#grad-root'));}
 
+  else if(state.view==='docentes'){$('#view-content').innerHTML='<div id="docentes-root"></div>';window.SIAPOS_DOCENTES?.mount($('#docentes-root'));}
+
   else $('#view-content').innerHTML=!['sources','restricted'].includes(state.view)&&!state.selected.size?empty():({series,disciplines,restricted,sources})[state.view]();
+
+  const footerPeriod=$('.page-footer span:last-child');if(footerPeriod)footerPeriod.textContent=state.view==='docentes'?'Credenciamento vigente · Fontes e cobertura acompanham as contagens':fullPeriod+' · Fontes e limites acompanham os indicadores';
 
   $('#post-view-controls').innerHTML=postControls;$('#post-view-controls').hidden=!postControls;
   if(!graduation){if(focusId)document.querySelector('#'+focusId)?.focus({preventScroll:true});else if(focusData)document.querySelector('[data-'+focusData[0]+'="'+esc(focusData[1])+'"]')?.focus({preventScroll:true});}
