@@ -8,6 +8,13 @@
   const format=cell=>numeric(cell)?new Intl.NumberFormat('pt-BR').format(cell.value):cell?.status==='NA'?'NA':'ND';
   const countLabels={total:'Total do departamento',own:'Na pós associada',other:'Em outras pós',any:'Em alguma pós',none:'Sem credenciamento nos programas consultados'};
   const countNotes={total:'Docentes lotados no departamento, segundo o universo e a data da fonte do quadro docente.',own:'Pessoas distintas com credenciamento vigente em pelo menos um programa associado ao departamento.',other:'Pessoas distintas com credenciamento vigente em pelo menos um dos demais programas consultados.',any:'Pessoas distintas com credenciamento vigente em pelo menos um programa consultado. Quem está em vários programas é contado uma única vez.',none:'Docentes do quadro sem credenciamento vigente nos programas consultados. Não afirma ausência de credenciamento em programas fora da cobertura.'};
+  const categories=[
+    {id:'own_only',label:'Só na pós associada',formula:'Em alguma pós menos Em outras pós.'},
+    {id:'both',label:'Na associada e em outras',formula:'Na pós associada mais Em outras pós menos Em alguma pós.'},
+    {id:'other_only',label:'Só em outras',formula:'Em alguma pós menos Na pós associada.'},
+    {id:'none',label:'Sem credenciamento',formula:'Total do departamento menos Em alguma pós, considerando os programas consultados.'}
+  ];
+  const percent=new Intl.NumberFormat('pt-BR',{style:'percent',maximumFractionDigits:1});
   let root=null,dataset=null,selected=null,sources=new Map(),references=new Map(),referenceId=0;
 
   function accessLabel(access){return access==='public'?'Fonte pública':/authentic|janus/.test(String(access||''))?'Consulta autenticada':'Fonte documentada';}
@@ -16,6 +23,37 @@
   function programName(id){const p=(dataset.programs||[]).find(p=>p.id===id);return p?programLabel(p):id;}
   function ownLabel(department){return (department.own_program_ids||[]).map(programName).join('; ')||'Sem associação definida';}
   function activeDepartments(){return dataset.departments.filter(d=>selected.has(d.id));}
+  function facultyComposition(department){
+    const counts=department.counts||{};
+    const cells=['total','own','other','any'].map(key=>getCell(counts[key]));
+    const [total,own,other,any]=cells.map(cell=>cell.value);
+    const sourceIds=[...new Set(cells.flatMap(cell=>cell.source_ids||[]))];
+    let note='';
+    if(dataset.scope?.complete!==true)note='Cobertura incompleta dos programas consultados.';
+    else if(!cells.every(numeric))note='Faltam contagens verificadas para a distribuição.';
+    else if(any>total||any<Math.max(own,other)||any>own+other||
+            (numeric(counts.none)&&counts.none.value!==total-any))note='As contagens do departamento são incompatíveis entre si.';
+    const values=note?{}:{own_only:any-other,both:own+other-any,other_only:any-own,none:total-any};
+    return {total:numeric(cells[0])?total:null,values,sourceIds,note};
+  }
+  function compositionHTML(departments){
+    const legend=categories.map(c=>`<li><i class="docentes-category-swatch" data-category="${c.id}" aria-hidden="true"></i>${esc(c.label)}</li>`).join('');
+    const rows=departments.map(d=>{
+      const {total,values,note}=facultyComposition(d);
+      const hasBar=!note&&total>0;
+      const bar=hasBar?`<span class="docentes-composition-bar" aria-hidden="true">${categories.map(c=>
+        `<span class="docentes-composition-segment" data-category="${c.id}" data-value="${values[c.id]}" style="flex-grow:${values[c.id]}"></span>`).join('')}</span>`:
+        `<span class="docentes-composition-message">${note?'ND · '+esc(note):'Nenhum docente no quadro.'}</span>`;
+      const details=categories.map(c=>{
+        const count=values[c.id];
+        const value=note?'ND':total===0?'0 · percentual indefinido':`${count} de ${total} · ${percent.format(count/total)}`;
+        return `<div><dt>${esc(c.label)}</dt><dd>${esc(value)}</dd></div>`;
+      }).join('');
+      return `<details class="docentes-composition-row" data-docente-composition="${esc(d.id)}"><summary><strong>${esc(d.id)}</strong>${bar}<span class="docentes-composition-total">${total===null?'Total ND':esc(total)+' docentes'}</span><span class="docentes-visually-hidden">Contagens e percentuais por categoria</span></summary><dl class="docentes-composition-details">${details}</dl></details>`;
+    }).join('');
+    const scope=dataset.scope?.label;
+    return `<section class="docentes-composition" aria-labelledby="docentes-composition-title"><div class="section-heading"><div><h2 id="docentes-composition-title">Distribuição do credenciamento</h2><p>Percentual do quadro por departamento${scope?' · '+esc(scope):''}</p></div></div><ul class="docentes-composition-legend" aria-label="Categorias de credenciamento">${legend}</ul>${rows}</section>`;
+  }
   function cellHTML(raw,department,label,definition){
     const cell=getCell(raw),id='doc-'+referenceId++;
     references.set(id,{cell,department,label,definition});
@@ -52,17 +90,27 @@
     if(!selected)selected=new Set(dataset.departments.map(d=>d.id));
     sources=new Map((dataset.sources||[]).map(s=>[s.id,s]));references=new Map();referenceId=0;
     const focused=document.activeElement?.dataset?.docenteDepartment,departments=activeDepartments();
-    root.innerHTML=filterHTML()+(departments.length?`${dataset.scope?.complete===false?`<div class="callout warning"><strong>Cobertura parcial.</strong> ${esc(dataset.scope.description||'As contagens se limitam aos programas efetivamente consultados. Consulte as fontes e os valores ND.')}</div>`:''}${summaryHTML(departments)}${matrixHTML(departments)}${methodsHTML(departments)}<section class="panel indicators-download" aria-label="Download dos dados docentes"><div><h2>Dados desta seleção</h2><p>Quadro docente, credenciamentos por programa, data de referência e fontes no mesmo arquivo.</p></div><button class="button" type="button" data-docente-csv>Baixar tabelas CSV ↓</button></section>`:'<div class="empty-state"><h2>Selecione pelo menos um departamento</h2><button class="button" type="button" data-docente-all>Selecionar todos</button></div>');
+    root.innerHTML=filterHTML()+(departments.length?`${dataset.scope?.complete===false?`<div class="callout warning"><strong>Cobertura parcial.</strong> ${esc(dataset.scope.description||'As contagens se limitam aos programas efetivamente consultados. Consulte as fontes e os valores ND.')}</div>`:''}${summaryHTML(departments)}${compositionHTML(departments)}${matrixHTML(departments)}${methodsHTML(departments)}<section class="panel indicators-download" aria-label="Download dos dados docentes"><div><h2>Dados desta seleção</h2><p>Quadro docente, credenciamentos por programa, data de referência e fontes no mesmo arquivo.</p></div><button class="button" type="button" data-docente-csv>Baixar tabelas CSV ↓</button></section>`:'<div class="empty-state"><h2>Selecione pelo menos um departamento</h2><button class="button" type="button" data-docente-all>Selecionar todos</button></div>');
     if(focused)root.querySelector('[data-docente-department="'+CSS.escape(focused)+'"]')?.focus({preventScroll:true});
     window.SIAPOS_FILTERS?.refresh();
   }
   function csvRows(){
-    const rows=[['data_referencia','departamento','nome_departamento','indicador','programa','programa_associado','valor','status','escopo','cobertura_completa','criterio','fontes','urls','data_consulta','localizadores','recorte_quadro','cobertura_detalhada','programa_id','unidade_programa']];
-    const add=(department,key,program,raw,definition)=>{
+    const rows=[['data_referencia','departamento','nome_departamento','indicador','programa','programa_associado','valor','status','escopo','cobertura_completa','criterio','fontes','urls','data_consulta','localizadores','recorte_quadro','cobertura_detalhada','programa_id','unidade_programa','denominador_docentes','percentual_do_departamento']];
+    const add=(department,key,program,raw,definition,composition)=>{
       const cell=getCell(raw),refs=(cell.source_ids||[]).map(id=>sources.get(id)).filter(Boolean);
-      rows.push([dataset.as_of,department.id,department.name||'',key,program?.name||'',program?(department.own_program_ids||[]).includes(program.id)?'sim':'não':ownLabel(department),numeric(cell)?cell.value:'',numeric(cell)?'verified':cell.status==='NA'?'NA':'ND',dataset.scope?.label||'',dataset.scope?.complete===true?'sim':dataset.scope?.complete===false?'não':'não informada',[definition,numeric(cell)?'':cell.note].filter(Boolean).join(' '),refs.map(s=>s.title||s.id).join(' | '),refs.map(s=>safeURL(s.url)||'').join(' | '),refs.map(s=>s.retrieved_on||'').join(' | '),refs.map(s=>s.locator||'').join(' | '),dataset.scope?.roster_label||'',dataset.scope?.description||'',program?.id||'',program?.unit_label||'']);
+      const hasValue=composition?cell.status==='calculated':numeric(cell);
+      const share=composition?.total>0&&hasValue?Number((100*cell.value/composition.total).toFixed(6)):'';
+      rows.push([dataset.as_of,department.id,department.name||'',key,program?.name||'',program?(department.own_program_ids||[]).includes(program.id)?'sim':'não':ownLabel(department),hasValue?cell.value:'',hasValue?cell.status:cell.status==='NA'?'NA':'ND',dataset.scope?.label||'',dataset.scope?.complete===true?'sim':dataset.scope?.complete===false?'não':'não informada',[definition,hasValue?'':cell.note].filter(Boolean).join(' '),refs.map(s=>s.title||s.id).join(' | '),refs.map(s=>safeURL(s.url)||'').join(' | '),refs.map(s=>s.retrieved_on||'').join(' | '),refs.map(s=>s.locator||'').join(' | '),dataset.scope?.roster_label||'',dataset.scope?.description||'',program?.id||'',program?.unit_label||'',composition?.total??'',share]);
     };
     activeDepartments().forEach(d=>{Object.entries(countLabels).forEach(([key,label])=>add(d,label,null,d.counts?.[key],countNotes[key]));(dataset.programs||[]).forEach(p=>add(d,'Credenciamento por programa',p,d.program_counts?.[p.id],'Pessoas distintas com credenciamento vigente no programa.'));});
+    for(const department of activeDepartments()){
+      const composition=facultyComposition(department);
+      for(const category of categories){
+        const cell={value:composition.values[category.id],status:composition.note?'ND':'calculated',
+          note:composition.note,source_ids:composition.sourceIds};
+        add(department,category.label,null,cell,category.formula+' Percentual sobre o total do departamento.',composition);
+      }
+    }
     return rows;
   }
   function exportCSV(){
