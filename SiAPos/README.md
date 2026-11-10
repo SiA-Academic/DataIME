@@ -18,7 +18,7 @@ As contagens distinguem o total do departamento, pessoas credenciadas nos progra
 
 As colunas de programas associados e de outros programas podem conter as mesmas pessoas. Credenciamentos em mais de um nível, área ou programa não multiplicam a contagem de pessoas em cada grupo. Os totais de pessoas são calculados na preparação dos dados; a interface não soma as colunas da matriz para reconstruí-los. A ausência de credenciamento só se refere aos programas com cobertura comprovada; nenhuma lacuna de consulta é tratada como zero.
 
-Cada barra distribui o quadro do departamento em quatro grupos exclusivos. As categorias indicam credenciamento só na pós associada, na associada e em outras, só em outras ou em nenhum dos cinco programas. Ao abrir a linha, aparecem as contagens e os percentuais.
+Cada barra representa 100% do quadro de um departamento. Os quatro percentuais indicam credenciamento só na pós associada, na associada e em outras, só em outras ou em nenhum dos cinco programas. Os percentuais aparecem na barra ou, nos segmentos estreitos e nas categorias com 0%, logo abaixo. Ao abrir a linha, aparecem também as contagens.
 
 Cada contagem abre seus critérios, fontes, data de consulta e cobertura. `ND` identifica contagem não determinada; `NA`, recorte não aplicável; zero exige comprovação. O filtro de departamentos e o CSV desta visão são independentes dos filtros de graduação e pós. O CSV inclui as contagens, a matriz por programa e as referências da seleção, conservando o código do programa e sua unidade para distinguir programas homônimos. A unidade informada nos dados também aparece nos cabeçalhos e detalhes de origem. O arquivo público `docentes-data.js` contém somente agregados, sem nomes ou identificadores de docentes.
 

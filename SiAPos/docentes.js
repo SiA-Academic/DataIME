@@ -36,20 +36,35 @@
     const values=note?{}:{own_only:any-other,both:own+other-any,other_only:any-own,none:total-any};
     return {total:numeric(cells[0])?total:null,values,sourceIds,note};
   }
+  // Keep each percentage visible once, including shares too small to fit on the bar.
+  const barObserver=window.ResizeObserver&&new window.ResizeObserver(entries=>{
+    for(const {target:bar} of entries){
+      const summary=bar.closest('summary');
+      for(const segment of bar.children){
+        const label=segment.firstElementChild;
+        const fits=segment.clientWidth>=label.offsetWidth+8;
+        label.classList.toggle('is-inline',fits);
+        summary.querySelector('[data-docente-share="'+segment.dataset.category+'"]').classList.toggle('docentes-visually-hidden',fits);
+      }
+    }
+  });
   function compositionHTML(departments){
     const legend=categories.map(c=>`<li><i class="docentes-category-swatch" data-category="${c.id}" aria-hidden="true"></i>${esc(c.label)}</li>`).join('');
     const rows=departments.map(d=>{
       const {total,values,note}=facultyComposition(d);
       const hasBar=!note&&total>0;
+      const share=c=>percent.format(values[c.id]/total);
       const bar=hasBar?`<span class="docentes-composition-bar" aria-hidden="true">${categories.map(c=>
-        `<span class="docentes-composition-segment" data-category="${c.id}" data-value="${values[c.id]}" style="flex-grow:${values[c.id]}"></span>`).join('')}</span>`:
+        `<span class="docentes-composition-segment" data-category="${c.id}" data-value="${values[c.id]}" style="flex-grow:${values[c.id]}"><span class="docentes-segment-label">${share(c)}</span></span>`).join('')}</span>`:
         `<span class="docentes-composition-message">${note?'ND · '+esc(note):'Nenhum docente no quadro.'}</span>`;
+      const shares=hasBar?`<span class="docentes-composition-shares">${categories.map(c=>
+        `<span data-docente-share="${c.id}"><i class="docentes-category-swatch" data-category="${c.id}" aria-hidden="true"></i>${esc(c.label)} <b>${share(c)}</b></span>`).join('')}</span>`:'';
       const details=categories.map(c=>{
         const count=values[c.id];
         const value=note?'ND':total===0?'0 · percentual indefinido':`${count} de ${total} · ${percent.format(count/total)}`;
         return `<div><dt>${esc(c.label)}</dt><dd>${esc(value)}</dd></div>`;
       }).join('');
-      return `<details class="docentes-composition-row" data-docente-composition="${esc(d.id)}"><summary><strong>${esc(d.id)}</strong>${bar}<span class="docentes-composition-total">${total===null?'Total ND':esc(total)+' docentes'}</span><span class="docentes-visually-hidden">Contagens e percentuais por categoria</span></summary><dl class="docentes-composition-details">${details}</dl></details>`;
+      return `<details class="docentes-composition-row" data-docente-composition="${esc(d.id)}"><summary><strong>${esc(d.id)}</strong>${bar}<span class="docentes-composition-total">${total===null?'Total ND':esc(total)+' docentes'}</span>${shares}</summary><dl class="docentes-composition-details">${details}</dl></details>`;
     }).join('');
     const scope=dataset.scope?.label;
     return `<section class="docentes-composition" aria-labelledby="docentes-composition-title"><div class="section-heading"><div><h2 id="docentes-composition-title">Distribuição do credenciamento</h2><p>Percentual do quadro por departamento${scope?' · '+esc(scope):''}</p></div></div><ul class="docentes-composition-legend" aria-label="Categorias de credenciamento">${legend}</ul>${rows}</section>`;
@@ -82,6 +97,7 @@
   }
   function render(){
     if(!root)return;
+    barObserver?.disconnect();
     dataset=window.DOCENTES_DATA;
     if(!dataset||!Array.isArray(dataset.departments)||!dataset.departments.length){
       root.innerHTML='<div class="empty-state"><h2>Dados docentes indisponíveis</h2><p>A base de docentes ainda não está disponível nesta versão do painel. Nenhuma ausência é apresentada como zero.</p></div>';
@@ -92,6 +108,7 @@
     const focused=document.activeElement?.dataset?.docenteDepartment,departments=activeDepartments();
     root.innerHTML=filterHTML()+(departments.length?`${dataset.scope?.complete===false?`<div class="callout warning"><strong>Cobertura parcial.</strong> ${esc(dataset.scope.description||'As contagens se limitam aos programas efetivamente consultados. Consulte as fontes e os valores ND.')}</div>`:''}${summaryHTML(departments)}${compositionHTML(departments)}${matrixHTML(departments)}${methodsHTML(departments)}<section class="panel indicators-download" aria-label="Download dos dados docentes"><div><h2>Dados desta seleção</h2><p>Quadro docente, credenciamentos por programa, data de referência e fontes no mesmo arquivo.</p></div><button class="button" type="button" data-docente-csv>Baixar tabelas CSV ↓</button></section>`:'<div class="empty-state"><h2>Selecione pelo menos um departamento</h2><button class="button" type="button" data-docente-all>Selecionar todos</button></div>');
     if(focused)root.querySelector('[data-docente-department="'+CSS.escape(focused)+'"]')?.focus({preventScroll:true});
+    if(barObserver)root.querySelectorAll('.docentes-composition-bar').forEach(bar=>barObserver.observe(bar));
     window.SIAPOS_FILTERS?.refresh();
   }
   function csvRows(){
