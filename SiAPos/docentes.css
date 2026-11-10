@@ -39,14 +39,13 @@
 .docentes-associada-pct,.docentes-associada-fracao{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 @media(max-width:780px){.docentes-associada-row{grid-template-columns:34px minmax(0,1fr) 58px;grid-template-areas:"dept programa pct" ". barra fracao";column-gap:7px}}
 @media print{.docentes-associada{break-inside:avoid}.docentes-associada-track{print-color-adjust:exact}}
-.docentes-composition{margin:0 0 24px;--faculty-own:#275c9a;--faculty-both:#b47423;--faculty-other:#267d75;--faculty-none:#b6c0cd}
-:root[data-theme=dark] .docentes-composition{--faculty-own:#84b5f0;--faculty-both:#e8ad60;--faculty-other:#62c4b4;--faculty-none:#65758a}
+.docentes-composition{margin:0 0 24px;--faculty-own:#275c9a;--faculty-other:#267d75;--faculty-none:#b6c0cd}
+:root[data-theme=dark] .docentes-composition{--faculty-own:#84b5f0;--faculty-other:#62c4b4;--faculty-none:#65758a}
 .docentes-composition .section-heading{margin-bottom:8px}
 .docentes-composition-legend{display:flex;flex-wrap:wrap;gap:5px 16px;list-style:none;margin:0 0 8px;padding:0;color:var(--ink);font-size:11px}
 .docentes-composition-legend li{display:inline-flex;align-items:center;gap:6px}
 .docentes-category-swatch{width:10px;height:10px;border-radius:2px;flex:none}
-.docentes-composition [data-category=own_only]{background:var(--faculty-own)}
-.docentes-composition [data-category=both]{background:var(--faculty-both)}
+.docentes-composition [data-category=own]{background:var(--faculty-own)}
 .docentes-composition [data-category=other_only]{background:var(--faculty-other)}
 .docentes-composition [data-category=none]{background:var(--faculty-none)}
 .docentes-composition-row{border-bottom:1px solid var(--line)}
@@ -60,14 +59,14 @@
 .docentes-composition-segment[data-value="0"]{display:none}
 .docentes-segment-label{visibility:hidden;white-space:nowrap;font-size:12px;font-weight:650;line-height:1;font-variant-numeric:tabular-nums;color:white}
 .docentes-segment-label.is-inline{visibility:visible}
-.docentes-composition-segment:is([data-category=both],[data-category=none]) .docentes-segment-label,:root[data-theme=dark] .docentes-segment-label{color:#091621}
+.docentes-composition-segment[data-category=none] .docentes-segment-label,:root[data-theme=dark] .docentes-segment-label{color:#091621}
 :root[data-theme=dark] .docentes-composition-segment[data-category=none] .docentes-segment-label{color:white}
 .docentes-composition-shares{grid-column:3/-1;display:flex;flex-wrap:wrap;column-gap:14px}
 .docentes-composition-shares>[data-docente-share]:not(.docentes-visually-hidden){display:inline-flex;align-items:center;gap:4px;margin-top:3px;font-size:11px;color:var(--ink);font-variant-numeric:tabular-nums}
 .docentes-composition-shares .docentes-category-swatch{width:7px;height:7px}
 .docentes-composition-total,.docentes-composition-message{font-size:11px;color:var(--muted)}
 .docentes-composition-total{text-align:right;font-variant-numeric:tabular-nums}
-.docentes-composition-details{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 15px;margin:0 0 10px 20px}
+.docentes-composition-details{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 15px;margin:0 0 10px 20px}
 .docentes-composition-details dt{font-size:11px;color:var(--muted)}
 .docentes-composition-details dd{margin:3px 0 0;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
 @media(max-width:650px){.docentes-composition-row>summary{min-height:44px;grid-template-columns:8px 33px minmax(0,1fr) 69px;column-gap:6px}.docentes-composition-shares{grid-column:2/-1;column-gap:10px}.docentes-composition-details{grid-template-columns:repeat(2,minmax(0,1fr));margin-left:14px}}

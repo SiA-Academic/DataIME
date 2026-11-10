@@ -8,11 +8,15 @@
   const format=cell=>numeric(cell)?new Intl.NumberFormat('pt-BR').format(cell.value):cell?.status==='NA'?'NA':'ND';
   const countLabels={total:'Total do departamento',own:'Na pós associada',other:'Em outras pós',any:'Em alguma pós',none:'Sem credenciamento nos programas consultados'};
   const countNotes={total:'Docentes lotados no departamento, segundo o universo e a data da fonte do quadro docente.',own:'Pessoas distintas com credenciamento vigente em pelo menos um programa associado ao departamento.',other:'Pessoas distintas com credenciamento vigente em pelo menos um dos demais programas consultados.',any:'Pessoas distintas com credenciamento vigente em pelo menos um programa consultado. Quem está em vários programas é contado uma única vez.',none:'Docentes do quadro sem credenciamento vigente nos programas consultados. Não afirma ausência de credenciamento em programas fora da cobertura.'};
-  const categories=[
-    {id:'own_only',label:'Só na pós associada',formula:'Em alguma pós menos Em outras pós.'},
-    {id:'both',label:'Na associada e em outras',formula:'Na pós associada mais Em outras pós menos Em alguma pós.'},
+  const outsideAssociated=[
     {id:'other_only',label:'Só em outras',formula:'Em alguma pós menos Na pós associada.'},
     {id:'none',label:'Sem credenciamento',formula:'Total do departamento menos Em alguma pós, considerando os programas consultados.'}
+  ];
+  const categories=[{id:'own',label:countLabels.own},...outsideAssociated];
+  const csvBreakdown=[
+    {id:'own_only',label:'Só na pós associada',formula:'Em alguma pós menos Em outras pós.'},
+    {id:'both',label:'Na associada e em outras',formula:'Na pós associada mais Em outras pós menos Em alguma pós.'},
+    ...outsideAssociated
   ];
   const percent=new Intl.NumberFormat('pt-BR',{style:'percent',maximumFractionDigits:1});
   let root=null,dataset=null,selected=null,sources=new Map(),references=new Map(),referenceId=0;
@@ -61,7 +65,7 @@
     else if(!cells.every(numeric))note='Faltam contagens verificadas para a distribuição.';
     else if(any>total||any<Math.max(own,other)||any>own+other||
             (numeric(counts.none)&&counts.none.value!==total-any))note='As contagens do departamento são incompatíveis entre si.';
-    const values=note?{}:{own_only:any-other,both:own+other-any,other_only:any-own,none:total-any};
+    const values=note?{}:{own,own_only:any-other,both:own+other-any,other_only:any-own,none:total-any};
     return {total:numeric(cells[0])?total:null,values,sourceIds,note};
   }
   // Keep each percentage visible once, including shares too small to fit on the bar.
@@ -153,7 +157,7 @@
     activeDepartments().forEach(d=>{Object.entries(countLabels).forEach(([key,label])=>add(d,label,null,d.counts?.[key],countNotes[key]));(dataset.programs||[]).forEach(p=>add(d,'Credenciamento por programa',p,d.program_counts?.[p.id],'Pessoas distintas com credenciamento vigente no programa.'));});
     for(const department of activeDepartments()){
       const composition=facultyComposition(department);
-      for(const category of categories){
+      for(const category of csvBreakdown){
         const cell={value:composition.values[category.id],status:composition.note?'ND':'calculated',
           note:composition.note,source_ids:composition.sourceIds};
         add(department,category.label,null,cell,category.formula+' Percentual sobre o total do departamento.',composition);
