@@ -10,25 +10,25 @@
 
   <meta name="color-scheme" content="light dark">
 
-  <meta name="description" content="SiAPos — graduação e pós-graduação do IME-USP. Cursos, programas, séries históricas, disciplinas e currículos, com fontes e cobertura explícitas.">
+  <meta name="description" content="SiAPos — graduação e pós-graduação do IME-USP. Cursos, programas, titulações e matrículas, disciplinas e currículos, com fontes e cobertura explícitas.">
 
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'self'">
 
   <title>SiAPos · Graduação e pós-graduação do IME-USP</title>
 
-  <link rel="stylesheet" href="styles.css?v=indicadores-pos-20261110-18">
+  <link rel="stylesheet" href="styles.css?v=titulos-menu-20261110-22">
 
-  <link rel="stylesheet" href="grad.css?v=indicadores-pos-20261110-18">
+  <link rel="stylesheet" href="grad.css?v=titulos-menu-20261110-22">
 
-  <script src="data.js?v=indicadores-pos-20261110-18" defer></script>
+  <script src="data.js?v=titulos-menu-20261110-22" defer></script>
 
-  <script src="model.js?v=indicadores-pos-20261110-18" defer></script>
+  <script src="model.js?v=titulos-menu-20261110-22" defer></script>
 
-  <script src="graduacao-data.js?v=indicadores-pos-20261110-18" defer></script>
+  <script src="graduacao-data.js?v=titulos-menu-20261110-22" defer></script>
 
-  <script src="grad.js?v=indicadores-pos-20261110-18" defer></script>
+  <script src="grad.js?v=titulos-menu-20261110-22" defer></script>
 
-  <script src="app.js?v=indicadores-pos-20261110-18" defer></script>
+  <script src="app.js?v=titulos-menu-20261110-22" defer></script>
 
 </head>
 
@@ -38,52 +38,39 @@
 
   <aside class="sidebar">
 
-    <a href="#overview" class="brand" aria-label="SiAPos — início"><span class="brand-mark">Si</span><span><strong>SiAPos</strong><small>Graduação e pós · IME-USP</small></span></a>
+    <a href="#series" class="brand" aria-label="SiAPos — início"><span class="brand-mark">Si</span><span><strong>SiAPos</strong><small>Graduação e pós · IME-USP</small></span></a>
 
-    <div class="nav-label">ÁREA ACADÊMICA</div>
+    <div class="sidebar-sections">
+      <section class="sidebar-section" aria-labelledby="graduation-nav-label">
+        <h2 class="nav-label" id="graduation-nav-label">Graduação</h2>
+    <nav aria-label="Visões da graduação" id="graduation-nav">
 
-    <nav aria-label="Área acadêmica" id="area-nav" class="area-nav">
+      <a href="#graduation/series" data-grad-view="series"><span class="nav-number">01</span><span><strong>Titulações e matrículas</strong><small>Evolução e comparação</small></span></a>
 
-      <a href="#graduation" data-area="graduation"><strong>Graduação</strong></a>
+      <a href="#graduation/department" data-grad-view="department"><span class="nav-number">02</span><span><strong>Disciplinas</strong><small>Cadastro de turmas</small></span></a>
 
-      <a href="#overview" data-area="postgraduate"><strong>Pós-graduação</strong></a>
+      <a href="#graduation/anuario" data-grad-view="anuario"><span class="nav-number">03</span><span><strong>Estatísticas do Anuário</strong><small>Departamentos e unidade</small></span></a>
+
+      <a href="#graduation/sources" data-grad-view="sources"><span class="nav-number">04</span><span><strong>Fontes e critérios</strong><small>Proveniência e cobertura</small></span></a>
 
     </nav>
-
-    <div class="nav-label section-nav-label" id="section-nav-label">PÓS-GRADUAÇÃO</div>
-
+      </section>
+      <section class="sidebar-section" aria-labelledby="postgraduate-nav-label">
+        <h2 class="nav-label" id="postgraduate-nav-label">Pós-graduação</h2>
     <nav aria-label="Visões da pós-graduação" id="main-nav">
 
-      <a href="#overview" data-view="overview"><span class="nav-number">01</span><span><strong>Visão geral</strong><small>Formação e matrículas</small></span></a>
+      <a href="#series" data-view="series"><span class="nav-number">01</span><span><strong>Titulações e matrículas</strong><small>Evolução e comparação</small></span></a>
 
-      <a href="#series" data-view="series"><span class="nav-number">02</span><span><strong>Séries históricas</strong><small>Evolução e comparação</small></span></a>
-
-      <a href="#disciplines" data-view="disciplines"><span class="nav-number">03</span><span><strong>Disciplinas</strong><small>Turmas e participação</small></span></a>
+      <a href="#disciplines" data-view="disciplines"><span class="nav-number">02</span><span><strong>Disciplinas</strong><small>Turmas e participação</small></span></a>
 
 
-      <a href="#sources" data-view="sources"><span class="nav-number">04</span><span><strong>Fontes e critérios</strong><small>Proveniência e cobertura</small></span></a>
+      <a href="#restricted" data-view="restricted" class="restricted-nav-link"><span class="nav-number">03</span><span><strong>Dados de acesso específico</strong><small>Originais fornecidos · separados</small></span></a>
 
-      <a href="#restricted" data-view="restricted" class="restricted-nav-link"><span class="nav-number">05</span><span><strong>Dados de acesso específico</strong><small>Originais fornecidos · separados</small></span></a>
+      <a href="#sources" data-view="sources" class="sources-nav-link"><span class="nav-number">04</span><span><strong>Fontes e critérios</strong><small>Proveniência e cobertura</small></span></a>
 
     </nav>
-
-    <nav aria-label="Visões da graduação" id="graduation-nav" hidden>
-
-      <a href="#graduation/series" data-grad-view="series"><span class="nav-number">01</span><span><strong>Séries por curso</strong><small>Evolução e comparação</small></span></a>
-
-      <a href="#graduation/department" data-grad-view="department"><span class="nav-number">02</span><span><strong>Disciplinas no Júpiter</strong><small>Cadastro de turmas</small></span></a>
-
-      <a href="#graduation/coverage" data-grad-view="coverage"><span class="nav-number">03</span><span><strong>Cobertura e lacunas</strong><small>O que temos e o que falta</small></span></a>
-
-      <a href="#graduation/additional" data-grad-view="additional"><span class="nav-number">04</span><span><strong>Dados complementares</strong><small>Recortes fora da comparação</small></span></a>
-
-      <a href="#graduation/anuario" data-grad-view="anuario"><span class="nav-number">05</span><span><strong>Estatísticas do Anuário</strong><small>Departamentos e unidade</small></span></a>
-
-      <a href="#graduation/curricula" data-grad-view="curricula"><span class="nav-number">06</span><span><strong>Currículos</strong><small>Variantes e cargas</small></span></a>
-
-      <a href="#graduation/sources" data-grad-view="sources"><span class="nav-number">07</span><span><strong>Fontes e critérios</strong><small>Proveniência e cobertura</small></span></a>
-
-    </nav>
+      </section>
+    </div>
 
     <div class="sidebar-bottom"><span class="local-dot"></span> Graduação e pós-graduação<small>Dados agregados. Sem cadastro de alunos.</small></div>
 

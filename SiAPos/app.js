@@ -50,9 +50,10 @@
 
  const admissionAllowed=r=>{const p=r.provenance,ids=p?.source_ids||[];return p?.admissible_for_main===true&&!/specific|restric/i.test(String(p.access||''))&&Array.isArray(ids)&&ids.length>0&&ids.every(id=>sourceAdmittedRecursively(id));};
 
- const records=D.metrics.filter(admissionAllowed).map((r,i)=>({...r,_id:i,program:r.program||r.program_key,level:r.level??null}));
+ const excludedMetrics=new Set(['active_april1','nominal_class_hours','applications']);
+ const records=D.metrics.filter(r=>!excludedMetrics.has(r.metric)&&admissionAllowed(r)).map((r,i)=>({...r,_id:i,program:r.program||r.program_key,level:r.level??null}));
 
- const restrictedRecords=(RD.metrics||[]).map(r=>({...r,_id:null,_restricted:true,program:r.program||r.program_key,level:r.level??null}));
+ const restrictedRecords=(RD.metrics||[]).filter(r=>!excludedMetrics.has(r.metric)).map(r=>({...r,_id:null,_restricted:true,program:r.program||r.program_key,level:r.level??null}));
 
  const restrictedIndex=new Map(restrictedRecords.map(r=>[[r.section,r.metric,r.year,r.program,r.level||''].join('|'),r]));
 
@@ -82,24 +83,24 @@
 
  const unitLabel=D.unit_label||D.unit_name||D.unit?.name||D.unit?.short_name||D.institution?.unit_label||D.institution?.unit_name||'programas configurados';
 
- const titles={overview:['INDICADORES DA PÓS-GRADUAÇÃO','Pós-graduação em números',''],series:['SÉRIES HISTÓRICAS · 2012–2025','Formação e matrículas',''],disciplines:['OFERECIMENTO E PARTICIPAÇÃO','Disciplinas e turmas',''],sources:['TRANSPARÊNCIA DOS INDICADORES','Fontes, cobertura e critérios','Cada número conserva sua referência. Ausência de informação não é zero.']};
+ const titles={series:['TITULAÇÕES E MATRÍCULAS · 2012–2025','Titulações e matrículas',''],disciplines:['OFERECIMENTO E PARTICIPAÇÃO','Disciplinas e turmas',''],sources:['TRANSPARÊNCIA DOS INDICADORES','Fontes, cobertura e critérios','Cada número conserva sua referência. Ausência de informação não é zero.']};
 
  titles.restricted=['ARQUIVOS COM PERFIL ESPECÍFICO','Arquivos com acesso específico','Séries anuais de disciplinas da coleção original.'];
 
- titles.series[0]='SÉRIES HISTÓRICAS · '+fullPeriod;
+ titles.series[0]='TITULAÇÕES E MATRÍCULAS · '+fullPeriod;
 
  const levels={ME:'Mestrado',DO:'Doutorado',DD:'Doutorado direto',DO_DD:'Doutorado (DO + DD)',total:'Total'};
 
  titles.graduation=['','Graduação no IME',''];
 
- const disciplineLabels={courses:'Disciplinas oferecidas',sections:'Turmas',applications:'Inscrições aproximadas',enrollments:'Matrículas em disciplinas',approvals:'Aprovações aproximadas',enrollments_per_section:'Matrículas médias por turma',approval_rate:'Taxa de aprovação aproximada'};
+ const disciplineLabels={courses:'Disciplinas oferecidas',sections:'Turmas',enrollments:'Matrículas em disciplinas',approvals:'Aprovações aproximadas',enrollments_per_section:'Matrículas médias por turma',approval_rate:'Taxa de aprovação aproximada'};
 
- const requestedLabels={nominal_class_hours:'Carga horária nominal de aulas',sections:'Número de turmas',enrollments:'Matrículas em disciplinas',sections_lt5:'Turmas com menos de 5 matriculados',sections_gt30:'Turmas com mais de 30 matriculados',active_april1:'Alunos ativos em 1º de abril',degrees:'Diplomados',credits_offered:'Créditos ofertados',curricular_hours:'Carga horária curricular total'};
+ const requestedLabels={sections:'Número de turmas',enrollments:'Matrículas em disciplinas',sections_lt5:'Turmas com menos de 5 matriculados',sections_5_to_30:'Turmas com 5 a 30 matriculados',sections_gt30:'Turmas com mais de 30 matriculados',degrees:'Diplomados',credits_offered:'Créditos ofertados',curricular_hours:'Carga horária curricular total'};
 
- const extendedDisciplineMetrics=['nominal_class_hours','credits_offered','curricular_hours','sections_lt5','sections_gt30'];
+ const extendedDisciplineMetrics=['credits_offered','curricular_hours','sections_lt5','sections_5_to_30','sections_gt30'];
  const disciplineMetricLabels={...disciplineLabels,...Object.fromEntries(extendedDisciplineMetrics.map(metric=>[metric,requestedLabels[metric]]))};
 
- const state={view:'overview',gradTab:'series',start:periodStart,end:periodEnd,selected:new Set(programOrder),seriesMode:'count',restrictedStart:restrictedYears[0]??periodStart,restrictedEnd:restrictedYears.at(-1)??periodEnd,restrictedSelected:new Set(restrictedPrograms.map(p=>p.id)),restrictedMetric:null};
+ const state={view:'series',gradTab:'series',start:periodStart,end:periodEnd,selected:new Set(programOrder),seriesMode:'count',restrictedStart:restrictedYears[0]??periodStart,restrictedEnd:restrictedYears.at(-1)??periodEnd,restrictedSelected:new Set(restrictedPrograms.map(p=>p.id)),restrictedMetric:null};
 
  let derived=new Map(),nextDerived=0,chartCount=0,exportRows=[],copyText='',toastTimer,postControls='';
 
@@ -131,8 +132,6 @@
 
   if(r?.section==='enrollment')return 'Pública · Anuário USP';
 
-  if(r?.metric==='nominal_class_hours')return 'Fichas e ofertas do Janus · componentes sob as condições indicadas';
-
   return 'Janus autenticado · conforme perfil autorizado';
 
  }
@@ -146,7 +145,7 @@
  function get(section,metric,year,program,level=null){const raw=rawGet(section,metric,year,program,level),common=sharedBuckets.has(bucketKey(section,metric,year,level));return common&&raw?raw:coverageGap(section,metric,year,program,level,raw);}
 
  function metricRecord(section,metric,year,program,level=null){
-  if(section==='requested_2024_2025'||(section==='disciplines'&&extendedDisciplineMetrics.includes(metric))||(section==='enrollment'&&metric==='active_april1')){const r=requestedRecord(metric,year,program,level);return {...r,original_section:r.original_section||r.section,section};}
+  if(section==='requested_2024_2025'||(section==='disciplines'&&extendedDisciplineMetrics.includes(metric))){const r=requestedRecord(metric,year,program,level);return {...r,original_section:r.original_section||r.section,section};}
   return get(section,metric,year,program,level);
  }
 
@@ -188,7 +187,6 @@
 
  function average(section,metric,program,level){const rs=selectedYears().map(y=>viewMetric(section,metric,y,program,level));return {...M.average(rs),section,metric,program,level,unit:shareMode()?'ratio':rs[0]?.unit,year:rangeLabel(),derived_kind:'mean',semantic_note:'Média aritmética dos valores anuais disponíveis. Não é a razão entre os totais acumulados. Anos sem informação são excluídos e a cobertura é indicada.'};}
 
- function total(section,metric,year,level){return {...M.sum(selected().map(p=>viewMetric(section,metric,year,p.id,level))),section,metric,year,level,unit:shareMode()?'ratio':undefined,derived_kind:'selected_program_sum',semantic_note:'Soma dos programas selecionados neste ano. A soma só é exibida quando todos os programas aplicáveis têm valor documentado.'};}
 
  function empty(message='Selecione pelo menos um programa para visualizar os indicadores.'){return `<div class="empty-state"><h2>Nenhum dado nesta seleção</h2><p>${esc(message)}</p><button class="button" data-action="reset">Restaurar filtros</button></div>`;}
 
@@ -292,72 +290,21 @@
 
  }
 
- function insight(section,metric,level){
-
-  const valid=selected().map(p=>({p,r:average(section,metric,p.id,level)})).filter(x=>M.numeric(x.r));
-
-  const ranked=[...valid].sort((a,b)=>b.r.value-a.r.value);
-
-  const first=total(section,metric,state.start,level),last=total(section,metric,state.end,level);
-
-  let change='A comparação entre início e fim exige valores documentados nos dois anos para todos os programas selecionados.';
-
-  if(M.numeric(first)&&M.numeric(last)&&state.start!==state.end){const delta=last.value-first.value;change=`O conjunto selecionado passou de <strong>${esc(format(first))}</strong> em ${state.start} para <strong>${esc(format(last))}</strong> em ${state.end}: ${delta>0?'+':''}${number(shareMode()?delta*100:delta,shareMode()?1:Number.isInteger(delta)?0:1)}${shareMode()?' p.p.':first.value!==0?' ('+(delta>0?'+':'')+number(delta/first.value*100,1)+'%)':''}.`;}else if(state.start===state.end)change='Selecione um intervalo de pelo menos dois anos para comparar início e fim.';
-
-  return `<div class="analysis-grid"><article class="analysis-card"><h3>Comparação no período</h3><p>${ranked.length?`A maior média entre os programas selecionados é <strong>${ranked[0].p.id}: ${esc(format(ranked[0].r,{mean:true}))}</strong>, calculada sobre ${ranked[0].r.n} ano(s) com informação. A comparação é descritiva e não ajusta o tamanho dos programas.`:'Não há valores suficientes para calcular médias.'}</p></article><article class="analysis-card"><h3>Início e fim · ${rangeLabel()}</h3><p>${change}</p></article></div>`;
-
- }
-
  function sourceLimits(section){const notes=(D.source_limits||[]).filter(n=>n.section===section&&(!/^20\d\d:/.test(n.text)||(+n.text.slice(0,4)>=state.start&&+n.text.slice(0,4)<=state.end)));return notes.length?`<div class="callout"><strong>Conferência das fontes · ${esc(unitLabel)}</strong>${notes.map(n=>`<p>${esc(n.text)} <span class="mini-note">${esc([n.source?.sheet,n.source?.cell].filter(Boolean).join('!'))}</span></p>`).join('')}</div>`:'';}
-
- function kpi(title,r,note,tone){let id='d'+nextDerived++;derived.set(id,r);return `<article class="kpi" style="--tone:${tone}"><div class="kpi-label">${esc(title)}</div><div class="kpi-value">${esc(format(r))}</div><div class="kpi-foot">${esc(note)}</div><button class="text-button" data-source="${id}">Ver composição ↗</button></article>`;}
-
- function programSnapshot(year){
-
-  const items=[['Titulações · Mestrado','degrees','degrees','ME'],['Titulações · Doutorado (DO + DD)','degrees','degrees','DO_DD'],['Matrículas regulares · Mestrado','enrollment','regular_enrollment','ME'],['Matrículas regulares · Doutorado','enrollment','regular_enrollment','DO']];
-
-  return `<div class="program-snapshot-grid">${selected().map(p=>`<article class="panel program-snapshot" data-program="${p.id}" style="--program-color:${p.color}"><div class="program-snapshot-heading"><span class="legend-dot" style="background:${p.color}"></span><div><h3>${esc(p.name)}</h3><p>${p.id} · ${year}</p></div></div><dl>${items.map(([text,section,metric,level])=>`<div><dt>${esc(text)}</dt><dd>${cell(get(section,metric,year,p.id,level))}</dd></div>`).join('')}</dl></article>`).join('')}</div>`;
-
- }
-
- function overview(){
-
-  const y=state.end;
-
-  startTableExport();
-
-  for(const level of ['ME','DO_DD','total'])appendAnnualExport('degrees','degrees',level);
-
-  for(const [section,metric,level] of [['degrees','degrees','ME'],['degrees','degrees','DO_DD'],['enrollment','regular_enrollment','ME'],['enrollment','regular_enrollment','DO']]){
-
-   selected().forEach(p=>exportTableRecord('Retrato do ano final',get(section,metric,y,p.id,level)));
-
-   exportTableRecord('Totais do retrato',{...total(section,metric,y,level),program:'Programas selecionados'});
-
-  }
-
-  return `<div class="section-heading"><div><h2>Retrato de ${y}</h2><p>Um quadro por programa selecionado; clique nos valores para ver a fonte.</p></div><span class="period-tag">${y}</span></div>${programSnapshot(y)}<details class="selection-total"><summary>Totais dos ${selected().length} programas selecionados</summary><div class="kpi-grid">${kpi('Titulações · Mestrado',total('degrees','degrees',y,'ME'),'Diplomas concedidos no ano','#245da8')}${kpi('Titulações · Doutorado',total('degrees','degrees',y,'DO_DD'),'Doutorado e doutorado direto','#8a61a5')}${kpi('Matrículas regulares · Mestrado',total('enrollment','regular_enrollment',y,'ME'),'Contagem anual do Anuário','#21877e')}${kpi('Matrículas regulares · Doutorado',total('enrollment','regular_enrollment',y,'DO'),'Contagem anual do Anuário','#b38c25')}</div></details><div class="section-heading"><div><h2>Evolução das titulações</h2><p>Mestrado e doutorado apresentados separadamente.</p></div><span class="period-tag">${rangeLabel()}</span></div><div class="chart-grid">${chart('degrees','degrees','ME','line','Mestrado','Diplomas por ano e programa')}${chart('degrees','degrees','DO_DD','line','Doutorado','DO + DD · diplomas por ano e programa')}</div>${insight('degrees','degrees','total')}<div class="toolbar">${tableDownloadButton()}</div>`;
-
- }
 
  const seriesGroups=[
   {id:'degrees',title:'Titulações',short:'Titulações',section:'degrees',metric:'degrees',levels:['total','ME','DO_DD']},
   {id:'regular',title:'Matrículas regulares',short:'Regulares',section:'enrollment',metric:'regular_enrollment',levels:['total','ME','DO']},
-  {id:'special',title:'Matrículas de alunos especiais',short:'Especiais',section:'enrollment',metric:'special_enrollment',levels:[null]},
-  {id:'active',title:'Alunos ativos em 1º de abril',short:'Ativos em 1º/4',section:'enrollment',metric:'active_april1',levels:['ME','DO_DD'],always:true}
+  {id:'special',title:'Matrículas de alunos especiais',short:'Especiais',section:'enrollment',metric:'special_enrollment',levels:[null]}
  ];
- const disciplineShortLabels={courses:'Disciplinas',sections:'Turmas',applications:'Inscrições',enrollments:'Matrículas',approvals:'Aprovações',enrollments_per_section:'Matrículas/turma',approval_rate:'Taxa de aprovação',nominal_class_hours:'Aulas nominais',credits_offered:'Créditos',curricular_hours:'Carga curricular',sections_lt5:'Turmas < 5',sections_gt30:'Turmas > 30'};
+ const disciplineShortLabels={courses:'Disciplinas',sections:'Turmas',enrollments:'Matrículas',approvals:'Aprovações',enrollments_per_section:'Matrículas/turma',approval_rate:'Taxa de aprovação',credits_offered:'Créditos',curricular_hours:'Carga curricular',sections_lt5:'Turmas < 5',sections_5_to_30:'Turmas 5–30',sections_gt30:'Turmas > 30'};
  const hasMetricData=(section,metric,level)=>records.some(r=>r.section===section&&r.metric===metric&&r.level===(level??null)&&M.numeric(r));
  function indicatorIndex(items,extra=''){
   return `<nav class="indicator-index" aria-label="Indicadores nesta página">${items.map(item=>`<button data-post-jump="${esc(item.id)}" title="Ir para ${esc(item.title)}">${esc(item.short||item.title)}</button>`).join('')}</nav>${extra}`;
  }
- function indicatorCoverage(section,metric,level){
-  const ys=selectedYears();
-  return `<div class="coverage-strip"><span>Cobertura${level?' · '+esc(levels[level]||level):''}</span>${selected().map(p=>`<span><strong>${esc(p.id)}</strong> ${ys.filter(y=>M.numeric(viewMetric(section,metric,y,p.id,level))).length}/${ys.length} anos</span>`).join('')}</div>`;
- }
  function indicatorCharts(section,metric,level){
   const period=(level?(levels[level]||level)+' · ':'')+rangeLabel();
-  return `<div class="post-indicator-period" data-post-section="${section}" data-post-metric="${metric}" data-post-level="${level??''}">${indicatorCoverage(section,metric,level)}<div class="chart-grid">${chart(section,metric,level,'line',period,'')}${chart(section,metric,level,'bar','Média no período',period)}</div></div>`;
+  return `<div class="post-indicator-period" data-post-section="${section}" data-post-metric="${metric}" data-post-level="${level??''}"><div class="chart-grid">${chart(section,metric,level,'line',period,'')}${chart(section,metric,level,'bar','Média no período',period)}</div></div>`;
  }
  function indicatorsDownload(){
   return `<section class="panel indicators-download"><div><h2>Tabelas para download</h2><p>Todos os dados dos indicadores em um único arquivo · ${selected().length} programa(s) · ${esc(rangeLabel())}.</p></div>${tableDownloadButton()}</section>`;
@@ -390,13 +337,11 @@
 
  function requestedApplicability(metric,year,program,level=null){
 
-  const metadata=programs.find(p=>p.id===program),rules=metadata?.not_applicable||[],rule=rules.find(r=>(!r.section||r.section==='requested_2024_2025')&&r.metric===metric&&(r.level??null)===(level??null)),levelsAvailable=metadata?.levels;
-
-  const noDoctorate=metric==='active_april1'&&level==='DO_DD'&&Array.isArray(levelsAvailable)&&!levelsAvailable.some(l=>['DO','DD','DO_DD'].includes(l));
+  const metadata=programs.find(p=>p.id===program),rules=metadata?.not_applicable||[],rule=rules.find(r=>(!r.section||r.section==='requested_2024_2025')&&r.metric===metric&&(r.level??null)===(level??null));
 
   const original=rawGet('requested_2024_2025',metric,year,program,level);if(M.numeric(original))return null;
 
-  if(rule||noDoctorate)return {...(original||{section:'requested_2024_2025',metric,year,program,level,unit:'count'}),_id:null,value:null,status:'NA',applicability_rule:true,source:rule?.source||original?.source||{file:'programas.json',locator:'Regra de aplicabilidade configurada para '+program},origin_label:'Não se aplica · configuração do programa',semantic_note:rule?.note||'O nível não é oferecido por este programa, conforme a configuração de aplicabilidade. Esta linha não é uma lacuna de coleta; valores publicados das outras séries são preservados.'};
+  if(rule)return {...(original||{section:'requested_2024_2025',metric,year,program,level,unit:'count'}),_id:null,value:null,status:'NA',applicability_rule:true,source:rule?.source||original?.source||{file:'programas.json',locator:'Regra de aplicabilidade configurada para '+program},origin_label:'Não se aplica · configuração do programa',semantic_note:rule?.note||'O nível não é oferecido por este programa, conforme a configuração de aplicabilidade. Esta linha não é uma lacuna de coleta; valores publicados das outras séries são preservados.'};
 
   return null;
 
@@ -414,7 +359,7 @@
 
   const gap=coverageGap('requested_2024_2025',metric,year,program,level,raw);
 
-  if(!M.numeric(raw))gap.semantic_note=metric==='active_april1'?'Falta obter a posição histórica de alunos ativos em 1º de abril deste ano, programa e nível no Janus. Matrículas anuais do Anuário USP não substituem essa data de corte.':['sections_lt5','sections_gt30'].includes(metric)?'Falta obter a distribuição de matrículas por turma deste ano e programa. Totais, médias e desvios-padrão não determinam os cortes de tamanho.':['nominal_class_hours','credits_offered','curricular_hours'].includes(metric)?'Falta consolidar as ofertas deste ano e programa e suas versões de fichas, créditos e componentes de carga. Uma ficha atual não comprova automaticamente todas as versões históricas.':'Falta obter o relatório anual de disciplinas com o mesmo recorte para todos os programas configurados. O valor permanece ND; ausência não é zero.';
+  if(!M.numeric(raw))gap.semantic_note=['sections_lt5','sections_5_to_30','sections_gt30'].includes(metric)?'Falta obter a distribuição de matrículas por turma deste ano e programa. Totais, médias e desvios-padrão não determinam os cortes de tamanho.':['credits_offered','curricular_hours'].includes(metric)?'Falta conciliar o histórico de ofertas e seus créditos ou cargas neste recorte. Consulte as pendências em Fontes.':'Falta obter o relatório anual de disciplinas com o mesmo recorte para todos os programas configurados. O valor permanece ND; ausência não é zero.';
 
   return gap;
 
@@ -440,7 +385,7 @@
 
  function restrictedCombinedChart(choice,ps,ys,sharedMax=null){
 
-  const metrics=choice.metrics||restrictedParticipationMetrics,family=choice.family||'participation',chartLabel=choice.label||restrictedParticipationLabel,styles={applications:{dash:'',name:'Inscrições'},enrollments:{dash:'',name:'Matrículas'},approvals:{dash:'7 4',name:'Aprovações',hollow:true},sections:{dash:'',name:'Turmas oferecidas (turmas)'},enrollments_per_section:{dash:'7 4',name:'Matriculados por turma (média)',lighter:true,hollow:true}},tone=(color)=>/^#[a-f0-9]{6}$/i.test(color)?'#'+[1,3,5].map(i=>Math.round(parseInt(color.slice(i,i+2),16)*.78+255*.22).toString(16).padStart(2,'0')).join(''):color,series=ps.flatMap(p=>metrics.map(metric=>{const style=styles[metric]||{dash:'',name:label(choice.section,metric,choice.level)};return {p,metric,style,color:style.lighter?tone(p.color):p.color};})),values=series.flatMap(s=>ys.map(year=>restrictedGet(choice.section,s.metric,year,s.p.id,choice.level))).filter(M.numeric).map(r=>r.value);
+  const metrics=choice.metrics||restrictedParticipationMetrics,family=choice.family||'participation',chartLabel=choice.label||restrictedParticipationLabel,styles={enrollments:{dash:'',name:'Matrículas'},approvals:{dash:'7 4',name:'Aprovações',hollow:true},sections:{dash:'',name:'Turmas oferecidas (turmas)'},enrollments_per_section:{dash:'7 4',name:'Matriculados por turma (média)',lighter:true,hollow:true}},tone=(color)=>/^#[a-f0-9]{6}$/i.test(color)?'#'+[1,3,5].map(i=>Math.round(parseInt(color.slice(i,i+2),16)*.78+255*.22).toString(16).padStart(2,'0')).join(''):color,series=ps.flatMap(p=>metrics.map(metric=>{const style=styles[metric]||{dash:'',name:label(choice.section,metric,choice.level)};return {p,metric,style,color:style.lighter?tone(p.color):p.color};})),values=series.flatMap(s=>ys.map(year=>restrictedGet(choice.section,s.metric,year,s.p.id,choice.level))).filter(M.numeric).map(r=>r.value);
 
   const W=600,L=54,R=18,T=26,B=42,plotH=245,legendColumns=Math.min(2,Math.max(1,series.length)),legendRows=Math.ceil(series.length/legendColumns),H=T+plotH+B+legendRows*22+8,iw=W-L-R,max=Number.isFinite(sharedMax)?Math.max(sharedMax,0):Math.max(...values,0),rough=(max||1)/4,power=10**Math.floor(Math.log10(rough)),step=[1,2,2.5,5,10].find(v=>v*power>=rough)*power,top=Math.ceil((max||1)/step)*step,x=i=>ys.length===1?L+iw/2:L+i*iw/(ys.length-1),y=v=>T+plotH-v/top*plotH,id='chart-'+(++chartCount);let svg='',digits=0;
 
@@ -462,7 +407,7 @@
 
   restrictedChoice();
 
-  const ps=restrictedPrograms.filter(p=>state.restrictedSelected.has(p.id)),ys=restrictedYears.filter(y=>y>=state.restrictedStart&&y<=state.restrictedEnd),allMetrics=['courses','sections','applications','enrollments','approvals','enrollments_per_section','approval_rate'],tableChoices=[...new Map([...allMetrics.map(metric=>({section:'disciplines',metric,level:null})),...restrictedRecords.map(r=>({section:r.section,metric:r.metric,level:r.level}))].map(r=>[[r.section,r.metric,r.level||''].join('|'),r])).values()];
+  const ps=restrictedPrograms.filter(p=>state.restrictedSelected.has(p.id)),ys=restrictedYears.filter(y=>y>=state.restrictedStart&&y<=state.restrictedEnd),allMetrics=['courses','sections','enrollments','approvals','enrollments_per_section','approval_rate'],tableChoices=[...new Map([...allMetrics.map(metric=>({section:'disciplines',metric,level:null})),...restrictedRecords.map(r=>({section:r.section,metric:r.metric,level:r.level}))].map(r=>[[r.section,r.metric,r.level||''].join('|'),r])).values()];
 
   const yearsSelect=(id,value)=>`<select id="${id}">${restrictedYears.map(y=>`<option value="${y}" ${y===value?'selected':''}>${y}</option>`).join('')}</select>`;
 
@@ -494,6 +439,19 @@
 
   const sources=Array.isArray(D.sources)?D.sources:Object.values(D.sources||{});
 
+  const collection=D.collection||{},collectionGaps=Array.isArray(collection.gaps)?collection.gaps:[];
+  const pendingDetails=(metric,program,missing)=>{
+   const reasonByMetric={credits_offered:'credits_and_curricular_hours_history_incomplete',curricular_hours:'credits_and_curricular_hours_history_incomplete',sections_lt5:'individual_section_counts_incomplete',sections_5_to_30:'individual_section_counts_incomplete',sections_gt30:'individual_section_counts_incomplete'},reason=reasonByMetric[metric];
+   if(!reason)return '';
+   const rows=collectionGaps.filter(g=>g.program===program&&g.reason===reason&&missing.includes(g.year));
+   if(!rows.length)return '';
+   const describe=g=>{
+    if(reason==='credits_and_curricular_hours_history_incomplete')return 'Conciliar as ofertas históricas com o relatório anual'+(g.course_codes?.length?': '+g.course_codes.join(', '):'')+'.';
+    return (Number.isFinite(g.missing)?'Falta a contagem individual de matrículas em '+g.missing+' turma(s). ':'')+(g.annual_groups_without_reconciled_history?'Há '+g.annual_groups_without_reconciled_history+' grupo(s) anual(is) com histórico de ofertas ainda não conciliado. ':'')+(g.course_codes?.length?'Disciplinas com contagem pendente: '+g.course_codes.join(', ')+'.':'');
+   };
+   return `<details class="coverage-pending"><summary>O que falta comprovar</summary>${rows.map(g=>`<p><strong>${esc(g.year)}:</strong> ${esc(describe(g)||'Concluir a comprovação deste recorte.')}</p>`).join('')}</details>`;
+  };
+
   startTableExport();
 
   for(const source of sources)exportTableRecord('Fontes',{section:'sources',metric:source.id||'',source,status:'',semantic_note:descriptionFor(source)},{label:source.label||source.title||source.id||'Fonte admitida',origin:sourceAccessLabel(source.access)});
@@ -503,16 +461,17 @@
    const perProgram=programs.map(p=>{
     const rows=years.map(year=>metricRecord(section,metric,year,p.id,level));
     exportCoverage('Cobertura das fontes',rows,years,{section,metric,program:p.id,level});
-    const valid=rows.filter(M.numeric).map(r=>r.year),na=rows.filter(r=>r.status==='NA').map(r=>r.year),outside=rows.filter(r=>r.coverage_restricted).map(r=>r.year),missing=rows.filter(r=>r.status==='ND'&&!r.coverage_restricted).map(r=>r.year),publicSeries=section==='degrees'||(section==='enrollment'&&metric!=='active_april1');
-    return `<article data-coverage-program="${esc(p.id)}"><h4>${esc(p.id)} · ${esc(p.name)}</h4><p>Valores documentados: <strong>${valid.length}/${years.length}</strong> anos · ${esc(yearList(valid))}.</p>${missing.length?`<p><strong>${publicSeries?'Fonte pública ainda não localizada':'Consulta autenticada ainda não coletada'}:</strong> ${esc(yearList(missing))}.${publicSeries?'':' Fonte pública equivalente ainda não localizada para esses recortes.'}</p>`:''}${outside.length?`<p>Valor individual obtido; falta cobertura comum: ${esc(yearList(outside))}.</p>`:''}${na.length?`<p><strong>Não se aplica (NA):</strong> ${esc(yearList(na))}.</p>`:''}</article>`;
+    const valid=rows.filter(M.numeric).map(r=>r.year),na=rows.filter(r=>r.status==='NA').map(r=>r.year),outside=rows.filter(r=>r.coverage_restricted).map(r=>r.year),missing=rows.filter(r=>r.status==='ND'&&!r.coverage_restricted).map(r=>r.year),publicSeries=section==='degrees'||section==='enrollment';
+    return `<article data-coverage-program="${esc(p.id)}"><h4>${esc(p.id)} · ${esc(p.name)}</h4><p>Na comparação comum: <strong>${valid.length}/${years.length}</strong> anos · ${esc(yearList(valid))}.</p>${missing.length?`<p><strong>${publicSeries?'Fonte pública ainda não localizada':'Pendente de comprovação ou conciliação'}:</strong> ${esc(yearList(missing))}.</p>${pendingDetails(metric,p.id,missing)}`:''}${outside.length?`<p>Valor individual obtido; falta cobertura comum: ${esc(yearList(outside))}.</p>`:''}${na.length?`<p><strong>Não se aplica (NA):</strong> ${esc(yearList(na))}.</p>`:''}</article>`;
    }).join('');
    return `<details class="table-disclosure" data-coverage-metric="${esc(metric)}" data-coverage-level="${esc(level||'')}"><summary>${esc(label(section,metric,level))}</summary><div class="coverage-program-grid">${perProgram}</div></details>`;
   }).join('');
-  const coverage=`<section class="coverage-inventory" data-main-coverage><div class="section-heading"><div><h2>Cobertura e lacunas · ${esc(fullPeriod)}</h2><p>Por indicador e programa. ND indica informação ainda não obtida; NA indica que o recorte não se aplica.</p></div></div>${coverageGroups}</section>`;
+  const collectedReports=collection.annual_report_years?.length?`<p class="mini-note" data-collected-reports>Relatórios incorporados do Janus autenticado: disciplinas anuais (${esc(yearList(collection.annual_report_years))}) e histórico de ofertas (${esc(yearList(collection.offering_years||[]))}). As ofertas e as contagens individuais são conciliadas com o universo do relatório anual.</p>`:'';
+  const coverage=`<section class="coverage-inventory" data-main-coverage><div class="section-heading"><div><h2>Cobertura e lacunas · ${esc(fullPeriod)}</h2><p>Por indicador e programa. ND indica informação insuficiente após a conferência; NA indica que o recorte não se aplica.</p>${collectedReports}</div></div>${coverageGroups}</section>`;
 
   const cards=sources.map((s,i)=>`<article class="source-card"><span class="status-tag">${esc(sourceAccessLabel(s.access))}</span><h3>${esc(s.label||s.title||s.id||'Fonte admitida')}</h3><div class="source-file">${esc(basename(s.file||s.filename||s.path))}</div>${descriptionFor(s)?`<p>${esc(descriptionFor(s))}</p>`:''}${safeSourceURL(s.url)?`<p><a class="text-button" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">Abrir fonte ↗</a></p>`:''}${s.sha256?`<details><summary>Identidade do arquivo (SHA-256)</summary><code>${esc(s.sha256)}</code></details>`:''}</article>`).join('');
 
-  return `<div class="toolbar">${tableDownloadButton()}</div>${coverage}<div class="source-grid">${cards}</div><div class="section-heading"><div><h2>Critérios de leitura</h2><p>As comparações preservam os universos das fontes originais.</p></div></div><div class="methods-grid"><article class="method"><h3>ND, NA, zero e estimativa</h3><p><strong>ND</strong>: não há informação suficiente na base. <strong>NA</strong>: o indicador não se aplica. <strong>0</strong>: zero documentado. <strong>≈</strong>: valor aproximado, com método indicado. Ausências não são convertidas em zero nem incluídas no denominador das médias.</p></article><article class="method"><h3>Titulações, matrículas e ativos</h3><p>Titulações são diplomas concedidos; doutorado agrega DO e DD (doutorado direto). Matrículas regulares são contagens anuais nos programas, separadas dos alunos especiais. A série anual não substitui a posição de alunos ativos na data exata de 1º de abril.</p></article><article class="method"><h3>Disciplinas e participação</h3><p>Matrículas em disciplinas são vínculos com turmas, não pessoas distintas. Produtos de turmas × médias publicadas são aproximações; matrículas, inscrições e aprovações assim derivadas preservam o arredondamento. A diferença entre inscritos e matriculados não mede evasão.</p></article><article class="method"><h3>Participações percentuais</h3><p>Denominador fixo: ${esc(unitLabel)}. Cada percentual usa todos os programas configurados no mesmo ano e nível, mesmo quando alguns estão desmarcados. A média dos percentuais anuais não é a participação nos totais acumulados.</p></article><article class="method"><h3>Médias e taxas</h3><p>As barras comparam a média aritmética dos indicadores anuais no intervalo selecionado. A cobertura acompanha a tabela. Matrículas por turma usam a soma dos produtos de turmas × médias dividida pelo número de turmas dentro de cada ano; a taxa de aprovação usa os vínculos aprovados e matriculados.</p></article><article class="method"><h3>Carga horária nominal</h3><p>Aulas nominais = horas teóricas e práticas semanais × duração da ficha; excluem estudos e não medem horas efetivamente ministradas por docente. Créditos e carga curricular total são campos históricos independentes. Componentes de fichas atuais só são usados sob a hipótese adotada de manutenção entre versões e com consistência conferida.</p></article><article class="method"><h3>Cortes de tamanho das turmas</h3><p>Menos de cinco inclui zero e exclui cinco; mais de trinta exclui trinta. Esses cortes exigem distribuição documentada de matrículas por turma. Totais, médias e desvios-padrão arredondados não reconstroem a distribuição individual.</p></article><article class="method"><h3>Cobertura e períodos sem dados</h3><p>A comparação usa o mesmo recorte dos programas configurados. Para completar lacunas, são necessários relatórios equivalentes de ofertas e matrículas, distribuições por turma, posições de ativos em 1º de abril por nível e versões documentadas das fichas para créditos e cargas. Arquivos com perfil específico ficam no módulo próprio e não completam automaticamente a base principal.</p></article><article class="method"><h3>Programa e associação histórica</h3><p>Programa não é departamento. A associação histórica de uma oferta depende da fonte do programa ou da área. O prefixo do código não define programa. Quando indicado na origem, a associação utiliza o vínculo atual explícito da ficha nas ofertas históricas sob hipótese de manutenção. Essa classificação é indicada como hipótese, sem alegar comprovação da área histórica. Ofertas compartilhadas conservam os vínculos documentados.</p></article></div>${sourceLimits('degrees')}${(D.notes||D.methodology_notes||[]).length?`<details class="table-disclosure"><summary>Observações documentadas na extração</summary><div class="panel" style="padding:18px">${(D.notes||D.methodology_notes||[]).map(n=>`<p class="mini-note" style="margin-bottom:8px">${esc(typeof n==='string'?n:JSON.stringify(n))}</p>`).join('')}</div></details>`:''}`;
+  return `<div class="toolbar">${tableDownloadButton()}</div>${coverage}<div class="source-grid">${cards}</div><div class="section-heading"><div><h2>Critérios de leitura</h2><p>As comparações preservam os universos das fontes originais.</p></div></div><div class="methods-grid"><article class="method"><h3>ND, NA, zero e estimativa</h3><p><strong>ND</strong>: não há informação suficiente na base. <strong>NA</strong>: o indicador não se aplica. <strong>0</strong>: zero documentado. <strong>≈</strong>: valor aproximado, com método indicado. Ausências não são convertidas em zero nem incluídas no denominador das médias.</p></article><article class="method"><h3>Titulações e matrículas</h3><p>Titulações são diplomas concedidos; doutorado agrega DO e DD (doutorado direto). Matrículas regulares são contagens anuais nos programas, separadas dos alunos especiais.</p></article><article class="method"><h3>Disciplinas e participação</h3><p>Matrículas em disciplinas são vínculos com turmas, não pessoas distintas. Produtos de turmas × médias publicadas são aproximações; matrículas e aprovações assim derivadas preservam o arredondamento.</p></article><article class="method"><h3>Participações percentuais</h3><p>Denominador fixo: ${esc(unitLabel)}. Cada percentual usa todos os programas configurados no mesmo ano e nível, mesmo quando alguns estão desmarcados. A média dos percentuais anuais não é a participação nos totais acumulados.</p></article><article class="method"><h3>Médias e taxas</h3><p>As barras comparam a média aritmética dos indicadores anuais no intervalo selecionado. A cobertura acompanha a tabela. Matrículas por turma usam a soma dos produtos de turmas × médias dividida pelo número de turmas dentro de cada ano; a taxa de aprovação usa os vínculos aprovados e matriculados.</p></article><article class="method"><h3>Cortes de tamanho das turmas</h3><p>Menos de cinco inclui zero e exclui cinco; a faixa de cinco a trinta inclui os dois limites; mais de trinta exclui trinta. As três faixas particionam o total de turmas e usam contagens por turma. Relatórios gerais por período podem comprovar uma turma; para exatamente duas, o complemento usa a média e uma contagem independente, sob a precisão explicitada. Desvio-padrão e ausência de linha não criam contagens.</p></article><article class="method"><h3>Cobertura e períodos sem dados</h3><p>A comparação usa o mesmo recorte dos programas configurados. As pendências de comprovação ou conciliação são detalhadas por ano e programa nesta página. Valores obtidos fora da interseção comum permanecem identificados como disponíveis individualmente. Arquivos com perfil específico ficam no módulo próprio e não completam automaticamente a base principal.</p></article><article class="method"><h3>Programa e associação histórica</h3><p>Programa não é departamento. A associação histórica de uma oferta depende da fonte do programa ou da área. O prefixo do código não define programa. Quando indicado na origem, a associação aplica ao histórico a área da ficha atual ou o vínculo unívoco nas relações públicas atuais de disciplinas, sob hipótese de manutenção. Essa classificação é indicada como hipótese, sem alegar comprovação da área histórica. Ofertas compartilhadas conservam os vínculos documentados.</p></article></div>${sourceLimits('degrees')}${(D.notes||D.methodology_notes||[]).length?`<details class="table-disclosure"><summary>Observações documentadas na extração</summary><div class="panel" style="padding:18px">${(D.notes||D.methodology_notes||[]).map(n=>`<p class="mini-note" style="margin-bottom:8px">${esc(typeof n==='string'?n:JSON.stringify(n))}</p>`).join('')}</div></details>`:''}`;
 
  }
 
@@ -523,13 +482,12 @@
 
   const graduation=state.view==='graduation';
 
-  $('#main-nav').hidden=graduation;$('#graduation-nav').hidden=!graduation;
+  $('#main-nav').hidden=false;$('#graduation-nav').hidden=false;
 
   const restrictedNavigation=$('#main-nav [data-view="restricted"]');if(restrictedNavigation)restrictedNavigation.hidden=!restrictedRecords.length;
 
-  $('#section-nav-label').textContent=graduation?'GRADUAÇÃO':'PÓS-GRADUAÇÃO';
 
-  $$('#area-nav a').forEach(a=>{const current=(a.dataset.area==='graduation')===graduation;a.classList.toggle('active',current);if(current)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current');});
+
 
   $$('#main-nav a').forEach(a=>{const current=!graduation&&a.dataset.view===state.view;a.classList.toggle('active',current);if(current)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
 
@@ -537,11 +495,11 @@
 
   const extraMAC=$('#graduation-nav [data-grad-view="mac-adicional"]');if(extraMAC)extraMAC.hidden=!commonDepartments;
 
-  const departmentLink=$('#graduation-nav [data-grad-view="department"]');if(departmentLink){departmentLink.querySelector('strong').textContent=commonDepartments?(window.SIAPOS_GRADUACAO.departmentTitle||'Disciplinas por departamento'):'Disciplinas no Júpiter';departmentLink.querySelector('small').textContent=commonDepartments?(window.SIAPOS_GRADUACAO.departmentDatasetKind==='course_section_registry'?'Cadastro de turmas':'Relatórios do Júpiter'):'Cadastro de turmas';}
+  const departmentLink=$('#graduation-nav [data-grad-view="department"]');if(departmentLink){departmentLink.querySelector('strong').textContent=commonDepartments?(window.SIAPOS_GRADUACAO.departmentTitle||'Disciplinas'):'Disciplinas';departmentLink.querySelector('small').textContent=commonDepartments?(window.SIAPOS_GRADUACAO.departmentDatasetKind==='course_section_registry'?'Cadastro de turmas':'Relatórios do Júpiter'):'Cadastro de turmas';}
 
   $$('#graduation-nav a').filter(a=>!a.hidden).forEach((a,i)=>{a.querySelector('.nav-number').textContent=String(i+1).padStart(2,'0');});
 
-  $$('#graduation-nav a').forEach(a=>{const current=graduation&&a.dataset.gradView===state.gradTab;a.classList.toggle('active',current);if(current)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+  $$('#graduation-nav a').forEach(a=>{const current=graduation&&a.dataset.gradView===(state.gradTab==='coverage'?'sources':state.gradTab);a.classList.toggle('active',current);if(current)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
 
   const t=titles[state.view];$('#page-eyebrow').textContent=t[0];$('#page-eyebrow').hidden=!t[0];$('#page-title').textContent=t[1];$('#page-description').textContent=t[2];$('#page-description').hidden=!t[2];
 
@@ -553,7 +511,7 @@
 
   if(state.view==='graduation'){$('#view-content').innerHTML='<div id="grad-root"></div>';window.SIAPOS_GRADUACAO?.setTab(state.gradTab);window.SIAPOS_GRADUACAO?.mount($('#grad-root'));}
 
-  else $('#view-content').innerHTML=!['sources','restricted'].includes(state.view)&&!state.selected.size?empty():({overview,series,disciplines,restricted,sources})[state.view]();
+  else $('#view-content').innerHTML=!['sources','restricted'].includes(state.view)&&!state.selected.size?empty():({series,disciplines,restricted,sources})[state.view]();
 
   $('#post-view-controls').innerHTML=postControls;$('#post-view-controls').hidden=!postControls;
   if(!graduation){if(focusId)document.querySelector('#'+focusId)?.focus({preventScroll:true});else if(focusData)document.querySelector('[data-'+focusData[0]+'="'+esc(focusData[1])+'"]')?.focus({preventScroll:true});}
@@ -648,6 +606,6 @@
 
  $('#copy-source').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(copyText);notify('Referência copiada.');}catch{const t=document.createElement('textarea');t.value=copyText;$('#source-dialog').appendChild(t);t.select();const ok=document.execCommand('copy');t.remove();notify(ok?'Referência copiada.':'Selecione e copie a referência exibida.');}});
 
- function viewFromHash(){const value=location.hash.slice(1),parts=value.split('/');if(parts[0]==='graduation'){state.view='graduation';state.gradTab=parts[1]==='mac-adicional'&&!window.SIAPOS_GRADUACAO?.hasCommonDepartments?'department':['series','department','anuario','curricula','mac-adicional','additional','coverage','sources'].includes(parts[1])?parts[1]:'series';}else state.view=value==='requested'?'disciplines':value==='additional'?'restricted':titles[value]?value:'overview';render();}window.addEventListener('hashchange',viewFromHash);viewFromHash();
+ function viewFromHash(){const value=location.hash.slice(1),parts=value.split('/');if(parts[0]==='graduation'){state.view='graduation';state.gradTab=parts[1]==='mac-adicional'&&!window.SIAPOS_GRADUACAO?.hasCommonDepartments?'department':['series','department','anuario','curricula','mac-adicional','additional','coverage','sources'].includes(parts[1])?parts[1]:'series';}else state.view=value==='requested'?'disciplines':value==='additional'?'restricted':titles[value]?value:'series';render();}window.addEventListener('hashchange',viewFromHash);viewFromHash();
 
 })();
