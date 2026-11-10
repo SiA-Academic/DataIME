@@ -33,7 +33,7 @@
 (function(root){
   'use strict';
   const choices=new Map();
-  const medianOpacity=0.7;
+  const medianOpacity=0.4;
   const esc=text=>String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const explanation='A linha semitransparente mostra a mediana dos valores do ano anterior, do próprio ano e do seguinte. Os três precisam ter dados.';
   function series(years,values,x,y,color,name){
