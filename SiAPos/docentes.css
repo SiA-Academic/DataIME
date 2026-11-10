@@ -25,6 +25,20 @@
 .docentes-source-content>p{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px}
 .docentes-source-content .source-value{font-size:30px;font-weight:700;color:var(--navy);margin:8px 0}
 .docentes-visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.docentes-associada{margin:0 0 24px}
+.docentes-associada .section-heading{margin-bottom:8px}
+.docentes-associada ul{list-style:none;margin:0;padding:0}
+.docentes-associada-row{display:grid;grid-template-columns:36px minmax(135px,17rem) minmax(0,1fr) 60px 62px;grid-template-areas:"dept programa barra pct fracao";align-items:center;gap:4px 12px;padding:8px 2px;border-bottom:1px solid var(--line);font-size:13px}
+.docentes-associada-dept{grid-area:dept}
+.docentes-associada-programa{grid-area:programa;line-height:1.35}
+.docentes-associada-row[data-programa=uniao] .docentes-associada-programa{font-weight:650}
+.docentes-associada-track{grid-area:barra;height:10px;overflow:hidden;background:var(--line);border-radius:2px}
+.docentes-associada-track>span{display:block;height:100%;background:var(--accent)}
+.docentes-associada-pct{grid-area:pct;color:var(--ink);font-size:16px}
+.docentes-associada-fracao{grid-area:fracao;color:var(--muted);font-size:12px}
+.docentes-associada-pct,.docentes-associada-fracao{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+@media(max-width:780px){.docentes-associada-row{grid-template-columns:34px minmax(0,1fr) 58px;grid-template-areas:"dept programa pct" ". barra fracao";column-gap:7px}}
+@media print{.docentes-associada{break-inside:avoid}.docentes-associada-track{print-color-adjust:exact}}
 .docentes-composition{margin:0 0 24px;--faculty-own:#275c9a;--faculty-both:#b47423;--faculty-other:#267d75;--faculty-none:#b6c0cd}
 :root[data-theme=dark] .docentes-composition{--faculty-own:#84b5f0;--faculty-both:#e8ad60;--faculty-other:#62c4b4;--faculty-none:#65758a}
 .docentes-composition .section-heading{margin-bottom:8px}
