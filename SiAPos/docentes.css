@@ -10,6 +10,9 @@
 .docentes-table-wrap tbody tr:last-child th{border-bottom:0}
 .docentes-table-wrap tbody tr:hover th{background:color-mix(in srgb,var(--blue-bg) 35%,var(--surface))}
 .docentes-summary-table td{font-size:18px;padding-block:19px}
+.docentes-summary-programs{display:inline-grid;gap:4px}
+.docentes-summary-program{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:baseline}
+.docentes-summary-program>span{font-size:12px;color:var(--muted);text-align:left}
 .docentes-department-name{display:block;font-size:10px;color:var(--muted);font-weight:400;line-height:1.5;margin-top:5px;white-space:normal}
 .docentes-wide-heading{max-width:155px}
 .docentes-program-name{display:block;font-size:10px;font-weight:400;color:var(--muted);margin-top:4px;max-width:180px}
@@ -31,7 +34,6 @@
 .docentes-associada-row{display:grid;grid-template-columns:36px minmax(135px,17rem) minmax(0,1fr) 60px 62px;grid-template-areas:"dept programa barra pct fracao";align-items:center;gap:4px 12px;padding:8px 2px;border-bottom:1px solid var(--line);font-size:13px}
 .docentes-associada-dept{grid-area:dept}
 .docentes-associada-programa{grid-area:programa;line-height:1.35}
-.docentes-associada-row[data-programa=uniao] .docentes-associada-programa{font-weight:650}
 .docentes-associada-track{grid-area:barra;height:10px;overflow:hidden;background:var(--line);border-radius:2px}
 .docentes-associada-track>span{display:block;height:100%;background:var(--accent)}
 .docentes-associada-pct{grid-area:pct;color:var(--ink);font-size:16px}
@@ -49,7 +51,7 @@
 .docentes-composition [data-category=other_only]{background:var(--faculty-other)}
 .docentes-composition [data-category=none]{background:var(--faculty-none)}
 .docentes-composition-row{border-bottom:1px solid var(--line)}
-.docentes-composition-row>summary{display:grid;grid-template-columns:10px 38px minmax(0,1fr) 78px;align-items:center;column-gap:10px;min-height:36px;padding:6px 2px;cursor:pointer;list-style:none;font-size:12px}
+.docentes-composition-row>summary{display:grid;grid-template-columns:10px minmax(135px,13rem) minmax(0,1fr) 78px;align-items:center;column-gap:10px;min-height:36px;padding:6px 2px;cursor:pointer;list-style:none;font-size:12px}
 .docentes-composition-row>summary::-webkit-details-marker{display:none}
 .docentes-composition-row>summary::before{content:"";width:6px;height:6px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg)}
 .docentes-composition-row[open]>summary::before{transform:rotate(45deg)}
@@ -69,7 +71,13 @@
 .docentes-composition-details{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 15px;margin:0 0 10px 20px}
 .docentes-composition-details dt{font-size:11px;color:var(--muted)}
 .docentes-composition-details dd{margin:3px 0 0;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
-@media(max-width:650px){.docentes-composition-row>summary{min-height:44px;grid-template-columns:8px 33px minmax(0,1fr) 69px;column-gap:6px}.docentes-composition-shares{grid-column:2/-1;column-gap:10px}.docentes-composition-details{grid-template-columns:repeat(2,minmax(0,1fr));margin-left:14px}}
+@media(max-width:650px){
+  .docentes-composition-row>summary{min-height:44px;grid-template-columns:8px minmax(0,1fr) 69px;column-gap:6px}
+  .docentes-composition-total{grid-column:3;grid-row:1}
+  .docentes-composition-bar,.docentes-composition-message{grid-row:2;grid-column:2/-1;margin-top:4px}
+  .docentes-composition-shares{grid-column:2/-1;column-gap:10px}
+  .docentes-composition-details{grid-template-columns:repeat(2,minmax(0,1fr));margin-left:14px}
+}
 @media print{.docentes-composition{break-inside:avoid}.docentes-composition-bar,.docentes-category-swatch{print-color-adjust:exact}}
 @media(max-width:900px){.sidebar-section-general{padding-bottom:4px}}
 @media(max-width:650px){.docentes-table-wrap th[scope="row"]{min-width:115px;max-width:130px;padding:12px 10px}.docentes-table-wrap th:first-child,.docentes-table-wrap td:first-child{position:sticky;left:0;z-index:1}.docentes-table-wrap thead th:first-child{background:var(--soft);z-index:2}.docentes-summary-table td{font-size:17px}.docentes-methods-body{padding-inline:12px}.docentes-date{font-size:10px}}

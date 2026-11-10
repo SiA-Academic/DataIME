@@ -8,15 +8,13 @@
   const format=cell=>numeric(cell)?new Intl.NumberFormat('pt-BR').format(cell.value):cell?.status==='NA'?'NA':'ND';
   const countLabels={total:'Total do departamento',own:'Na pós associada',other:'Em outras pós',any:'Em alguma pós',none:'Sem credenciamento nos programas consultados'};
   const countNotes={total:'Docentes lotados no departamento, segundo o universo e a data da fonte do quadro docente.',own:'Pessoas distintas com credenciamento vigente em pelo menos um programa associado ao departamento.',other:'Pessoas distintas com credenciamento vigente em pelo menos um dos demais programas consultados.',any:'Pessoas distintas com credenciamento vigente em pelo menos um programa consultado. Quem está em vários programas é contado uma única vez.',none:'Docentes do quadro sem credenciamento vigente nos programas consultados. Não afirma ausência de credenciamento em programas fora da cobertura.'};
-  const outsideAssociated=[
-    {id:'other_only',label:'Só em outras',formula:'Em alguma pós menos Na pós associada.'},
-    {id:'none',label:'Sem credenciamento',formula:'Total do departamento menos Em alguma pós, considerando os programas consultados.'}
-  ];
-  const categories=[{id:'own',label:countLabels.own},...outsideAssociated];
+  const unaccredited={id:'none',label:'Sem credenciamento',formula:'Total do departamento menos Em alguma pós, considerando os programas consultados.'};
+  const categories=[{id:'own',label:'No programa'},{id:'other_only',label:'Só em outros programas'},unaccredited];
   const csvBreakdown=[
     {id:'own_only',label:'Só na pós associada',formula:'Em alguma pós menos Em outras pós.'},
     {id:'both',label:'Na associada e em outras',formula:'Na pós associada mais Em outras pós menos Em alguma pós.'},
-    ...outsideAssociated
+    {id:'other_only',label:'Só em outras',formula:'Em alguma pós menos Na pós associada.'},
+    unaccredited
   ];
   const percent=new Intl.NumberFormat('pt-BR',{style:'percent',maximumFractionDigits:1});
   let root=null,dataset=null,selected=null,sources=new Map(),references=new Map(),referenceId=0;
@@ -27,30 +25,25 @@
   function programName(id){const p=(dataset.programs||[]).find(p=>p.id===id);return p?programLabel(p):id;}
   function ownLabel(department){return (department.own_program_ids||[]).map(programName).join('; ')||'Sem associação definida';}
   function activeDepartments(){return dataset.departments.filter(d=>selected.has(d.id));}
+  function associatedPrograms(department){
+    return (department.own_program_ids||[]).map(id=>dataset.programs?.find(p=>p.id===id)||{id});
+  }
   function departmentShare(count,total){
     return Number.isInteger(count)&&count>=0&&total>0&&count<=total?count/total:null;
   }
   function associatedHTML(departments){
     const rows=[];
     for(const d of departments){
-      const programs=(d.own_program_ids||[]).map(id=>dataset.programs?.find(p=>p.id===id)||{id});
       const total=numeric(d.counts?.total)?d.counts.total.value:null;
-      const addRow=(id,label,raw)=>{
-        const cell=getCell(raw),count=numeric(cell)?cell.value:null;
-        const share=departmentShare(count,total);
-        const fraction=share!==null||(total===0&&count===0)?count+' de '+total:'';
-        const display=share!==null?percent.format(share):cell.status==='NA'||(total===0&&count===0)?'NA':'ND';
-        rows.push(`<li class="docentes-associada-row" data-docente-associada="${esc(d.id)}" data-programa="${esc(id)}"><b class="docentes-associada-dept">${esc(d.id)}</b><span class="docentes-associada-programa">${esc(label)}</span><span class="docentes-associada-track" aria-hidden="true">${share===null?'':`<span style="width:${share*100}%"></span>`}</span><strong class="docentes-associada-pct">${display}</strong><span class="docentes-associada-fracao">${fraction}</span></li>`);
-      };
-      if(programs.length>1){
-        const names=programs.map(p=>p.short_name||p.name||p.id);
-        addRow('uniao','Total · '+new Intl.ListFormat('pt-BR',{type:'disjunction'}).format(names),d.counts?.own);
-      }
-      for(const p of programs){
+      for(const p of associatedPrograms(d)){
         const acronym=p.short_name;
         const name=p.name||p.id;
         const label=acronym&&acronym!==name&&/^[A-Z]{2,}$/.test(acronym)?name+' ('+acronym+')':name;
-        addRow(p.id,label,d.program_counts?.[p.id]);
+        const cell=getCell(d.program_counts?.[p.id]),count=numeric(cell)?cell.value:null;
+        const share=departmentShare(count,total);
+        const fraction=share!==null||(total===0&&count===0)?count+' de '+total:'';
+        const display=share!==null?percent.format(share):cell.status==='NA'||(total===0&&count===0)?'NA':'ND';
+        rows.push(`<li class="docentes-associada-row" data-docente-associada="${esc(d.id)}" data-programa="${esc(p.id)}"><b class="docentes-associada-dept">${esc(d.id)}</b><span class="docentes-associada-programa">${esc(label)}</span><span class="docentes-associada-track" aria-hidden="true">${share===null?'':`<span style="width:${share*100}%"></span>`}</span><strong class="docentes-associada-pct">${display}</strong><span class="docentes-associada-fracao">${fraction}</span></li>`);
       }
     }
     return rows.length?`<section class="docentes-associada" aria-labelledby="docentes-associada-title"><div class="section-heading"><div><h2 id="docentes-associada-title">Docentes credenciados na pós associada</h2><p>Percentual do quadro de cada departamento. Inclui quem também atua em outros programas.</p></div></div><ul>${rows.join('')}</ul></section>`:'';
@@ -68,6 +61,19 @@
     const values=note?{}:{own,own_only:any-other,both:own+other-any,other_only:any-own,none:total-any};
     return {total:numeric(cells[0])?total:null,values,sourceIds,note};
   }
+  function programComposition(department,program){
+    const counts=department.counts||{};
+    const roster=counts.total,anyProgram=counts.any,inProgram=department.program_counts?.[program.id];
+    const total=numeric(roster)?roster.value:null;
+    let note='';
+    if(dataset.scope?.complete!==true)note='Cobertura incompleta dos programas consultados.';
+    else if(total===null||!numeric(anyProgram)||!numeric(inProgram))note='Faltam contagens verificadas para a distribuição.';
+    else if(inProgram.value>anyProgram.value||anyProgram.value>total||
+            (numeric(counts.own)&&inProgram.value>counts.own.value)||
+            (numeric(counts.none)&&counts.none.value!==total-anyProgram.value))note='As contagens do programa e do departamento são incompatíveis.';
+    const values=note?{}:{own:inProgram.value,other_only:anyProgram.value-inProgram.value,none:total-anyProgram.value};
+    return {total,values,note};
+  }
   // Keep each percentage visible once, including shares too small to fit on the bar.
   const barObserver=window.ResizeObserver&&new window.ResizeObserver(entries=>{
     for(const {target:bar} of entries){
@@ -82,8 +88,8 @@
   });
   function compositionHTML(departments){
     const legend=categories.map(c=>`<li><i class="docentes-category-swatch" data-category="${c.id}" aria-hidden="true"></i>${esc(c.label)}</li>`).join('');
-    const rows=departments.map(d=>{
-      const {total,values,note}=facultyComposition(d);
+    const rows=departments.flatMap(d=>associatedPrograms(d).map(p=>{
+      const {total,values,note}=programComposition(d,p);
       const hasBar=!note&&total>0;
       const share=c=>percent.format(values[c.id]/total);
       const bar=hasBar?`<span class="docentes-composition-bar" aria-hidden="true">${categories.map(c=>
@@ -96,8 +102,9 @@
         const value=note?'ND':total===0?'0 · percentual indefinido':`${count} de ${total} · ${percent.format(count/total)}`;
         return `<div><dt>${esc(c.label)}</dt><dd>${esc(value)}</dd></div>`;
       }).join('');
-      return `<details class="docentes-composition-row" data-docente-composition="${esc(d.id)}"><summary><strong>${esc(d.id)}</strong>${bar}<span class="docentes-composition-total">${total===null?'Total ND':esc(total)+' docentes'}</span>${shares}</summary><dl class="docentes-composition-details">${details}</dl></details>`;
-    }).join('');
+      const program=p.short_name||p.name||p.id;
+      return `<details class="docentes-composition-row" data-docente-composition="${esc(d.id)}" data-programa="${esc(p.id)}"><summary><span class="docentes-composition-label"><strong>${esc(d.id)}</strong> · ${esc(program)}</span>${bar}<span class="docentes-composition-total">${total===null?'Total ND':esc(total)+' docentes'}</span>${shares}</summary><dl class="docentes-composition-details">${details}</dl></details>`;
+    })).join('');
     const scope=dataset.scope?.label;
     return `<section class="docentes-composition" aria-labelledby="docentes-composition-title"><div class="section-heading"><div><h2 id="docentes-composition-title">Distribuição do credenciamento</h2><p>Percentual do quadro por departamento${scope?' · '+esc(scope):''}</p></div></div><ul class="docentes-composition-legend" aria-label="Categorias de credenciamento">${legend}</ul>${rows}</section>`;
   }
@@ -109,8 +116,21 @@
   function filterHTML(){
     return `<section class="filters sticky-filters docentes-filters" aria-label="Filtros dos docentes"><div class="filter-control-row"><div class="filter-options" role="group" aria-label="Departamentos"><span class="filter-label">Departamentos</span>${dataset.departments.map(d=>`<label class="program-chip" title="${esc(d.name)}"><input type="checkbox" data-docente-department="${esc(d.id)}" aria-label="${esc(d.name||d.id)}" ${selected.has(d.id)?'checked':''}><strong>${esc(d.id)}</strong></label>`).join('')}<button type="button" class="text-button" data-docente-all>Todos</button></div><span class="docentes-date">Referência: <strong>${esc(date(dataset.as_of))}</strong></span></div></section>`;
   }
+  function summaryValue(department,key,label){
+    if(key==='own'){
+      const programs=associatedPrograms(department);
+      if(programs.length>1){
+        const entries=programs.map(p=>{
+          const metric=cellHTML(department.program_counts?.[p.id],department,programLabel(p),'Docentes deste departamento com credenciamento vigente neste programa.');
+          return `<span class="docentes-summary-program"><span>${esc(p.short_name||p.name||p.id)}</span>${metric}</span>`;
+        });
+        return `<span class="docentes-summary-programs">${entries.join('')}</span>`;
+      }
+    }
+    return cellHTML(department.counts?.[key],department,label,countNotes[key]);
+  }
   function summaryHTML(departments){
-    return `<section aria-labelledby="docentes-summary-title"><div class="section-heading"><div><h2 id="docentes-summary-title">Quadro docente e participação na pós</h2></div></div><div class="panel"><div class="table-wrap docentes-table-wrap" tabindex="0" role="region" aria-label="Quadro docente por departamento; role horizontalmente para consultar todas as colunas"><table class="data-table docentes-summary-table"><caption class="docentes-visually-hidden">Docentes por departamento em ${esc(date(dataset.as_of))}. As colunas de pós associada e outras pós podem se sobrepor.</caption><thead><tr><th scope="col">Departamento</th>${Object.entries(countLabels).map(([key,label])=>`<th scope="col"${key==='none'?' class="docentes-wide-heading"':''}>${esc(label)}</th>`).join('')}</tr></thead><tbody>${departments.map(d=>`<tr><th scope="row"><strong>${esc(d.id)}</strong><span class="docentes-department-name">${esc(d.name||'')}</span></th>${Object.entries(countLabels).map(([key,label])=>`<td>${cellHTML(d.counts?.[key],d,label,countNotes[key])}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div><p class="docentes-reading-note">Um docente pode estar na pós associada e em outras pós. A coluna “Em alguma pós” conta cada docente uma vez.</p></section>`;
+    return `<section aria-labelledby="docentes-summary-title"><div class="section-heading"><div><h2 id="docentes-summary-title">Quadro docente e participação na pós</h2></div></div><div class="panel"><div class="table-wrap docentes-table-wrap" tabindex="0" role="region" aria-label="Quadro docente por departamento; role horizontalmente para consultar todas as colunas"><table class="data-table docentes-summary-table"><caption class="docentes-visually-hidden">Docentes por departamento em ${esc(date(dataset.as_of))}. As colunas de pós associada e outras pós podem se sobrepor.</caption><thead><tr><th scope="col">Departamento</th>${Object.entries(countLabels).map(([key,label])=>`<th scope="col"${key==='none'?' class="docentes-wide-heading"':''}>${esc(label)}</th>`).join('')}</tr></thead><tbody>${departments.map(d=>`<tr><th scope="row"><strong>${esc(d.id)}</strong><span class="docentes-department-name">${esc(d.name||'')}</span></th>${Object.entries(countLabels).map(([key,label])=>`<td>${summaryValue(d,key,label)}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div><p class="docentes-reading-note">Cada linha considera os docentes do departamento. “Em outras pós” conta quem atua em algum programa consultado fora das pós associadas. Um docente pode aparecer em vários programas e conta uma vez em “Em alguma pós”.</p></section>`;
   }
   function matrixHTML(departments){
     const programs=dataset.programs||[];
@@ -144,15 +164,21 @@
     window.SIAPOS_FILTERS?.refresh();
   }
   function csvRows(){
-    const rows=[['data_referencia','departamento','nome_departamento','indicador','programa','programa_associado','valor','status','escopo','cobertura_completa','criterio','fontes','urls','data_consulta','localizadores','recorte_quadro','cobertura_detalhada','programa_id','unidade_programa','denominador_docentes','percentual_do_departamento']];
+    const rows=[['data_referencia','departamento','nome_departamento','indicador','programa','programa_associado','valor','status','escopo','cobertura_completa','criterio','fontes','urls','data_consulta','localizadores','recorte_quadro','cobertura_detalhada','programa_id','unidade_programa','denominador_docentes','percentual_do_departamento','docentes_so_em_outros_programas','percentual_so_em_outros_programas','docentes_sem_credenciamento','percentual_sem_credenciamento']];
+    const percentage=(count,total)=>{
+      const ratio=departmentShare(count,total);
+      return ratio===null?'':Number((100*ratio).toFixed(6));
+    };
     const add=(department,key,program,raw,definition,composition)=>{
       const cell=getCell(raw),refs=(cell.source_ids||[]).map(id=>sources.get(id)).filter(Boolean);
       const hasValue=composition?cell.status==='calculated':numeric(cell);
       const associated=key===countLabels.own||(program&&(department.own_program_ids||[]).includes(program.id));
       const total=composition?composition.total:associated&&numeric(department.counts?.total)?department.counts.total.value:null;
-      const ratio=hasValue?departmentShare(cell.value,total):null;
-      const share=ratio===null?'':Number((100*ratio).toFixed(6));
-      rows.push([dataset.as_of,department.id,department.name||'',key,program?.name||'',program?(department.own_program_ids||[]).includes(program.id)?'sim':'não':ownLabel(department),hasValue?cell.value:'',hasValue?cell.status:cell.status==='NA'?'NA':'ND',dataset.scope?.label||'',dataset.scope?.complete===true?'sim':dataset.scope?.complete===false?'não':'não informada',[definition,hasValue?'':cell.note].filter(Boolean).join(' '),refs.map(s=>s.title||s.id).join(' | '),refs.map(s=>safeURL(s.url)||'').join(' | '),refs.map(s=>s.retrieved_on||'').join(' | '),refs.map(s=>s.locator||'').join(' | '),dataset.scope?.roster_label||'',dataset.scope?.description||'',program?.id||'',program?.unit_label||'',total??'',share]);
+      const share=hasValue?percentage(cell.value,total):'';
+      const distribution=program&&associated?programComposition(department,program):null;
+      const otherOnly=distribution?.values.other_only??'';
+      const none=distribution?.values.none??'';
+      rows.push([dataset.as_of,department.id,department.name||'',key,program?.name||'',program?(department.own_program_ids||[]).includes(program.id)?'sim':'não':ownLabel(department),hasValue?cell.value:'',hasValue?cell.status:cell.status==='NA'?'NA':'ND',dataset.scope?.label||'',dataset.scope?.complete===true?'sim':dataset.scope?.complete===false?'não':'não informada',[definition,hasValue?'':cell.note].filter(Boolean).join(' '),refs.map(s=>s.title||s.id).join(' | '),refs.map(s=>safeURL(s.url)||'').join(' | '),refs.map(s=>s.retrieved_on||'').join(' | '),refs.map(s=>s.locator||'').join(' | '),dataset.scope?.roster_label||'',dataset.scope?.description||'',program?.id||'',program?.unit_label||'',total??'',share,otherOnly,percentage(otherOnly,total),none,percentage(none,total)]);
     };
     activeDepartments().forEach(d=>{Object.entries(countLabels).forEach(([key,label])=>add(d,label,null,d.counts?.[key],countNotes[key]));(dataset.programs||[]).forEach(p=>add(d,'Credenciamento por programa',p,d.program_counts?.[p.id],'Pessoas distintas com credenciamento vigente no programa.'));});
     for(const department of activeDepartments()){
