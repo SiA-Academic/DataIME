@@ -24,18 +24,21 @@ Os cortes são estritos: menos de cinco exclui cinco; mais de trinta exclui trin
 
 ## Graduação
 
-A área de [graduação](https://sia-academic.github.io/SiA/SiAPos/#graduation) tem filtros próprios e seis visões: retrato por curso, séries, conjuntos de disciplinas, estatísticas do Anuário, currículos e fontes.
+A área de [graduação](https://sia-academic.github.io/SiA/SiAPos/#graduation) tem filtros próprios e sete visões: retrato por curso, séries, disciplinas no Júpiter, dados adicionais MAC, estatísticas do Anuário, currículos e fontes.
 
 - Seis cursos do IME, 2012–2025: matriculados, não matriculados/trancamentos e cadastrados em cada semestre; vagas e concluintes anuais do Anuário USP.
 - Ingressantes de 2012–2024 no Censo da Educação Superior/Inep: 52 contagens anuais para BCC, BM, BE e LM. Os 26 totais de BMA/BMAC permanecem `ND`, com as contagens públicas da área básica de ingresso (ABI) consultáveis na origem. Os seis valores de 2025 também permanecem `ND`.
-- Disciplinas MAC em 2020–2025 e MAT em 2024–2025, a partir dos arquivos fornecidos. O conjunto adicional de ministrantes MAC se sobrepõe aos dois anteriores e é apresentado separadamente.
-- Os 132 campos históricos de créditos-aula e carga nominal desses conjuntos foram preenchidos cruzando as ofertas fornecidas com as versões públicas datadas do Júpiter e o calendário oficial. A carga nominal corresponde a 15 horas-aula por crédito-aula e por oferta.
+- Cadastro comum do Júpiter: MAC, MAT, MAP e MAE em 2012–2025, com 7.158 turmas no conjunto dos cinco prefixos. O código 450 tem nove turmas observadas em 2017–2025, no segundo semestre. Matrículas por categoria, vagas, turmas, disciplinas e cargas cadastradas usam o mesmo relatório e método. As situações são conservadas literalmente. Anos e semestres ausentes permanecem ND.
+- O cadastro não contém aprovações, reprovações, notas ou trancamentos. Seus indicadores e taxas permanecem ND. As cargas teórica/prática cadastradas são campos próprios, sem equivalência automática a créditos ou carga docente efetiva.
+- Créditos-aula e carga nominal dessas turmas foram comprovados por fichas públicas da versão explícita em 127 de 186 recortes anuais/semestrais; os outros 59 conservam ND, sem soma parcial como total. Esses 254 campos têm origem mista: cadastro autenticado e fichas públicas.
+- Dados adicionais MAC em 2020–2025 ficam em aba própria, com os grupos 45/52 e o recorte adicional sobreposto. Não são somados ao cadastro comum. O relatório de aproveitamento MAT preexistente permanece como referência, sem ser mesclado ao novo cadastro.
+- Os 132 campos históricos de créditos-aula e carga nominal dos conjuntos preexistentes foram preservados, com versões públicas datadas do Júpiter e o calendário oficial. A carga nominal corresponde a 15 horas-aula por crédito-aula e por oferta.
 - Estatísticas do Anuário, 2012–2025: disciplinas, turmas e dimensões médias dos quatro departamentos, na tabela 3.02; matrículas em disciplinas, aprovações e reprovações do IME como unidade, na tabela 3.07. O código interdepartamental 450 tem cobertura a partir de 2017.
 - Referências curriculares de 2024 e 2025: 36 variantes de curso, habilitação ou turno. Essas alternativas não são somadas; os subtotais impressos e as ressalvas das fontes são preservados.
 
 Estoques do primeiro e do segundo semestre permanecem separados. Vagas não equivalem a ingressantes. Os conjuntos de disciplinas não identificam o curso de cada aluno nem certificam a lotação dos ministrantes. O grupo de turmas com sufixos 45/52 conserva o critério da planilha fornecida.
 
-As lacunas de ingresso e de ofertas anteriores aos arquivos fornecidos permanecem `ND`. As contagens ABI não foram convertidas em ingresso total de BMA/BMAC, pois a passagem da ABI às habilitações impede uma soma sem risco de duplicidade. A série do Inep mantém sua definição própria e suas fontes; os demais indicadores do Anuário foram preservados.
+As lacunas de ingresso, de créditos não comprovados e da cobertura dos recortes adicionais permanecem `ND`. As contagens ABI não foram convertidas em ingresso total de BMA/BMAC, pois a passagem da ABI às habilitações impede uma soma sem risco de duplicidade. A série do Inep mantém sua definição própria e suas fontes; os demais indicadores do Anuário foram preservados.
 
 As versões históricas das fichas confirmam créditos válidos no período da oferta. Não se aplicou indiscriminadamente a ficha atual aos anos anteriores. A carga é curricular nominal, não a carga efetivamente ministrada por professor. A média de notas é a média das médias publicadas por turma, ponderada pelos matriculados; não reconstrói notas individuais. As taxas conservam os denominadores descritos no painel.
 
@@ -49,7 +52,7 @@ As referências de cada valor preservam o arquivo e a localização de origem: a
 
 `data.js` e `graduacao-data.js` são recortes agregados para consulta pública. Não contêm nomes ou identificadores de alunos e docentes, credenciais, cookies, estado de sessão ou caminhos locais privados. Os documentos autenticados e as fontes de trabalho não são distribuídos neste repositório; uma referência de origem não implica que o arquivo correspondente esteja disponível publicamente para download. Fontes oficiais abertas e arquivos fornecidos são identificados separadamente.
 
-Na graduação, os resultados não públicos ainda necessários vêm dos relatórios detalhados MAC 2020–2025 e MAT 2024–2025. Seus agregados incluem matrículas, resultados, notas, trancamentos e cortes de tamanho. O arquivo do conjunto adicional MAC 2024–2025 delimita um recorte sobreposto, sem acrescentar resultados independentes aos dois relatórios principais. Créditos e cargas dessas ofertas têm origem mista: créditos públicos e turmas fornecidas. Arquivos de concluintes/vagas recebidos serviram apenas de conferência; os indicadores principais usam o Anuário público. A visão de fontes permite filtrar origens públicas, fornecidas não públicas e mistas, com prioridade inicial às públicas.
+Na graduação, a coleta comum de 09/11/2026 usou dez CSV do Júpiter autenticado, no Relatório de Disciplinas e Turmas. As leituras anônimas dessa rota redirecionaram ao login. Os resultados detalhados preexistentes MAC 2020–2025 e MAT 2024–2025 conservam suas próprias fontes e universos; a obtenção original do PDF MAT não foi atribuída ao usuário. O arquivo do conjunto adicional MAC delimita um recorte sobreposto. Arquivos de concluintes/vagas recebidos serviram apenas de conferência; esses indicadores usam o Anuário público. A visão de fontes distingue consultas autenticadas, cópias não públicas, fontes públicas e origens mistas, com prioridade inicial às públicas.
 
 ## Atualização
 
@@ -59,4 +62,4 @@ Na graduação, os resultados não públicos ainda necessários vêm dos relató
 4. Substituir `data.js` ou `graduacao-data.js` pela versão revisada. Alterações na interface devem manter os oito arquivos compatíveis.
 5. Verificar cálculos, filtros, exportações, referências e apresentação antes de publicar a atualização.
 
-O ambiente de manutenção conserva seis entradas canônicas e um construtor reproduzível, com auditorias dos valores, fontes, lacunas e exportações. Coletas completas, arquivos redundantes e estratégias anteriores ficam no arquivo histórico. A coleta não atualiza este painel automaticamente.
+O ambiente de manutenção conserva sete entradas canônicas e um construtor reproduzível, com auditorias dos valores, fontes, lacunas e exportações. As versões públicas das fichas são coletadas sem autenticação e priorizadas no cruzamento histórico. Coletas completas, arquivos redundantes e estratégias anteriores ficam no arquivo histórico. A coleta não atualiza este painel automaticamente.

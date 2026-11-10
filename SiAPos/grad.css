@@ -20,7 +20,9 @@
 .grad-curriculum-table td:nth-child(2){white-space:normal;min-width:150px}
 .grad-department-controls label{flex-wrap:wrap}
 .grad-anuario-controls label{flex-wrap:wrap}
-.grad-anuario-departments{display:flex;flex-wrap:wrap;gap:8px;margin:15px 0 20px}
+.grad-anuario-departments,.grad-common-departments{display:flex;flex-wrap:wrap;gap:8px;margin:15px 0 20px}
+.grad-selection-label{flex-basis:100%;font-size:12px;font-weight:650;color:var(--ink)}
+#graduation-nav a[hidden]{display:none!important}
 .grad-access-label{display:inline-block;font-size:10px;letter-spacing:.025em;color:var(--muted);border:1px solid var(--line);padding:3px 7px;border-radius:4px;margin-bottom:10px}
 .grad-linked-sources{margin:16px 0;font-size:12px;color:var(--muted)}
 .grad-linked-sources summary{cursor:pointer;color:var(--ink);font-weight:650}
