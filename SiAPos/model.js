@@ -33,8 +33,9 @@
 (function(root){
   'use strict';
   const choices=new Map();
+  const medianOpacity=0.7;
   const esc=text=>String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const explanation='Em cada ano, a linha tracejada mostra a mediana dos valores do ano anterior, do próprio ano e do seguinte. Os três precisam ter dados.';
+  const explanation='A linha semitransparente mostra a mediana dos valores do ano anterior, do próprio ano e do seguinte. Os três precisam ter dados.';
   function series(years,values,x,y,color,name){
     const medians=root.PAINEL_MATH.centeredMedian3(years,values);
     let path='',isolated='';
@@ -42,21 +43,21 @@
       if(value===null)return;
       const xx=x(i),yy=y(value);
       if(medians[i-1]==null&&medians[i+1]==null){
-        isolated+=`<circle data-median-year="${years[i]}" cx="${xx}" cy="${yy}" r="4.6" stroke="${esc(color)}" stroke-width="2" fill="none"/>`;
+        isolated+=`<circle data-median-year="${years[i]}" cx="${xx}" cy="${yy}" r="4.6" stroke="${esc(color)}" stroke-width="2" opacity="${medianOpacity}" fill="none"/>`;
       }else{
         path+=(medians[i-1]==null?'M':'L')+xx+','+yy+' ';
       }
     });
     if(!path&&!isolated)return '';
-    const line=path?`<path d="${path.trim()}" fill="none" stroke="${esc(color)}" stroke-width="2.6" stroke-dasharray="7 4" stroke-linecap="round" stroke-linejoin="round"/>`:'';
+    const line=path?`<path d="${path.trim()}" fill="none" stroke="${esc(color)}" stroke-width="2.6" opacity="${medianOpacity}" stroke-linecap="round" stroke-linejoin="round"/>`:'';
     return `<g data-median-series="${esc(name)}"><title>${esc(name)} · Mediana móvel de 3 anos</title>${line}${isolated}</g>`;
   }
-  function control(key,id,defaultOn=false){
-    const enabled=choices.get(key)??defaultOn;
+  function control(key,id){
+    const enabled=choices.get(key)===true;
     return `<label class="chart-trend-control" title="${explanation}"><input type="checkbox" data-trend-toggle="${esc(key)}" aria-controls="${esc(id)}" aria-description="${explanation}" ${enabled?'checked':''}>Mediana móvel · 3 anos</label>`;
   }
   function svgKey(rightX){
-    return `<desc>${explanation}</desc><g class="chart-median-key" transform="translate(${rightX-325},13)" aria-hidden="true"><line x1="0" x2="18" y1="0" y2="0" stroke="currentColor" opacity=".34"/><circle cx="9" cy="0" r="2.7" fill="currentColor"/><text x="24" y="5" class="chart-text">Série original</text><line x1="144" x2="165" y1="0" y2="0" stroke="currentColor" stroke-width="2" stroke-dasharray="7 4"/><text x="171" y="5" class="chart-text">Mediana de 3 anos</text></g>`;
+    return `<desc>${explanation}</desc><g class="chart-median-key" transform="translate(${rightX-325},16)" aria-hidden="true"><line x1="0" x2="18" y1="0" y2="0" stroke="currentColor" stroke-width="2.2"/><circle cx="9" cy="0" r="2.7" fill="currentColor"/><text x="24" y="5" class="chart-text">Série original</text><line x1="144" x2="165" y1="0" y2="0" stroke="currentColor" stroke-width="2.6" opacity="${medianOpacity}"/><text x="171" y="5" class="chart-text">Mediana de 3 anos</text></g>`;
   }
   if(typeof document!=='undefined')document.addEventListener('change',e=>{
     const key=e.target.dataset?.trendToggle;

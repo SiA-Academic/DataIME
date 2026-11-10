@@ -171,7 +171,7 @@
     const x=i=>ys.length===1?L+iw/2:L+i*iw/(ys.length-1);
     ys.forEach((yr,i)=>{if(ys.length<=8||i%2===0||i===ys.length-1)svg+=`<text x="${x(i)}" y="${H-17}" text-anchor="middle" class="chart-text">${yr}</text>`;});
     const trend=window.SIAPOS_TREND;
-    let marks='',medians='';
+    let observedLines='',marks='',medians='';
     for(const p of ps){
      let d='',connected=false;
      const values=p.records.map((r,i)=>{
@@ -181,15 +181,15 @@
       connected=true;marks+=annualMark(r,p,xx,yy,y,semester);
       return value;
      });
-     svg+=`<path data-observed-line d="${d}" fill="none" stroke="${p.color}" stroke-width="2.2"/>`;
+     observedLines+=`<path data-observed-line d="${d}" fill="none" stroke="${p.color}" stroke-width="2.2"/>`;
      if(trend)medians+=trend.series(ys,values,x,y,p.color,p.id);
     }
     if(medians){
      const key=['grad',section,metric,semester??'annual'].join('|')+(state.tab==='additional'&&state.additionalView==='interdepartmental'?'|450':'');
-     trendControl=trend.control(key,id,section==='cursos'&&metric==='concluintes');
+     trendControl=trend.control(key,id);
      svg+=`<g class="chart-median-layer" pointer-events="none">${medians}${trend.svgKey(W-R)}</g>`;
     }
-    svg+=marks;
+    svg+=observedLines+marks;
    }else ps.forEach((p,i)=>{const r=points[i].r,xx=L+iw*(i+.5)/ps.length,bw=Math.min(52,iw/ps.length*.55);svg+=`<text x="${xx}" y="${H-17}" text-anchor="middle" class="chart-text">${esc(p.id)}</text>`;if(!numeric(r)){svg+=`<text x="${xx}" y="${T+ih-8}" text-anchor="middle" class="chart-text">${r.status}</text>`;return;}const yy=y(ratio(r)?r.value*100:r.value),description=[format(r,true)+' ('+r.n+'/'+r.expected_n+' anos)',estimateDescription(r),intakeOrigin(r)].filter(Boolean).join(' · ');svg+=`<rect x="${xx-bw/2}" y="${yy}" width="${bw}" height="${T+ih-yy}" rx="3" fill="${p.color}" role="button" tabindex="0" aria-label="${esc(p.name+' · média '+description+', '+semLabel(semester)+', '+range()+'. Consultar origem.')}" data-grad-source="${ref(r)}" data-tip="${esc(p.id+' · média '+range()+'|'+description)}"/><text x="${xx}" y="${Math.max(16,yy-8)}" text-anchor="middle" class="chart-text grad-value-label">${esc(format(r,true))}</text>`;});
   }else svg=`<text x="${W/2}" y="${H/2}" text-anchor="middle" class="chart-text">${state.tab==='department'&&section==='departamento_jupiter'&&creditMetricIds.includes(metric)?'Sem recortes com cobertura comum nesta seleção.':'Sem valores documentados nesta seleção.'}</text>`;
   const containsEstimates=points.some(({r})=>estimated(r));
