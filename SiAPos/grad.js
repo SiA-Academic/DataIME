@@ -160,7 +160,7 @@
   const ys=selectedYears(),ps=entities.map(p=>({...p,records:kind==='line'?ys.map(year=>get(section,metric,year,semester,p.id)):[]})),periodTitle=semLabel(semester)+' · '+range(),isCourseSeries=state.tab==='series'&&section==='cursos',displayTitle=isCourseSeries?(kind==='bar'?'Média no período':periodTitle):title;
   if(kind==='bar')ps.sort((a,b)=>{const x=average(section,metric,semester,a.id),y=average(section,metric,semester,b.id);return numeric(x)&&numeric(y)?y.value-x.value:numeric(x)?-1:numeric(y)?1:0;});
   const points=kind==='bar'?ps.map(p=>({p,r:average(section,metric,semester,p.id)})):ps.flatMap(p=>p.records.map(r=>({p,r})));
-  const vals=points.filter(x=>numeric(x.r)).map(x=>ratio(x.r)?x.r.value*100:x.r.value),id='grad-chart-'+(++chartId),W=600,H=300,L=55,R=20,T=32,B=45,iw=W-L-R,ih=H-T-B;
+  const vals=points.filter(x=>numeric(x.r)).map(x=>ratio(x.r)?x.r.value*100:x.r.value),id='grad-chart-'+(++chartId),W=480,H=210,L=55,R=20,T=32,B=45,iw=W-L-R,ih=H-T-B;
   let svg='',trendControl='';
   if(vals.length){
    const max=Math.max(...vals),rough=(max||1)/4,power=10**Math.floor(Math.log10(rough)),step=[1,2,2.5,5,10].find(v=>v*power>=rough)*power,top=Math.ceil((max||1)/step)*step,y=v=>T+ih-v/top*ih;let digits=0;

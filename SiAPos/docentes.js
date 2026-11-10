@@ -80,7 +80,7 @@
       const summary=bar.closest('summary');
       for(const segment of bar.children){
         const label=segment.firstElementChild;
-        const fits=segment.clientWidth>=label.offsetWidth+8;
+        const fits=segment.clientWidth>=label.offsetWidth+4;
         label.classList.toggle('is-inline',fits);
         summary.querySelector('[data-docente-share="'+segment.dataset.category+'"]').classList.toggle('docentes-visually-hidden',fits);
       }

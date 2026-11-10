@@ -8,7 +8,6 @@
 .grad-series-section h2[id]{scroll-margin-top:150px}
 .grad-data-panel{margin-top:18px;margin-bottom:25px}
 .grad-series-section{margin-bottom:32px}
-.grad-series-section .panel-heading{min-height:70px}
 .grad-series-section+.grad-series-section{border-top:1px solid var(--line);padding-top:28px}
 .grad-series-download{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:18px;padding:22px;margin-top:10px}
 .grad-series-download h2{font-size:17px;margin:0 0 7px}

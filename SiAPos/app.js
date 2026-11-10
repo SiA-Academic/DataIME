@@ -204,8 +204,7 @@
 
   const values=points.filter(x=>M.numeric(x.record)).map(x=>isRatio(x.record)?x.record.value*100:x.record.value);
 
-  const compact=state.view==='series';
-  const W=compact?464:580,H=compact?203:290;
+  const W=464,H=203;
   const L=51,R=18,T=29,B=43,iw=W-L-R,ih=H-T-B;
 
   let inner='',trendControl='';
@@ -415,7 +414,9 @@
 
   const metrics=choice.metrics||restrictedParticipationMetrics,family=choice.family||'participation',chartLabel=choice.label||restrictedParticipationLabel,styles={enrollments:{dash:'',name:'Matrículas'},approvals:{dash:'7 4',name:'Aprovações',hollow:true},sections:{dash:'',name:'Turmas oferecidas (turmas)'},enrollments_per_section:{dash:'7 4',name:'Matriculados por turma (média)',lighter:true,hollow:true}},tone=(color)=>/^#[a-f0-9]{6}$/i.test(color)?'#'+[1,3,5].map(i=>Math.round(parseInt(color.slice(i,i+2),16)*.78+255*.22).toString(16).padStart(2,'0')).join(''):color,series=ps.flatMap(p=>metrics.map(metric=>{const style=styles[metric]||{dash:'',name:label(choice.section,metric,choice.level)};return {p,metric,style,color:style.lighter?tone(p.color):p.color};})),values=series.flatMap(s=>ys.map(year=>restrictedGet(choice.section,s.metric,year,s.p.id,choice.level))).filter(M.numeric).map(r=>r.value);
 
-  const W=600,L=54,R=18,T=26,B=42,plotH=245,legendColumns=Math.min(2,Math.max(1,series.length)),legendRows=Math.ceil(series.length/legendColumns),H=T+plotH+B+legendRows*22+8,iw=W-L-R,max=Number.isFinite(sharedMax)?Math.max(sharedMax,0):Math.max(...values,0),rough=(max||1)/4,power=10**Math.floor(Math.log10(rough)),step=[1,2,2.5,5,10].find(v=>v*power>=rough)*power,top=Math.ceil((max||1)/step)*step,x=i=>ys.length===1?L+iw/2:L+i*iw/(ys.length-1),y=v=>T+plotH-v/top*plotH,id='chart-'+(++chartCount);let svg='',digits=0;
+  const W=480,L=54,R=18,T=26,B=35,plotH=157,legendStep=16;
+  const legendColumns=Math.min(2,Math.max(1,series.length)),legendRows=Math.ceil(series.length/legendColumns);
+  const H=T+plotH+B+legendRows*legendStep+6,iw=W-L-R,max=Number.isFinite(sharedMax)?Math.max(sharedMax,0):Math.max(...values,0),rough=(max||1)/4,power=10**Math.floor(Math.log10(rough)),step=[1,2,2.5,5,10].find(v=>v*power>=rough)*power,top=Math.ceil((max||1)/step)*step,x=i=>ys.length===1?L+iw/2:L+i*iw/(ys.length-1),y=v=>T+plotH-v/top*plotH,id='chart-'+(++chartCount);let svg='',digits=0;
 
   while(digits<8&&Math.abs(step*10**digits-Math.round(step*10**digits))>1e-8)digits++;
 
@@ -441,8 +442,9 @@
    const dash=s.style.dash?` stroke-dasharray="${s.style.dash}"`:'';
    observedLines+=`<path data-observed-line d="${path}" fill="none" stroke="${s.color}" stroke-width="2.7"${dash} data-restricted-series="${esc(s.p.id+'|'+s.metric)}"/>`;
    if(trend)medianCurves+=trend.series(ys,annualValues,x,y,s.color,s.p.id);
-   const lx=L+(seriesIndex%legendColumns)*iw/legendColumns,ly=T+plotH+B+Math.floor(seriesIndex/legendColumns)*22;
-   legendMarkup+=`<g data-restricted-legend-series="${esc(s.p.id+'|'+s.metric)}"><line x1="${lx}" x2="${lx+24}" y1="${ly}" y2="${ly}" stroke="${s.color}" stroke-width="2.7"${dash}/><circle cx="${lx+12}" cy="${ly}" r="3.1" fill="${s.style.hollow?'var(--surface)':s.color}" stroke="${s.color}" stroke-width="1.5"/><text x="${lx+32}" y="${ly+4}" class="chart-text"><title>${esc(s.p.name+' · '+s.style.name)}</title>${esc(s.p.id+' · '+s.style.name)}</text></g>`;
+   const lx=L+(seriesIndex%legendColumns)*iw/legendColumns,ly=T+plotH+B+Math.floor(seriesIndex/legendColumns)*legendStep;
+   const legendLabel=metrics.length===1?s.p.id:s.p.id+' · '+s.style.name;
+   legendMarkup+=`<g data-restricted-legend-series="${esc(s.p.id+'|'+s.metric)}"><line x1="${lx}" x2="${lx+24}" y1="${ly}" y2="${ly}" stroke="${s.color}" stroke-width="2.7"${dash}/><circle cx="${lx+12}" cy="${ly}" r="3.1" fill="${s.style.hollow?'var(--surface)':s.color}" stroke="${s.color}" stroke-width="1.5"/><text x="${lx+32}" y="${ly+4}" class="chart-text"><title>${esc(s.p.name+' · '+s.style.name)}</title>${esc(legendLabel)}</text></g>`;
   });
   if(medianCurves){
    svg+=`<g class="chart-median-layer" pointer-events="none">${medianCurves}${trend.svgKey(W-R)}</g>`;
@@ -450,7 +452,7 @@
   }
   svg+=observedLines+pointMarks+legendMarkup;
 
-  if(!values.length)svg+=`<text x="300" y="145" text-anchor="middle" class="chart-text">Sem valores documentados nesta seleção.</text>`;
+  if(!values.length)svg+=`<text x="${L+iw/2}" y="${T+plotH/2}" text-anchor="middle" class="chart-text">Sem valores documentados nesta seleção.</text>`;
 
   return `<article class="panel"><div class="panel-heading"><div><h3>${esc(chartLabel)}</h3><p>${esc(ps.map(p=>p.id).join(' · '))} · ${esc(yearList(ys))}</p></div><div class="chart-actions">${trendControl}<button class="chart-action" data-export-svg="${id}">SVG ↓</button></div></div><div class="chart-container"><svg id="${id}" viewBox="0 0 ${W} ${H}" role="img" data-restricted-dashboard-chart ${family==='participation'?'data-restricted-participation-chart':'data-restricted-occupation-chart'} data-restricted-family="${family}" data-restricted-chart-metric="${esc(metrics.join(','))}" data-restricted-chart-program="${esc(ps.map(p=>p.id).join(','))}" data-restricted-scale-max="${top}" aria-label="${esc((ps.length===1?ps[0].name+' · ':'')+chartLabel+' · '+yearList(ys))}" xmlns="http://www.w3.org/2000/svg"><title>${esc(chartLabel)}</title>${svg}</svg></div></article>`;
 
