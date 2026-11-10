@@ -22,3 +22,17 @@
   }
   root.PAINEL_MATH={numeric,average,sum,share};
 })(typeof window==='undefined'?globalThis:window);
+
+(function(root){
+  'use strict';
+  function refresh(){
+    if(typeof document==='undefined')return;
+    document.querySelectorAll?.('.sticky-filters').forEach(bar=>{
+      const stuck=!bar.hidden&&bar.isConnected!==false&&root.scrollY>0&&bar.getBoundingClientRect().top<=0.5;
+      bar.classList.toggle('is-stuck',stuck);
+    });
+  }
+  root.SIAPOS_FILTERS={refresh};
+  root.addEventListener?.('scroll',refresh,{passive:true});
+  root.addEventListener?.('resize',refresh);
+})(typeof window==='undefined'?globalThis:window);

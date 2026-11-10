@@ -1,63 +1,122 @@
 <!doctype html>
+
 <html lang="pt-BR" data-theme="light">
+
 <head>
+
   <meta charset="utf-8">
+
   <meta name="viewport" content="width=device-width,initial-scale=1">
+
   <meta name="color-scheme" content="light dark">
+
   <meta name="description" content="SiAPos — graduação e pós-graduação do IME-USP. Cursos, programas, séries históricas, disciplinas e currículos, com fontes e cobertura explícitas.">
+
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'self'">
+
   <title>SiAPos · Graduação e pós-graduação do IME-USP</title>
-  <link rel="stylesheet" href="styles.css?v=menu-20261109">
-  <link rel="stylesheet" href="grad.css?v=jupiter-20261109-1">
-  <script src="data.js" defer></script>
-  <script src="model.js" defer></script>
-  <script src="graduacao-data.js?v=jupiter-20261109-1" defer></script>
-  <script src="grad.js?v=jupiter-20261109-1" defer></script>
-  <script src="app.js?v=jupiter-20261109-1" defer></script>
+
+  <link rel="stylesheet" href="styles.css?v=indicadores-pos-20261110-18">
+
+  <link rel="stylesheet" href="grad.css?v=indicadores-pos-20261110-18">
+
+  <script src="data.js?v=indicadores-pos-20261110-18" defer></script>
+
+  <script src="model.js?v=indicadores-pos-20261110-18" defer></script>
+
+  <script src="graduacao-data.js?v=indicadores-pos-20261110-18" defer></script>
+
+  <script src="grad.js?v=indicadores-pos-20261110-18" defer></script>
+
+  <script src="app.js?v=indicadores-pos-20261110-18" defer></script>
+
 </head>
+
 <body>
+
   <a class="skip-link" href="#content">Ir para o conteúdo</a>
+
   <aside class="sidebar">
+
     <a href="#overview" class="brand" aria-label="SiAPos — início"><span class="brand-mark">Si</span><span><strong>SiAPos</strong><small>Graduação e pós · IME-USP</small></span></a>
+
     <div class="nav-label">ÁREA ACADÊMICA</div>
+
     <nav aria-label="Área acadêmica" id="area-nav" class="area-nav">
+
       <a href="#graduation" data-area="graduation"><strong>Graduação</strong></a>
+
       <a href="#overview" data-area="postgraduate"><strong>Pós-graduação</strong></a>
+
     </nav>
+
     <div class="nav-label section-nav-label" id="section-nav-label">PÓS-GRADUAÇÃO</div>
+
     <nav aria-label="Visões da pós-graduação" id="main-nav">
+
       <a href="#overview" data-view="overview"><span class="nav-number">01</span><span><strong>Visão geral</strong><small>Formação e matrículas</small></span></a>
+
       <a href="#series" data-view="series"><span class="nav-number">02</span><span><strong>Séries históricas</strong><small>Evolução e comparação</small></span></a>
+
       <a href="#disciplines" data-view="disciplines"><span class="nav-number">03</span><span><strong>Disciplinas</strong><small>Turmas e participação</small></span></a>
-      <a href="#requested" data-view="requested"><span class="nav-number">04</span><span><strong>Quadro 2024–2025</strong><small>Indicadores solicitados</small></span></a>
-      <a href="#sources" data-view="sources"><span class="nav-number">05</span><span><strong>Fontes e critérios</strong><small>Proveniência e cobertura</small></span></a>
+
+
+      <a href="#sources" data-view="sources"><span class="nav-number">04</span><span><strong>Fontes e critérios</strong><small>Proveniência e cobertura</small></span></a>
+
+      <a href="#restricted" data-view="restricted" class="restricted-nav-link"><span class="nav-number">05</span><span><strong>Dados de acesso específico</strong><small>Originais fornecidos · separados</small></span></a>
+
     </nav>
+
     <nav aria-label="Visões da graduação" id="graduation-nav" hidden>
-      <a href="#graduation" data-grad-view="snapshot"><span class="nav-number">01</span><span><strong>Retrato</strong><small>Indicadores por curso</small></span></a>
-      <a href="#graduation/series" data-grad-view="series"><span class="nav-number">02</span><span><strong>Séries por curso</strong><small>Evolução e comparação</small></span></a>
-      <a href="#graduation/department" data-grad-view="department"><span class="nav-number">03</span><span><strong>Disciplinas por conjunto</strong><small>Turmas e participação</small></span></a>
-      <a href="#graduation/mac-adicional" data-grad-view="mac-adicional" hidden><span class="nav-number">04</span><span><strong>Dados adicionais MAC</strong><small>Recortes de Computação</small></span></a>
-      <a href="#graduation/anuario" data-grad-view="anuario"><span class="nav-number">04</span><span><strong>Estatísticas do Anuário</strong><small>Departamentos e unidade</small></span></a>
-      <a href="#graduation/curricula" data-grad-view="curricula"><span class="nav-number">05</span><span><strong>Currículos</strong><small>Variantes e cargas</small></span></a>
-      <a href="#graduation/sources" data-grad-view="sources"><span class="nav-number">06</span><span><strong>Fontes e critérios</strong><small>Proveniência e cobertura</small></span></a>
+
+      <a href="#graduation/series" data-grad-view="series"><span class="nav-number">01</span><span><strong>Séries por curso</strong><small>Evolução e comparação</small></span></a>
+
+      <a href="#graduation/department" data-grad-view="department"><span class="nav-number">02</span><span><strong>Disciplinas no Júpiter</strong><small>Cadastro de turmas</small></span></a>
+
+      <a href="#graduation/coverage" data-grad-view="coverage"><span class="nav-number">03</span><span><strong>Cobertura e lacunas</strong><small>O que temos e o que falta</small></span></a>
+
+      <a href="#graduation/additional" data-grad-view="additional"><span class="nav-number">04</span><span><strong>Dados complementares</strong><small>Recortes fora da comparação</small></span></a>
+
+      <a href="#graduation/anuario" data-grad-view="anuario"><span class="nav-number">05</span><span><strong>Estatísticas do Anuário</strong><small>Departamentos e unidade</small></span></a>
+
+      <a href="#graduation/curricula" data-grad-view="curricula"><span class="nav-number">06</span><span><strong>Currículos</strong><small>Variantes e cargas</small></span></a>
+
+      <a href="#graduation/sources" data-grad-view="sources"><span class="nav-number">07</span><span><strong>Fontes e critérios</strong><small>Proveniência e cobertura</small></span></a>
+
     </nav>
+
     <div class="sidebar-bottom"><span class="local-dot"></span> Graduação e pós-graduação<small>Dados agregados. Sem cadastro de alunos.</small></div>
+
   </aside>
+
   <div class="workspace">
-    <header class="topbar"><span>Instituto de Matemática e Estatística</span><div><span class="snapshot" id="snapshot">Base documental</span><button class="icon-button" id="theme-toggle" aria-label="Alternar tema claro e escuro" title="Alternar tema">◐</button></div></header>
+
     <main id="content" tabindex="-1">
-      <div class="page-heading"><div><p class="eyebrow" id="page-eyebrow">INDICADORES DA PÓS-GRADUAÇÃO</p><h1 id="page-title">Pós-graduação em números</h1><p class="page-description" id="page-description">Compare programas, acompanhe a evolução e consulte a origem de cada valor.</p></div><button class="button secondary print-button" id="print-view">Imprimir visão</button></div>
-      <section class="filters" aria-label="Filtros dos indicadores" id="filters">
-        <div class="filter-top"><div><h2>Programas</h2><p>Selecione um ou mais para comparar.</p></div><div class="filter-presets"><button class="text-button" id="select-all">Todos</button><span>·</span><button class="text-button" id="select-cc-mat">CC e MAT</button></div></div>
-        <div id="program-filters" class="program-filters"></div>
-        <div class="year-controls" id="year-controls"><label>De <select id="start-year" aria-label="Ano inicial"></select></label><span class="year-connector">—</span><label>Até <select id="end-year" aria-label="Ano final"></select></label><span class="filter-caption" id="filter-caption"></span><button class="text-button reset-button" id="reset-filters">Restaurar filtros</button></div>
+
+      <div class="page-heading"><div><p class="eyebrow" id="page-eyebrow">INDICADORES DA PÓS-GRADUAÇÃO</p><h1 id="page-title">Pós-graduação em números</h1><p class="page-description" id="page-description">Compare programas, acompanhe a evolução e consulte a origem de cada valor.</p></div><div class="page-actions"><button class="icon-button" id="theme-toggle" aria-label="Alternar tema claro e escuro" title="Alternar tema">◐</button><button class="button secondary print-button" id="print-view">Imprimir visão</button></div></div>
+
+      <section class="filters sticky-filters" aria-label="Filtros dos indicadores" id="filters">
+        <div class="filter-control-row">
+          <div class="filter-options" role="group" aria-label="Programas de pós-graduação"><span class="filter-label">Programas</span><div id="program-filters" class="filter-options"></div><button class="text-button" id="select-all">Todos</button></div>
+          <div class="year-controls filter-control-group" id="year-controls"><label>De <select id="start-year" aria-label="Ano inicial"></select></label><span class="year-connector">—</span><label>Até <select id="end-year" aria-label="Ano final"></select></label><span class="filter-caption" id="filter-caption" hidden></span><button class="text-button reset-button" id="reset-filters">Restaurar</button></div>
+        </div>
+        <div id="post-view-controls" class="filter-control-row" hidden></div>
       </section>
+
       <div id="view-content" aria-live="polite"><div class="empty-state"><h2>Carregando a base documental…</h2><p>Se esta mensagem permanecer, abra a pasta completa do painel, com data.js ao lado de index.html.</p></div></div>
+
       <footer class="page-footer"><span>SiAPos · IME-USP</span><span>2012–2025 · Fontes e limites acompanham os indicadores</span></footer>
+
     </main>
+
   </div>
+
   <div class="chart-tooltip" id="chart-tooltip" role="tooltip" hidden></div>
+
   <dialog id="source-dialog" aria-labelledby="source-title"><div class="dialog-header"><h2 id="source-title">Origem do indicador</h2><button class="icon-button" id="close-dialog" aria-label="Fechar detalhes">×</button></div><div id="source-content"></div><div class="dialog-actions"><button class="button secondary" id="copy-source">Copiar referência</button><button class="button" id="done-dialog">Fechar</button></div></dialog>
+
   <div class="toast" id="toast" role="status" hidden></div>
+
 </body>
+
 </html>

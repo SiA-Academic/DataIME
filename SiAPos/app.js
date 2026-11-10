@@ -1,213 +1,653 @@
 (function(){
+
  'use strict';
+
  const D=window.PAINEL_DATA,M=window.PAINEL_MATH;
+
  if(!D||!Array.isArray(D.metrics))return;
+
  const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
  const basename=v=>String(v??'').split(/[\\/]/).pop();
- const palette={CC:'#245da8',MAT:'#d27a31',MAP:'#21877e',PE:'#8a61a5',MPEM:'#b38c25'};
- const names={CC:'Ciência da Computação',MAT:'Matemática',MAP:'Matemática Aplicada',PE:'Probabilidade e Estatística',MPEM:'Ensino de Matemática'};
- const programOrder=['CC','MAT','MAP','PE','MPEM'];
- const programs=programOrder.map(id=>({id,name:names[id],color:palette[id]}));
+
+ const RD=window.PAINEL_RESTRICTED_DATA||{programs:[],metrics:[],period:[]};
+
+ const programColors=['#245da8','#d27a31','#21877e','#8a61a5','#b38c25','#a65c69','#477b65'];
+
+ function datasetPrograms(dataset){const configured=Array.isArray(dataset.programs)?dataset.programs:[],rows=Array.isArray(dataset.metrics)?dataset.metrics:[],entries=configured.length?configured:[...new Set(rows.map(r=>r.program||r.program_key).filter(Boolean))].map(id=>({id}));return entries.map((p,i)=>{const id=String(p.id||p.program_key||p.code);return {...p,id,name:p.name||p.label||p.short_label||id,color:p.color||programColors[i%programColors.length]};});}
+
+ const programs=datasetPrograms(D),restrictedPrograms=datasetPrograms(RD),programOrder=programs.map(p=>p.id);
+
+ const names=Object.fromEntries(programs.map(p=>[p.id,p.name])),restrictedNames=Object.fromEntries(restrictedPrograms.map(p=>[p.id,p.name]));
+
+ const periodYears=(dataset,rows)=>{const explicit=Array.isArray(dataset.period)?dataset.period:[dataset.period?.start,dataset.period?.end],found=rows.map(r=>Number(r.year)).filter(Number.isFinite),start=Number(explicit[0])||Math.min(...found),end=Number(explicit[1])||Math.max(...found);return Number.isFinite(start)&&Number.isFinite(end)&&start<=end?Array.from({length:end-start+1},(_,i)=>start+i):[];};
+
+ function sourceRegistry(dataset){return new Map((Array.isArray(dataset.sources)?dataset.sources:Object.values(dataset.sources||{})).filter(s=>s.id).map(s=>[s.id,s]));}
+
+ const mainSources=sourceRegistry(D),restrictedSources=sourceRegistry(RD);
+
  const definitions=D.metric_definitions||D.definitions||D.metrics_definitions||[];
+
  const defList=Array.isArray(definitions)?definitions:Object.entries(definitions).map(([id,v])=>({id,...v}));
+
  const defs=new Map(defList.map(d=>[d.id,d]));
- const records=D.metrics.map((r,i)=>({...r,_id:i,program:r.program||r.program_key,level:r.level??null}));
+
+ const allowedMainAccess=new Set(D.allowed_access_classes||['public','janus_authenticated']),sourceAdmissionMemo=new Map();
+
+ function sourceAdmittedRecursively(id,stack=new Set()){
+
+  if(sourceAdmissionMemo.has(id))return sourceAdmissionMemo.get(id);
+
+  const source=mainSources.get(id);if(!source||source.admissible_for_main!==true||!allowedMainAccess.has(source.access)||/specific|restric/i.test(String(source.access))||stack.has(id))return false;
+
+  const parents=source.depends_on||[];if(!Array.isArray(parents))return false;
+
+  const next=new Set(stack);next.add(id);const admitted=parents.every(parent=>sourceAdmittedRecursively(typeof parent==='string'?parent:parent?.id,next));sourceAdmissionMemo.set(id,admitted);return admitted;
+
+ }
+
+ const admissionAllowed=r=>{const p=r.provenance,ids=p?.source_ids||[];return p?.admissible_for_main===true&&!/specific|restric/i.test(String(p.access||''))&&Array.isArray(ids)&&ids.length>0&&ids.every(id=>sourceAdmittedRecursively(id));};
+
+ const records=D.metrics.filter(admissionAllowed).map((r,i)=>({...r,_id:i,program:r.program||r.program_key,level:r.level??null}));
+
+ const restrictedRecords=(RD.metrics||[]).map(r=>({...r,_id:null,_restricted:true,program:r.program||r.program_key,level:r.level??null}));
+
+ const restrictedIndex=new Map(restrictedRecords.map(r=>[[r.section,r.metric,r.year,r.program,r.level||''].join('|'),r]));
+
+ const rDefinitions=RD.metric_definitions||RD.definitions||RD.metrics_definitions||[];
+
+ const restrictedDefs=new Map((Array.isArray(rDefinitions)?rDefinitions:Object.entries(rDefinitions).map(([id,v])=>({id,...v}))).map(d=>[d.id,d]));
+
+ const restrictedYears=periodYears(RD,restrictedRecords);
+
+
+
  const index=new Map(records.map(r=>[[r.section,r.metric,r.year,r.program,r.level||''].join('|'),r]));
- const years=[...new Set(records.filter(r=>r.section==='degrees').map(r=>r.year))].filter(y=>y>=2012&&y<=2025).sort((a,b)=>a-b);
- if(!years.length)years.push(...Array.from({length:14},(_,i)=>2012+i));
- const titles={overview:['INDICADORES DA PÓS-GRADUAÇÃO','Pós-graduação em números','Compare programas, acompanhe a evolução e consulte a origem de cada valor.'],series:['SÉRIES HISTÓRICAS · 2012–2025','Formação e matrículas','Titulações, matrículas regulares e especiais em universos separados.'],disciplines:['OFERECIMENTO E PARTICIPAÇÃO','Disciplinas e turmas','Contagens de turmas e indicadores de participação nos relatórios anuais do Janus.'],requested:['QUADRO COMPARATIVO · 2024–2025','Indicadores para a Congregação','Cargas, turmas, vínculos de matrícula, ativos em 1º de abril e diplomados.'],sources:['TRANSPARÊNCIA DOS INDICADORES','Fontes, cobertura e critérios','Cada número conserva sua referência. Ausência de informação não é zero.']};
+
+ const bucketKey=(section,metric,year,level=null)=>[section,metric,year,level||''].join('|');
+
+ const buckets=new Map();records.forEach(r=>{const key=bucketKey(r.section,r.metric,r.year,r.level);if(!buckets.has(key))buckets.set(key,new Map());buckets.get(key).set(r.program,r);});
+
+ const sharedBuckets=new Set([...buckets].filter(([,rows])=>programs.every(p=>{const r=rows.get(p.id);return M.numeric(r)||r?.status==='NA';})&&[...rows.values()].some(M.numeric)).map(([key])=>key));
+
+ const additionalRecords=[]; // Main records are never reclassified as restricted by coverage.
+
+ const additionalYears=new Set();
+
+ const years=periodYears(D,records),periodStart=years[0]??2012,periodEnd=years.at(-1)??periodStart;
+
+ const fullPeriod=periodStart===periodEnd?String(periodStart):periodStart+'–'+periodEnd;
+
+ const unitLabel=D.unit_label||D.unit_name||D.unit?.name||D.unit?.short_name||D.institution?.unit_label||D.institution?.unit_name||'programas configurados';
+
+ const titles={overview:['INDICADORES DA PÓS-GRADUAÇÃO','Pós-graduação em números',''],series:['SÉRIES HISTÓRICAS · 2012–2025','Formação e matrículas',''],disciplines:['OFERECIMENTO E PARTICIPAÇÃO','Disciplinas e turmas',''],sources:['TRANSPARÊNCIA DOS INDICADORES','Fontes, cobertura e critérios','Cada número conserva sua referência. Ausência de informação não é zero.']};
+
+ titles.restricted=['ARQUIVOS COM PERFIL ESPECÍFICO','Arquivos com acesso específico','Séries anuais de disciplinas da coleção original.'];
+
+ titles.series[0]='SÉRIES HISTÓRICAS · '+fullPeriod;
+
  const levels={ME:'Mestrado',DO:'Doutorado',DD:'Doutorado direto',DO_DD:'Doutorado (DO + DD)',total:'Total'};
- titles.graduation=['GRADUAÇÃO · 2012–2025','Graduação no IME','Compare cursos, consulte estoques semestrais e acompanhe os conjuntos de disciplinas em seus próprios recortes.'];
+
+ titles.graduation=['','Graduação no IME',''];
+
  const disciplineLabels={courses:'Disciplinas oferecidas',sections:'Turmas',applications:'Inscrições aproximadas',enrollments:'Matrículas em disciplinas',approvals:'Aprovações aproximadas',enrollments_per_section:'Matrículas médias por turma',approval_rate:'Taxa de aprovação aproximada'};
+
  const requestedLabels={nominal_class_hours:'Carga horária nominal de aulas',sections:'Número de turmas',enrollments:'Matrículas em disciplinas',sections_lt5:'Turmas com menos de 5 matriculados',sections_gt30:'Turmas com mais de 30 matriculados',active_april1:'Alunos ativos em 1º de abril',degrees:'Diplomados',credits_offered:'Créditos ofertados',curricular_hours:'Carga horária curricular total'};
- const state={view:'overview',gradTab:'snapshot',start:2012,end:2025,selected:new Set(programOrder),seriesMetric:'degrees',seriesLevel:'total',seriesMode:'count',disciplineMetric:'enrollments_per_section',quadroYear:'both'};
- let derived=new Map(),nextDerived=0,chartCount=0,exportRows=[],copyText='',toastTimer;
- const sourceRef=r=>r?.source||{};
- function get(section,metric,year,program,level=null){return index.get([section,metric,year,program,level||''].join('|'))||{section,metric,year,program,level,value:null,status:'ND',semantic_note:'Não há valor documentado na base disponível para este programa, ano e indicador.'};}
+
+ const extendedDisciplineMetrics=['nominal_class_hours','credits_offered','curricular_hours','sections_lt5','sections_gt30'];
+ const disciplineMetricLabels={...disciplineLabels,...Object.fromEntries(extendedDisciplineMetrics.map(metric=>[metric,requestedLabels[metric]]))};
+
+ const state={view:'overview',gradTab:'series',start:periodStart,end:periodEnd,selected:new Set(programOrder),seriesMode:'count',restrictedStart:restrictedYears[0]??periodStart,restrictedEnd:restrictedYears.at(-1)??periodEnd,restrictedSelected:new Set(restrictedPrograms.map(p=>p.id)),restrictedMetric:null};
+
+ let derived=new Map(),nextDerived=0,chartCount=0,exportRows=[],copyText='',toastTimer,postControls='';
+
+ const sourceRef=r=>{const inline=r?.source&&typeof r.source==='object'?r.source:{},id=typeof r?.source==='string'?r.source:r?.source_id||inline.id;return {...((r?._restricted?restrictedSources:mainSources).get(id)||{}),...inline};};
+
+ function rawGet(section,metric,year,program,level=null){return index.get([section,metric,year,program,level||''].join('|'));}
+
+ function originFor(r){
+
+  if(r?._restricted)return 'Janus · perfil específico · arquivo original fornecido';
+
+  if(r?.origin_label)return r.origin_label;
+
+  if(r?.status==='NA')return 'Não se aplica';
+
+  if(r?.status==='ND')return r.coverage_restricted?'Fora da cobertura comum':'Falta obter / não disponível';
+
+  const access=String(r?.provenance?.access||sourceRef(r).access||'');
+
+  if(/specific|restric/.test(access))return 'Janus · perfil específico';
+
+  if(access==='public')return 'Fonte pública';
+
+  if(access.startsWith('mixed'))return 'Mista · fontes públicas e Janus autenticado';
+
+  if(/janus|authentic/.test(access))return 'Janus autenticado · conforme perfil autorizado';
+
+  if(r?.section==='degrees'||r?.metric==='degrees')return 'Pública · DataUSP';
+
+  if(r?.section==='enrollment')return 'Pública · Anuário USP';
+
+  if(r?.metric==='nominal_class_hours')return 'Fichas e ofertas do Janus · componentes sob as condições indicadas';
+
+  return 'Janus autenticado · conforme perfil autorizado';
+
+ }
+
+ function coverageGap(section,metric,year,program,level,raw=null){
+
+  const exists=M.numeric(raw);return {section,metric,year,program,level,value:null,status:'ND',coverage_restricted:exists,additional_available:false,available_value:exists?raw.value:null,available_status:exists?raw.status:null,provenance:exists?raw.provenance:undefined,source:exists?sourceRef(raw):{},origin_label:exists?'Fora da cobertura comum':'Falta obter / não disponível',semantic_note:exists?'Há um valor obtido por fonte admitida para este programa, mas falta cobertura equivalente dos demais programas configurados neste indicador/ano. Ele não entra na comparação comum e não foi transferido aos arquivos com perfil específico.':'Falta obter um valor documentado deste indicador, ano e programa pelas fontes admitidas. Ausência não é zero.'};
+
+ }
+
+ function get(section,metric,year,program,level=null){const raw=rawGet(section,metric,year,program,level),common=sharedBuckets.has(bucketKey(section,metric,year,level));return common&&raw?raw:coverageGap(section,metric,year,program,level,raw);}
+
+ function metricRecord(section,metric,year,program,level=null){
+  if(section==='requested_2024_2025'||(section==='disciplines'&&extendedDisciplineMetrics.includes(metric))||(section==='enrollment'&&metric==='active_april1')){const r=requestedRecord(metric,year,program,level);return {...r,original_section:r.original_section||r.section,section};}
+  return get(section,metric,year,program,level);
+ }
+
  function shareMode(){return state.view==='series'&&state.seriesMode==='share';}
+
  function viewMetric(section,metric,year,program,level=null){
-  const numerator=get(section,metric,year,program,level);if(!shareMode())return numerator;
-  const all=programs.map(p=>get(section,metric,year,p.id,level)),ratio=M.share(numerator,all);
-  return {...numerator,...ratio,_id:null,unit:'ratio',derived_kind:'ime_share',numerator:numerator.value,records:all,n:all.filter(M.numeric).length,expected_n:5,semantic_note:'Participação no total dos cinco programas do IME, para o mesmo ano, indicador e nível. O filtro de programas não altera o denominador institucional.'};
+
+  const numerator=metricRecord(section,metric,year,program,level);if(!shareMode())return numerator;if(numerator.status==='NA')return {...numerator,unit:'ratio'};
+
+  const all=programs.map(p=>metricRecord(section,metric,year,p.id,level)),ratio=M.share(numerator,all);
+
+  return {...numerator,...ratio,_id:null,unit:'ratio',derived_kind:'ime_share',numerator:numerator.value,records:all,n:all.filter(M.numeric).length,expected_n:all.filter(r=>r.status!=='NA').length,semantic_note:'Participação no total de '+unitLabel+', para o mesmo ano, indicador e nível. O filtro de programas não altera esse denominador.'};
+
  }
- function label(section,metric,level=null){let name=defs.get(section+'.'+metric)?.label||disciplineLabels[metric]||requestedLabels[metric]||metric;return name+(level&&level!=='total'?' · '+(levels[level]||level):'');}
+
+ function label(section,metric,level=null){let name=(state.view==='restricted'?restrictedDefs.get(section+'.'+metric):null)?.label||defs.get(section+'.'+metric)?.label||disciplineLabels[metric]||requestedLabels[metric]||metric;return name+(level&&level!=='total'?' · '+(levels[level]||level):'');}
+
  const selected=()=>programs.filter(p=>state.selected.has(p.id));
+
  const selectedYears=()=>years.filter(y=>y>=state.start&&y<=state.end);
+
  const rangeLabel=()=>state.start===state.end?String(state.start):`${state.start}–${state.end}`;
+
  const isRatio=r=>r?.metric==='approval_rate'||['ratio','proportion','fraction'].includes(r?.unit);
+
  function number(value,digits=0){return new Intl.NumberFormat('pt-BR',{minimumFractionDigits:digits,maximumFractionDigits:digits}).format(value);}
+
  function format(r,options={}){
+
   if(!M.numeric(r))return r?.status==='NA'?'NA':'ND';
+
   const digits=options.mean?2:isRatio(r)?1:r.metric==='enrollments_per_section'?2:Number.isInteger(r.value)?0:1;
+
   return (r.status==='approximate'?'≈ ':'')+number(isRatio(r)?r.value*100:r.value,digits)+(isRatio(r)?'%':'');
+
  }
+
  function cell(r,mean=false){let id=r._id;if(id==null){id='d'+nextDerived++;derived.set(id,r);}return `<button class="metric-cell ${r.status==='approximate'?'approx':''}" data-source="${esc(id)}" aria-label="${esc(format(r,{mean}))}; consultar origem">${!M.numeric(r)?`<span class="${r.status==='NA'?'na':'nd'}">${r.status==='NA'?'NA':'ND'}</span>`:esc(format(r,{mean}))}</button>`;}
+
  function average(section,metric,program,level){const rs=selectedYears().map(y=>viewMetric(section,metric,y,program,level));return {...M.average(rs),section,metric,program,level,unit:shareMode()?'ratio':rs[0]?.unit,year:rangeLabel(),derived_kind:'mean',semantic_note:'Média aritmética dos valores anuais disponíveis. Não é a razão entre os totais acumulados. Anos sem informação são excluídos e a cobertura é indicada.'};}
+
  function total(section,metric,year,level){return {...M.sum(selected().map(p=>viewMetric(section,metric,year,p.id,level))),section,metric,year,level,unit:shareMode()?'ratio':undefined,derived_kind:'selected_program_sum',semantic_note:'Soma dos programas selecionados neste ano. A soma só é exibida quando todos os programas aplicáveis têm valor documentado.'};}
+
  function empty(message='Selecione pelo menos um programa para visualizar os indicadores.'){return `<div class="empty-state"><h2>Nenhum dado nesta seleção</h2><p>${esc(message)}</p><button class="button" data-action="reset">Restaurar filtros</button></div>`;}
+
  function legend(ps=selected()){return `<div class="legend">${ps.map(p=>`<span title="${esc(p.name)}"><i class="legend-dot" style="background:${p.color}"></i>${p.id}</span>`).join('')}</div>`;}
+
  function chart(section,metric,level,kind,title,subtitle){
-  const id='chart-'+(++chartCount), ps=selected(), ys=selectedYears();
+
+  const id='chart-'+(++chartCount), ps=selected(), ys=selectedYears(),chartDescription=label(section,metric,level)+' · '+rangeLabel()+(shareMode()?' · % do total dos programas':'');
+
   if(kind==='bar')ps.sort((a,b)=>{const av=average(section,metric,a.id,level),bv=average(section,metric,b.id,level),an=M.numeric(av),bn=M.numeric(bv);return an&&bn?bv.value-av.value:an?-1:bn?1:0;});
+
   const points=kind==='bar'?ps.map(p=>({p,record:average(section,metric,p.id,level)})):ps.flatMap(p=>ys.map(y=>({p,y,record:viewMetric(section,metric,y,p.id,level)})));
+
   const values=points.filter(x=>M.numeric(x.record)).map(x=>isRatio(x.record)?x.record.value*100:x.record.value);
+
   const W=580,H=290,L=51,R=18,T=29,B=43,iw=W-L-R,ih=H-T-B;
+
   let inner='';
+
   if(values.length){
+
    const max=Math.max(...values),rough=(max||1)/4,power=10**Math.floor(Math.log10(rough)),nice=[1,2,2.5,5,10].find(v=>v*power>=rough)*power,top=Math.ceil((max||1)/nice)*nice;
+
    const y=v=>T+ih-(v/top)*ih;
+
    let tickDecimals=0;while(tickDecimals<8&&Math.abs(nice*10**tickDecimals-Math.round(nice*10**tickDecimals))>1e-8)tickDecimals++;
+
    for(let v=0;v<=top+nice/10;v+=nice){inner+=`<line x1="${L}" y1="${y(v)}" x2="${W-R}" y2="${y(v)}" class="chart-gridline"/><text x="${L-9}" y="${y(v)+4}" text-anchor="end" class="chart-text">${number(v,tickDecimals)}${metric==='approval_rate'||shareMode()?'%':''}</text>`;}
+
    inner+=`<line x1="${L}" y1="${T+ih}" x2="${W-R}" y2="${T+ih}" class="chart-axis"/>`;
+
    if(kind==='line'){
+
     const x=i=>ys.length===1?L+iw/2:L+i*iw/(ys.length-1);
+
     ys.forEach((year,i)=>{if(ys.length<=8||i%2===0||i===ys.length-1)inner+=`<text x="${x(i)}" y="${H-18}" text-anchor="middle" class="chart-text">${year}</text>`;});
+
     ps.forEach(p=>{let path='',connected=false;const marks=[];ys.forEach((year,i)=>{const r=viewMetric(section,metric,year,p.id,level);if(!M.numeric(r)){connected=false;return;}const yy=y(isRatio(r)?r.value*100:r.value),xx=x(i);path+=(connected?'L':'M')+xx+','+yy+' ';connected=true;let rid=r._id;if(rid==null){rid='d'+nextDerived++;derived.set(rid,r);}marks.push(`<circle cx="${xx}" cy="${yy}" r="3.4" fill="${p.color}" class="chart-point" tabindex="0" role="button" data-source="${esc(rid)}" data-tip="${esc(p.id+' · '+year+'|'+format(r))}" aria-label="${esc(p.name+' '+year+': '+format(r)+'. Consultar fonte.')}"><title>${esc(p.id+' · '+year+': '+format(r))}</title></circle>`);});inner+=`<path d="${path}" stroke="${p.color}" fill="none" stroke-width="2.2" stroke-linejoin="round"/>`+marks.join('');});
+
    }else{
+
     ps.forEach((p,i)=>{const r=points[i].record,xx=L+iw*(i+.5)/ps.length,bw=Math.min(55,iw/ps.length*.55);inner+=`<text x="${xx}" y="${H-18}" text-anchor="middle" class="chart-text">${p.id}</text>`;if(!M.numeric(r)){inner+=`<text x="${xx}" y="${T+ih-9}" text-anchor="middle" class="chart-text">${r.status}</text>`;return;}const yy=y(isRatio(r)?r.value*100:r.value);let rid='d'+nextDerived++;derived.set(rid,r);inner+=`<rect x="${xx-bw/2}" y="${yy}" width="${bw}" height="${T+ih-yy}" rx="3" fill="${p.color}" tabindex="0" role="button" data-source="${rid}" data-tip="${esc(p.id+' · média '+rangeLabel()+'|'+format(r,{mean:true})+' ('+r.n+'/'+r.expected_n+' anos)')}" aria-label="${esc(p.name+': '+format(r,{mean:true}))}"/><text x="${xx}" y="${Math.max(15,yy-8)}" text-anchor="middle" class="chart-text" style="fill:var(--ink);font-weight:600">${esc(format(r,{mean:true}))}</text>`;});
+
    }
+
   }else inner=`<text x="${W/2}" y="${H/2}" text-anchor="middle" class="chart-text">Sem valores documentados para esta seleção.</text>`;
-  return `<article class="panel"><div class="panel-heading"><div><h3>${esc(title)}</h3><p>${esc(subtitle)}</p></div><div class="chart-actions"><button class="chart-action" data-export-svg="${id}" aria-label="Baixar SVG: ${esc(title)}">SVG ↓</button></div></div><div class="chart-container"><svg id="${id}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(title+'. '+subtitle)}" xmlns="http://www.w3.org/2000/svg"><title>${esc(title)}</title>${inner}</svg></div>${legend(ps)}<div class="panel-foot">${kind==='bar'?'Maior média primeiro; ND/NA ao final. Média dos anos disponíveis; sem informação não entra como zero.':'Passe pelo ponto para ver o valor; clique para consultar a fonte.'} ${metric==='approval_rate'?'Taxa calculada sobre os vínculos em disciplinas.':''}</div></article>`;
+
+  return `<article class="panel"><div class="panel-heading"><div><h3>${esc(title)}</h3>${subtitle?`<p>${esc(subtitle)}</p>`:''}</div><div class="chart-actions"><button class="chart-action" data-export-svg="${id}" aria-label="Baixar SVG: ${esc(chartDescription)}">SVG ↓</button></div></div><div class="chart-container"><svg id="${id}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(chartDescription)}" xmlns="http://www.w3.org/2000/svg"><title>${esc(chartDescription)}</title>${inner}</svg></div>${kind==='bar'?'':legend(ps)}</article>`;
+
  }
+
+ function startTableExport(){
+
+  exportRows=[['Tabela','Indicador','Código do indicador','Seção','Nível','Programa','Ano ou período','Valor','Situação','Unidade','Quantidade disponível','Quantidade esperada','Anos com valor','Anos ND','Anos NA','Origem','Arquivo','Referência','SHA-256','URL','Ressalvas','Fontes de apoio','Composição']];
+
+ }
+
+ function exportTableRecord(table,r,options={}){
+
+  const source=sourceFor(r),parts=r.records||[],support=sourceChain(r),description=options.description??[r.semantic_note||r.note||'',...(r.qualifiers||[])].filter(Boolean).join(' | ');
+
+  const composition=parts.map(part=>({programa:part.program,ano:part.year,valor:part.value??null,situacao:part.status,origem:originFor(part),referencia:sourceCitation(sourceFor(part)),fontes:sourceChain(part).map(item=>({id:item.id,referencia:sourceCitation(item),url:item.url||''}))}));
+
+  exportRows.push([table,options.label||label(r.section,r.metric,r.level),r.metric||'',r.section||'',r.level||'',r.program||'',r.year??'',r.value??'',r.status||'',r.unit||'',r.n??'',r.expected_n??'',options.validYears?.join(', ')||'',options.missingYears?.join(', ')||'',options.naYears?.join(', ')||'',options.origin??originFor(r),basename(source.file||source.filename||source.path),sourceLocator(source),source.sha256||source.hash||'',source.url||'',description,support.length?JSON.stringify(support.map(item=>({id:item.id,titulo:item.title||item.label,acesso:item.access,referencia:sourceCitation(item),url:item.url||''}))):'',composition.length?JSON.stringify(composition):'']);
+
+ }
+
+ function exportCoverage(table,rows,ys,metadata){
+
+  const valid=rows.filter(M.numeric).map(r=>r.year),missing=rows.filter(r=>r.status==='ND').map(r=>r.year),na=rows.filter(r=>r.status==='NA').map(r=>r.year);
+
+  exportTableRecord(table,{...metadata,year:yearList(ys),value:valid.length,status:'exact',unit:'years',n:valid.length,expected_n:ys.length,records:rows,semantic_note:'Quantidade de anos com valor numérico no período indicado; ND e NA são discriminados nas colunas próprias.'},{validYears:valid,missingYears:missing,naYears:na,origin:'Cobertura dos registros desta visão'});
+
+ }
+
+ function appendAnnualExport(section,metric,level){
+
+  const ps=selected(),ys=selectedYears();
+
+  for(const p of ps){
+
+   const rows=ys.map(year=>viewMetric(section,metric,year,p.id,level));
+
+   rows.forEach(r=>exportTableRecord('Valores anuais',r));
+
+   exportTableRecord('Médias anuais',average(section,metric,p.id,level));
+
+   exportCoverage('Cobertura anual',rows,ys,{section,metric,program:p.id,level});
+
+  }
+
+ }
+
+ function tableDownloadButton(disabled=false){return `<button class="button secondary" data-action="csv"${disabled?' disabled':''}>Baixar dados (CSV) ↓</button>`;}
+
  function annualTable(section,metric,level){
-  const ps=selected(), ys=selectedYears();
-  exportRows=[['Ano',...ps.flatMap(p=>[p.id,p.id+' situação'])]];
-  const body=ys.map(year=>{const rs=ps.map(p=>viewMetric(section,metric,year,p.id,level));exportRows.push([year,...rs.flatMap(r=>[r.value??'',r.status])]);return `<tr><td>${year}</td>${rs.map(r=>`<td>${cell(r)}</td>`).join('')}</tr>`;}).join('');
-  const means=ps.map(p=>average(section,metric,p.id,level));
-  return `<article class="panel"><div class="panel-heading"><div><h3>${esc(label(section,metric,level))} · valores anuais</h3><p>Clique em qualquer valor para consultar sua origem.</p></div><button class="chart-action" data-action="csv">CSV ↓</button></div><div class="table-wrap"><table class="data-table"><caption class="skip-link">Valores anuais de ${esc(label(section,metric,level))}</caption><thead><tr><th scope="col">Ano</th>${ps.map(p=>`<th scope="col" title="${esc(p.name)}">${p.id}</th>`).join('')}</tr></thead><tbody>${body}<tr class="mean-row"><td>Média ${rangeLabel()}</td>${means.map(r=>`<td>${cell(r,true)}<div class="mini-note">${r.n}/${r.expected_n} anos</div></td>`).join('')}</tr></tbody></table></div><div class="panel-foot">≈ estimativa · ND não disponível · NA não se aplica. A média é aritmética e não mistura programas. Valores percentuais são exibidos em %, preservando a fração na exportação.</div></article>`;
+
+  startTableExport();appendAnnualExport(section,metric,level);
+
+  return `<div class="toolbar">${tableDownloadButton()}</div>`;
+
  }
+
  function insight(section,metric,level){
+
   const valid=selected().map(p=>({p,r:average(section,metric,p.id,level)})).filter(x=>M.numeric(x.r));
+
   const ranked=[...valid].sort((a,b)=>b.r.value-a.r.value);
+
   const first=total(section,metric,state.start,level),last=total(section,metric,state.end,level);
+
   let change='A comparação entre início e fim exige valores documentados nos dois anos para todos os programas selecionados.';
+
   if(M.numeric(first)&&M.numeric(last)&&state.start!==state.end){const delta=last.value-first.value;change=`O conjunto selecionado passou de <strong>${esc(format(first))}</strong> em ${state.start} para <strong>${esc(format(last))}</strong> em ${state.end}: ${delta>0?'+':''}${number(shareMode()?delta*100:delta,shareMode()?1:Number.isInteger(delta)?0:1)}${shareMode()?' p.p.':first.value!==0?' ('+(delta>0?'+':'')+number(delta/first.value*100,1)+'%)':''}.`;}else if(state.start===state.end)change='Selecione um intervalo de pelo menos dois anos para comparar início e fim.';
+
   return `<div class="analysis-grid"><article class="analysis-card"><h3>Comparação no período</h3><p>${ranked.length?`A maior média entre os programas selecionados é <strong>${ranked[0].p.id}: ${esc(format(ranked[0].r,{mean:true}))}</strong>, calculada sobre ${ranked[0].r.n} ano(s) com informação. A comparação é descritiva e não ajusta o tamanho dos programas.`:'Não há valores suficientes para calcular médias.'}</p></article><article class="analysis-card"><h3>Início e fim · ${rangeLabel()}</h3><p>${change}</p></article></div>`;
+
  }
- function sourceLimits(section){const notes=(D.source_limits||[]).filter(n=>n.section===section&&(!/^20\d\d:/.test(n.text)||(+n.text.slice(0,4)>=state.start&&+n.text.slice(0,4)<=state.end)));return notes.length?`<div class="callout"><strong>Conferência das fontes · totais do IME</strong>${notes.map(n=>`<p>${esc(n.text)} <span class="mini-note">${esc(n.source.sheet+'!'+n.source.cell)}</span></p>`).join('')}</div>`:'';}
+
+ function sourceLimits(section){const notes=(D.source_limits||[]).filter(n=>n.section===section&&(!/^20\d\d:/.test(n.text)||(+n.text.slice(0,4)>=state.start&&+n.text.slice(0,4)<=state.end)));return notes.length?`<div class="callout"><strong>Conferência das fontes · ${esc(unitLabel)}</strong>${notes.map(n=>`<p>${esc(n.text)} <span class="mini-note">${esc([n.source?.sheet,n.source?.cell].filter(Boolean).join('!'))}</span></p>`).join('')}</div>`:'';}
+
  function kpi(title,r,note,tone){let id='d'+nextDerived++;derived.set(id,r);return `<article class="kpi" style="--tone:${tone}"><div class="kpi-label">${esc(title)}</div><div class="kpi-value">${esc(format(r))}</div><div class="kpi-foot">${esc(note)}</div><button class="text-button" data-source="${id}">Ver composição ↗</button></article>`;}
+
  function programSnapshot(year){
+
   const items=[['Titulações · Mestrado','degrees','degrees','ME'],['Titulações · Doutorado (DO + DD)','degrees','degrees','DO_DD'],['Matrículas regulares · Mestrado','enrollment','regular_enrollment','ME'],['Matrículas regulares · Doutorado','enrollment','regular_enrollment','DO']];
+
   return `<div class="program-snapshot-grid">${selected().map(p=>`<article class="panel program-snapshot" data-program="${p.id}" style="--program-color:${p.color}"><div class="program-snapshot-heading"><span class="legend-dot" style="background:${p.color}"></span><div><h3>${esc(p.name)}</h3><p>${p.id} · ${year}</p></div></div><dl>${items.map(([text,section,metric,level])=>`<div><dt>${esc(text)}</dt><dd>${cell(get(section,metric,year,p.id,level))}</dd></div>`).join('')}</dl></article>`).join('')}</div>`;
+
  }
+
  function overview(){
+
   const y=state.end;
-  return `<div class="section-heading"><div><h2>Retrato de ${y}</h2><p>Um quadro por programa selecionado; clique nos valores para ver a fonte.</p></div><span class="period-tag">${y}</span></div>${programSnapshot(y)}<details class="selection-total"><summary>Totais dos ${selected().length} programas selecionados</summary><div class="kpi-grid">${kpi('Titulações · Mestrado',total('degrees','degrees',y,'ME'),'Diplomas concedidos no ano','#245da8')}${kpi('Titulações · Doutorado',total('degrees','degrees',y,'DO_DD'),'Doutorado e doutorado direto','#8a61a5')}${kpi('Matrículas regulares · Mestrado',total('enrollment','regular_enrollment',y,'ME'),'Contagem anual do Anuário','#21877e')}${kpi('Matrículas regulares · Doutorado',total('enrollment','regular_enrollment',y,'DO'),'Contagem anual do Anuário','#b38c25')}</div></details><div class="callout"><strong>Três universos distintos.</strong> Titulações são diplomas concedidos; matrículas regulares são contagens anuais nos programas; matrículas em disciplinas são vínculos com turmas. Os ativos em 1º de abril aparecem no quadro de 2024–2025.</div><div class="section-heading"><div><h2>Evolução das titulações</h2><p>Mestrado e doutorado apresentados separadamente.</p></div><span class="period-tag">${rangeLabel()}</span></div><div class="chart-grid">${chart('degrees','degrees','ME','line','Mestrado','Diplomas por ano e programa')}${chart('degrees','degrees','DO_DD','line','Doutorado','DO + DD · diplomas por ano e programa')}</div>${sourceLimits('degrees')}${insight('degrees','degrees','total')}<details class="table-disclosure"><summary>Consultar valores anuais e médias de titulações totais</summary>${annualTable('degrees','degrees','total')}</details>`;
+
+  startTableExport();
+
+  for(const level of ['ME','DO_DD','total'])appendAnnualExport('degrees','degrees',level);
+
+  for(const [section,metric,level] of [['degrees','degrees','ME'],['degrees','degrees','DO_DD'],['enrollment','regular_enrollment','ME'],['enrollment','regular_enrollment','DO']]){
+
+   selected().forEach(p=>exportTableRecord('Retrato do ano final',get(section,metric,y,p.id,level)));
+
+   exportTableRecord('Totais do retrato',{...total(section,metric,y,level),program:'Programas selecionados'});
+
+  }
+
+  return `<div class="section-heading"><div><h2>Retrato de ${y}</h2><p>Um quadro por programa selecionado; clique nos valores para ver a fonte.</p></div><span class="period-tag">${y}</span></div>${programSnapshot(y)}<details class="selection-total"><summary>Totais dos ${selected().length} programas selecionados</summary><div class="kpi-grid">${kpi('Titulações · Mestrado',total('degrees','degrees',y,'ME'),'Diplomas concedidos no ano','#245da8')}${kpi('Titulações · Doutorado',total('degrees','degrees',y,'DO_DD'),'Doutorado e doutorado direto','#8a61a5')}${kpi('Matrículas regulares · Mestrado',total('enrollment','regular_enrollment',y,'ME'),'Contagem anual do Anuário','#21877e')}${kpi('Matrículas regulares · Doutorado',total('enrollment','regular_enrollment',y,'DO'),'Contagem anual do Anuário','#b38c25')}</div></details><div class="section-heading"><div><h2>Evolução das titulações</h2><p>Mestrado e doutorado apresentados separadamente.</p></div><span class="period-tag">${rangeLabel()}</span></div><div class="chart-grid">${chart('degrees','degrees','ME','line','Mestrado','Diplomas por ano e programa')}${chart('degrees','degrees','DO_DD','line','Doutorado','DO + DD · diplomas por ano e programa')}</div>${insight('degrees','degrees','total')}<div class="toolbar">${tableDownloadButton()}</div>`;
+
+ }
+
+ const seriesGroups=[
+  {id:'degrees',title:'Titulações',short:'Titulações',section:'degrees',metric:'degrees',levels:['total','ME','DO_DD']},
+  {id:'regular',title:'Matrículas regulares',short:'Regulares',section:'enrollment',metric:'regular_enrollment',levels:['total','ME','DO']},
+  {id:'special',title:'Matrículas de alunos especiais',short:'Especiais',section:'enrollment',metric:'special_enrollment',levels:[null]},
+  {id:'active',title:'Alunos ativos em 1º de abril',short:'Ativos em 1º/4',section:'enrollment',metric:'active_april1',levels:['ME','DO_DD'],always:true}
+ ];
+ const disciplineShortLabels={courses:'Disciplinas',sections:'Turmas',applications:'Inscrições',enrollments:'Matrículas',approvals:'Aprovações',enrollments_per_section:'Matrículas/turma',approval_rate:'Taxa de aprovação',nominal_class_hours:'Aulas nominais',credits_offered:'Créditos',curricular_hours:'Carga curricular',sections_lt5:'Turmas < 5',sections_gt30:'Turmas > 30'};
+ const hasMetricData=(section,metric,level)=>records.some(r=>r.section===section&&r.metric===metric&&r.level===(level??null)&&M.numeric(r));
+ function indicatorIndex(items,extra=''){
+  return `<nav class="indicator-index" aria-label="Indicadores nesta página">${items.map(item=>`<button data-post-jump="${esc(item.id)}" title="Ir para ${esc(item.title)}">${esc(item.short||item.title)}</button>`).join('')}</nav>${extra}`;
+ }
+ function indicatorCoverage(section,metric,level){
+  const ys=selectedYears();
+  return `<div class="coverage-strip"><span>Cobertura${level?' · '+esc(levels[level]||level):''}</span>${selected().map(p=>`<span><strong>${esc(p.id)}</strong> ${ys.filter(y=>M.numeric(viewMetric(section,metric,y,p.id,level))).length}/${ys.length} anos</span>`).join('')}</div>`;
+ }
+ function indicatorCharts(section,metric,level){
+  const period=(level?(levels[level]||level)+' · ':'')+rangeLabel();
+  return `<div class="post-indicator-period" data-post-section="${section}" data-post-metric="${metric}" data-post-level="${level??''}">${indicatorCoverage(section,metric,level)}<div class="chart-grid">${chart(section,metric,level,'line',period,'')}${chart(section,metric,level,'bar','Média no período',period)}</div></div>`;
+ }
+ function indicatorsDownload(){
+  return `<section class="panel indicators-download"><div><h2>Tabelas para download</h2><p>Todos os dados dos indicadores em um único arquivo · ${selected().length} programa(s) · ${esc(rangeLabel())}.</p></div>${tableDownloadButton()}</section>`;
  }
  function series(){
-  const special=state.seriesMetric==='special_enrollment',sec=state.seriesMetric==='degrees'?'degrees':'enrollment';
-  const lev=special?null:state.seriesMetric==='regular_enrollment'&&state.seriesLevel==='DO_DD'?'DO':state.seriesLevel;
-  return `<div class="toolbar"><label>Indicador <select id="series-metric" class="select-control"><option value="degrees" ${state.seriesMetric==='degrees'?'selected':''}>Titulações</option><option value="regular_enrollment" ${state.seriesMetric==='regular_enrollment'?'selected':''}>Matrículas regulares nos programas</option><option value="special_enrollment" ${special?'selected':''}>Matrículas de alunos especiais</option></select></label>${special?'':`<div class="segmented" aria-label="Nível"><button data-level="total" class="${state.seriesLevel==='total'?'active':''}">Total</button><button data-level="ME" class="${state.seriesLevel==='ME'?'active':''}">Mestrado</button><button data-level="DO_DD" class="${state.seriesLevel==='DO_DD'?'active':''}">Doutorado</button></div>`}<div class="segmented" aria-label="Unidade de comparação"><button data-series-mode="count" class="${!shareMode()?'active':''}">Contagem</button><button data-series-mode="share" class="${shareMode()?'active':''}">% do IME</button></div></div><div class="chart-grid">${chart(sec,state.seriesMetric,lev,'line','Evolução anual',label(sec,state.seriesMetric,lev)+' · '+rangeLabel()+(shareMode()?' · % do IME':''))}${chart(sec,state.seriesMetric,lev,'bar','Médias anuais por programa',label(sec,state.seriesMetric,lev)+' · '+rangeLabel()+(shareMode()?' · % do IME':''))}</div>${shareMode()?'<div class="callout"><strong>Denominador fixo: IME.</strong> Cada percentual usa o total dos cinco programas, no mesmo ano e nível, mesmo que alguns estejam desmarcados. A média dos percentuais anuais não é a participação nos totais acumulados.</div>':''}${special?'<div class="callout"><strong>Alunos especiais ficam separados.</strong> Esta série não integra o total de matrículas regulares.</div>':''}${sec==='degrees'?sourceLimits('degrees'):''}${insight(sec,state.seriesMetric,lev)}${annualTable(sec,state.seriesMetric,lev)}`;
+  const groups=seriesGroups.map(group=>({...group,levels:group.levels.filter(level=>group.always||hasMetricData(group.section,group.metric,level))})).filter(group=>group.levels.length);
+  const mode=`<div class="segmented" aria-label="Unidade de comparação"><button data-series-mode="count" class="${!shareMode()?'active':''}">Contagem</button><button data-series-mode="share" class="${shareMode()?'active':''}" title="Participação no total dos programas configurados">% do total</button></div>`;
+  postControls=groups.length?indicatorIndex(groups.map(group=>({id:'post-series-'+group.id,title:group.title,short:group.short})),mode):'';
+  startTableExport();
+  const html=groups.map(group=>{
+   const charts=group.levels.map(level=>{appendAnnualExport(group.section,group.metric,level);return indicatorCharts(group.section,group.metric,level);}).join('');
+   return `<section class="post-indicator-section" data-post-series="${group.id}" aria-labelledby="post-series-${group.id}"><div class="section-heading"><h2 id="post-series-${group.id}" tabindex="-1">${esc(group.title)}</h2></div>${charts}</section>`;
+  }).join('');
+  return html?html+indicatorsDownload():empty('Não há indicadores documentados nesta área.');
  }
  function disciplines(){
-  const metric=state.disciplineMetric,ys=selectedYears(),coverage=selected().map(p=>({p,years:ys.filter(y=>M.numeric(get('disciplines',metric,y,p.id)))})),covered=coverage.filter(c=>c.years.length),differentCoverage=new Set(coverage.map(c=>c.years.join(','))).size>1;
-  return `<div class="toolbar"><label>Indicador <select id="discipline-metric" class="select-control">${Object.entries(disciplineLabels).map(([id,name])=>`<option value="${id}" ${id===metric?'selected':''}>${name}</option>`).join('')}</select></label><span class="note">Relatórios anuais de alunos por disciplina.</span></div><div class="coverage-strip"><span><strong>${covered.length}/${selected().length}</strong> programas selecionados com dados neste intervalo</span><span>Cobertura por programa: ${coverage.map(c=>`${c.p.id}: ${c.years.length}/${ys.length} anos`).join(' · ')||'nenhuma'}</span></div>${differentCoverage?'<div class="callout warning"><strong>As médias usam coberturas diferentes; selecione 2024–2025 para comparar todos no mesmo período.</strong> Anos sem informação são excluídos das médias.</div>':''}<div class="chart-grid">${chart('disciplines',metric,null,'line',disciplineLabels[metric],rangeLabel()+' · evolução anual')}${chart('disciplines',metric,null,'bar','Médias anuais por programa',rangeLabel()+' · '+disciplineLabels[metric].toLowerCase())}</div><div class="callout warning"><strong>O que estes números representam.</strong> Matrículas são vínculos com disciplinas, não alunos distintos. Produtos de turmas × médias publicadas são aproximações. As médias por turma usam a soma desses produtos dividida pelo número de turmas. Médias e DPs arredondados não reconstroem a distribuição individual; os cortes &lt;5 e &gt;30 pertencem ao quadro de 2024–2025.</div>${annualTable('disciplines',metric,null)}`;
+  const metrics=Object.keys(disciplineMetricLabels).filter(metric=>extendedDisciplineMetrics.includes(metric)||hasMetricData('disciplines',metric,null));
+  postControls=metrics.length?indicatorIndex(metrics.map(metric=>({id:'post-disciplines-'+metric,title:disciplineMetricLabels[metric],short:disciplineShortLabels[metric]}))):'';
+  startTableExport();
+  const html=metrics.map(metric=>{
+   appendAnnualExport('disciplines',metric,null);
+   return `<section class="post-indicator-section" data-post-discipline="${metric}" aria-labelledby="post-disciplines-${metric}"><div class="section-heading"><h2 id="post-disciplines-${metric}" tabindex="-1">${esc(disciplineMetricLabels[metric])}</h2></div>${indicatorCharts('disciplines',metric,null)}</section>`;
+  }).join('');
+  return html?html+indicatorsDownload():empty('Não há indicadores documentados nesta área.');
  }
- const requestedItems=[['Oferta e participação',[['nominal_class_hours',null],['sections',null],['enrollments',null],['sections_lt5',null],['sections_gt30',null]]],['Alunos ativos em 1º de abril',[['active_april1','ME'],['active_april1','DO_DD']]],['Diplomados no ano',[['degrees','ME'],['degrees','DO_DD']]],['Créditos e carga curricular',[['credits_offered',null],['curricular_hours',null]]]];
- function requestedComparison(chartMetric,chartLevel,chartTitle,ys,ps){
-  const chartRows=ys.flatMap(year=>ps.map(p=>({p,year,r:get('requested_2024_2025',chartMetric,year,p.id,chartLevel)})));
-  const numericValues=chartRows.filter(v=>M.numeric(v.r)).map(v=>v.r.value);
-  const max=Math.max(0,...numericValues),rough=(max||1)/4,power=10**Math.floor(Math.log10(rough));
-  const step=Math.max(1,[1,2,2.5,5,10].find(v=>v*power>=rough)*power),top=Math.ceil((max||1)/step)*step;
-  const W=460,L=75,R=70,T=16,groupHeight=ps.length*29+34,H=T+ys.length*groupHeight+32,iw=W-L-R;
-  const x=v=>L+v/top*iw,id='chart-'+(++chartCount);
-  let marks='';
-  if(numericValues.length){
-   for(let tick=0;tick<=top+step/10;tick+=step){const xx=x(tick);marks+=`<line x1="${xx}" y1="${T-5}" x2="${xx}" y2="${H-35}" class="chart-gridline"/><text x="${xx}" y="${H-15}" text-anchor="middle" class="chart-text">${number(tick,Number.isInteger(tick)?0:1)}</text>`;}
-   marks+=`<line x1="${L}" y1="${T-5}" x2="${L}" y2="${H-35}" class="chart-axis"/>`;
+
+ function yearList(ys){const runs=[];ys.forEach(y=>{const last=runs.at(-1);if(last&&last[1]===y-1)last[1]=y;else runs.push([y,y]);});return runs.map(([a,b])=>a===b?String(a):a+'–'+b).join(', ')||'nenhum';}
+
+ function requestedCandidate(metric,year,program,level=null){return requestedApplicability(metric,year,program,level)||rawGet('requested_2024_2025',metric,year,program,level)||(['degrees','sections','enrollments'].includes(metric)?rawGet(metric==='degrees'?'degrees':'disciplines',metric,year,program,level):null);}
+
+ function requestedApplicability(metric,year,program,level=null){
+
+  const metadata=programs.find(p=>p.id===program),rules=metadata?.not_applicable||[],rule=rules.find(r=>(!r.section||r.section==='requested_2024_2025')&&r.metric===metric&&(r.level??null)===(level??null)),levelsAvailable=metadata?.levels;
+
+  const noDoctorate=metric==='active_april1'&&level==='DO_DD'&&Array.isArray(levelsAvailable)&&!levelsAvailable.some(l=>['DO','DD','DO_DD'].includes(l));
+
+  const original=rawGet('requested_2024_2025',metric,year,program,level);if(M.numeric(original))return null;
+
+  if(rule||noDoctorate)return {...(original||{section:'requested_2024_2025',metric,year,program,level,unit:'count'}),_id:null,value:null,status:'NA',applicability_rule:true,source:rule?.source||original?.source||{file:'programas.json',locator:'Regra de aplicabilidade configurada para '+program},origin_label:'Não se aplica · configuração do programa',semantic_note:rule?.note||'O nível não é oferecido por este programa, conforme a configuração de aplicabilidade. Esta linha não é uma lacuna de coleta; valores publicados das outras séries são preservados.'};
+
+  return null;
+
+ }
+
+ function requestedRecord(metric,year,program,level=null){
+
+  const applicability=requestedApplicability(metric,year,program,level);if(applicability)return applicability;
+
+  const raw=requestedCandidate(metric,year,program,level),candidates=programs.map(p=>requestedCandidate(metric,year,p.id,level));
+
+  const common=candidates.every(r=>M.numeric(r)||r?.status==='NA')&&candidates.some(M.numeric);
+
+  if(common&&raw)return {...raw,_id:null,original_section:raw.section,section:'requested_2024_2025',origin_label:originFor(raw),semantic_note:(raw.semantic_note||raw.note||'Valor documentado na fonte indicada.')+(raw.section==='requested_2024_2025'?'':' Reutilizado da série histórica equivalente, com a referência original preservada.')};
+
+  const gap=coverageGap('requested_2024_2025',metric,year,program,level,raw);
+
+  if(!M.numeric(raw))gap.semantic_note=metric==='active_april1'?'Falta obter a posição histórica de alunos ativos em 1º de abril deste ano, programa e nível no Janus. Matrículas anuais do Anuário USP não substituem essa data de corte.':['sections_lt5','sections_gt30'].includes(metric)?'Falta obter a distribuição de matrículas por turma deste ano e programa. Totais, médias e desvios-padrão não determinam os cortes de tamanho.':['nominal_class_hours','credits_offered','curricular_hours'].includes(metric)?'Falta consolidar as ofertas deste ano e programa e suas versões de fichas, créditos e componentes de carga. Uma ficha atual não comprova automaticamente todas as versões históricas.':'Falta obter o relatório anual de disciplinas com o mesmo recorte para todos os programas configurados. O valor permanece ND; ausência não é zero.';
+
+  return gap;
+
+ }
+
+ const restrictedParticipationMetrics=['enrollments','approvals'];
+
+ const restrictedParticipationLabel='Matrículas e aprovações em disciplinas';
+
+ function restrictedChoice(){
+
+  const choicesMap=new Map();for(const r of restrictedRecords){const grouped=r.section==='disciplines'&&restrictedParticipationMetrics.includes(r.metric),metric=grouped?'participation':r.metric,id=[r.section,metric,r.level||''].join('|');if(!choicesMap.has(id))choicesMap.set(id,{section:r.section,metric,level:r.level,...(grouped?{metrics:[...restrictedParticipationMetrics],label:restrictedParticipationLabel}:{})});}
+
+  const choices=[...choicesMap.entries()],previous=String(state.restrictedMetric||'').split('|');if(previous[0]==='disciplines'&&restrictedParticipationMetrics.includes(previous[1]))state.restrictedMetric=[previous[0],'participation',previous[2]||''].join('|');
+
+  if(!choicesMap.has(state.restrictedMetric))state.restrictedMetric=choices[0]?.[0]||null;return {choices,choice:choicesMap.get(state.restrictedMetric)};
+
+ }
+
+ function restrictedGet(section,metric,year,program,level=null){return restrictedIndex.get([section,metric,year,program,level||''].join('|'))||{section,metric,year,program,level,value:null,status:'ND',_id:null,_restricted:true,origin_label:'Sem registro neste arquivo original',semantic_note:'Não há valor documentado neste conjunto de arquivos com perfil específico. Nenhuma fonte da análise principal foi usada para preencher esta ausência.'};}
+
+ function restrictedRef(r){const id='d'+nextDerived++;derived.set(id,{...r,_id:null,_restricted:true});return id;}
+
+ function restrictedCombinedChart(choice,ps,ys,sharedMax=null){
+
+  const metrics=choice.metrics||restrictedParticipationMetrics,family=choice.family||'participation',chartLabel=choice.label||restrictedParticipationLabel,styles={applications:{dash:'',name:'Inscrições'},enrollments:{dash:'',name:'Matrículas'},approvals:{dash:'7 4',name:'Aprovações',hollow:true},sections:{dash:'',name:'Turmas oferecidas (turmas)'},enrollments_per_section:{dash:'7 4',name:'Matriculados por turma (média)',lighter:true,hollow:true}},tone=(color)=>/^#[a-f0-9]{6}$/i.test(color)?'#'+[1,3,5].map(i=>Math.round(parseInt(color.slice(i,i+2),16)*.78+255*.22).toString(16).padStart(2,'0')).join(''):color,series=ps.flatMap(p=>metrics.map(metric=>{const style=styles[metric]||{dash:'',name:label(choice.section,metric,choice.level)};return {p,metric,style,color:style.lighter?tone(p.color):p.color};})),values=series.flatMap(s=>ys.map(year=>restrictedGet(choice.section,s.metric,year,s.p.id,choice.level))).filter(M.numeric).map(r=>r.value);
+
+  const W=600,L=54,R=18,T=26,B=42,plotH=245,legendColumns=Math.min(2,Math.max(1,series.length)),legendRows=Math.ceil(series.length/legendColumns),H=T+plotH+B+legendRows*22+8,iw=W-L-R,max=Number.isFinite(sharedMax)?Math.max(sharedMax,0):Math.max(...values,0),rough=(max||1)/4,power=10**Math.floor(Math.log10(rough)),step=[1,2,2.5,5,10].find(v=>v*power>=rough)*power,top=Math.ceil((max||1)/step)*step,x=i=>ys.length===1?L+iw/2:L+i*iw/(ys.length-1),y=v=>T+plotH-v/top*plotH,id='chart-'+(++chartCount);let svg='',digits=0;
+
+  while(digits<8&&Math.abs(step*10**digits-Math.round(step*10**digits))>1e-8)digits++;
+
+  for(let tick=0;tick<=top+step/10;tick+=step)svg+=`<line x1="${L}" x2="${W-R}" y1="${y(tick)}" y2="${y(tick)}" class="chart-gridline"/><text x="${L-8}" y="${y(tick)+4}" text-anchor="end" class="chart-text">${number(tick,digits)}</text>`;
+
+  ys.forEach((year,i)=>{if(ys.length<=8||i%2===0||i===ys.length-1)svg+=`<text x="${x(i)}" y="${T+plotH+22}" text-anchor="middle" class="chart-text">${year}</text>`;});
+
+  series.forEach((s,seriesIndex)=>{let path='',connected=false,marks='';ys.forEach((year,i)=>{const r=restrictedGet(choice.section,s.metric,year,s.p.id,choice.level);if(!M.numeric(r)){connected=false;return;}const xx=x(i),yy=y(r.value);path+=(connected?'L':'M')+xx+','+yy+' ';connected=true;marks+=`<circle cx="${xx}" cy="${yy}" r="3.4" fill="${s.style.hollow?'var(--surface)':s.color}" stroke="${s.color}" stroke-width="1.7" style="stroke:${s.color};stroke-width:1.7" class="chart-point" tabindex="0" role="button" data-source="${restrictedRef(r)}" data-restricted-metric="${esc(s.metric)}" data-restricted-program="${esc(s.p.id)}" data-tip="${esc(s.p.id+' · '+s.style.name+' · '+year+'|'+format(r))}" aria-label="${esc(s.p.name+' · '+s.style.name+' · '+year+': '+format(r)+'. Consultar origem.')}"/>`;});const dash=s.style.dash?` stroke-dasharray="${s.style.dash}"`:'';svg+=`<path d="${path}" fill="none" stroke="${s.color}" stroke-width="2.7"${dash} data-restricted-series="${esc(s.p.id+'|'+s.metric)}"/>`+marks;const lx=L+(seriesIndex%legendColumns)*iw/legendColumns,ly=T+plotH+B+Math.floor(seriesIndex/legendColumns)*22;svg+=`<g data-restricted-legend-series="${esc(s.p.id+'|'+s.metric)}"><line x1="${lx}" x2="${lx+24}" y1="${ly}" y2="${ly}" stroke="${s.color}" stroke-width="2.7"${dash}/><circle cx="${lx+12}" cy="${ly}" r="3.1" fill="${s.style.hollow?'var(--surface)':s.color}" stroke="${s.color}" stroke-width="1.5"/><text x="${lx+32}" y="${ly+4}" class="chart-text"><title>${esc(s.p.name+' · '+s.style.name)}</title>${esc(s.p.id+' · '+s.style.name)}</text></g>`;});
+
+  if(!values.length)svg+=`<text x="300" y="145" text-anchor="middle" class="chart-text">Sem valores documentados nesta seleção.</text>`;
+
+  return `<article class="panel"><div class="panel-heading"><div><h3>${esc(chartLabel)}</h3><p>${esc(ps.map(p=>p.id).join(' · '))} · ${esc(yearList(ys))}</p></div><button class="chart-action" data-export-svg="${id}">SVG ↓</button></div><div class="chart-container"><svg id="${id}" viewBox="0 0 ${W} ${H}" role="img" data-restricted-dashboard-chart ${family==='participation'?'data-restricted-participation-chart':'data-restricted-occupation-chart'} data-restricted-family="${family}" data-restricted-chart-metric="${esc(metrics.join(','))}" data-restricted-chart-program="${esc(ps.map(p=>p.id).join(','))}" data-restricted-scale-max="${top}" aria-label="${esc((ps.length===1?ps[0].name+' · ':'')+chartLabel+' · '+yearList(ys))}" xmlns="http://www.w3.org/2000/svg"><title>${esc(chartLabel)}</title>${svg}</svg></div></article>`;
+
+ }
+
+ function restricted(){
+
+  restrictedChoice();
+
+  const ps=restrictedPrograms.filter(p=>state.restrictedSelected.has(p.id)),ys=restrictedYears.filter(y=>y>=state.restrictedStart&&y<=state.restrictedEnd),allMetrics=['courses','sections','applications','enrollments','approvals','enrollments_per_section','approval_rate'],tableChoices=[...new Map([...allMetrics.map(metric=>({section:'disciplines',metric,level:null})),...restrictedRecords.map(r=>({section:r.section,metric:r.metric,level:r.level}))].map(r=>[[r.section,r.metric,r.level||''].join('|'),r])).values()];
+
+  const yearsSelect=(id,value)=>`<select id="${id}">${restrictedYears.map(y=>`<option value="${y}" ${y===value?'selected':''}>${y}</option>`).join('')}</select>`;
+
+  const filters=`<section class="filters restricted-filters sticky-filters" aria-label="Filtros dos arquivos com perfil específico"><div class="filter-control-row"><div class="filter-options" role="group" aria-label="Programas presentes nestes arquivos"><span class="filter-label">Programas</span>${restrictedPrograms.map(p=>`<label class="program-chip" title="${esc(p.name)}"><input type="checkbox" data-restricted-program="${esc(p.id)}" aria-label="${esc(p.name)}" ${state.restrictedSelected.has(p.id)?'checked':''}><i class="program-dot" style="background:${p.color}"></i><strong>${esc(p.id)}</strong></label>`).join('')}</div><div class="year-controls filter-control-group"><label>De ${yearsSelect('restricted-start',state.restrictedStart)}</label><span>—</span><label>Até ${yearsSelect('restricted-end',state.restrictedEnd)}</label><button class="text-button" data-action="restricted-reset">Restaurar</button></div></div></section>`;
+
+  if(!restrictedRecords.length)return '<div class="empty-state"><h2>Nenhum arquivo deste tipo incorporado</h2></div>';
+
+  const controls=`<div class="toolbar"><span class="note">${restrictedRecords.length} registros agregados · ${esc(restrictedPrograms.map(p=>p.id).join(', '))}</span>${tableDownloadButton(!ps.length||!ys.length)}</div>`;
+
+  if(!ps.length||!ys.length)return filters+controls+'<div class="empty-state"><h2>Selecione programas e anos deste conjunto</h2><button class="button" data-action="restricted-reset">Restaurar esta área</button></div>';
+
+  startTableExport();
+
+  for(const year of ys)for(const p of ps)for(const choice of tableChoices){
+
+   exportTableRecord('Arquivos com perfil específico',restrictedGet(choice.section,choice.metric,year,p.id,choice.level));
+
   }
-  ys.forEach((year,yearIndex)=>{
-   const base=T+yearIndex*groupHeight;
-   marks+=`<text x="12" y="${base+13}" class="chart-text requested-program-label">${year}</text>`;
-   ps.forEach((p,programIndex)=>{
-    const r=get('requested_2024_2025',chartMetric,year,p.id,chartLevel),yy=base+23+programIndex*29,valid=M.numeric(r);let rid=r._id;
-    if(rid==null){rid='d'+nextDerived++;derived.set(rid,r);}
-    const value=format(r),text=p.name+' · '+year+' · '+chartTitle+': '+value+'. Consultar fonte.',width=valid?x(r.value)-L:0;
-    marks+=`<text x="${L-12}" y="${yy+15}" text-anchor="end" class="chart-text"><title>${esc(p.name)}</title>${p.id}</text><g class="requested-mark" tabindex="0" role="button" data-source="${esc(rid)}" data-tip="${esc(p.id+' · '+year+'|'+chartTitle+'|'+value)}" aria-label="${esc(text)}"><title>${esc(text)}</title>`;
-    if(valid){
-     marks+=`<rect x="${L}" y="${yy}" width="${Math.max(26,width+62)}" height="21" fill="transparent"/>`;
-     if(r.value>0)marks+=`<rect x="${L}" y="${yy+2}" width="${width}" height="17" rx="3" class="requested-bar " fill="${p.color}"/>`;
-     else marks+=`<line x1="${L}" x2="${L}" y1="${yy+3}" y2="${yy+18}" class="requested-zero"/>`;
-     marks+=`<text x="${L+width+9}" y="${yy+15}" class="chart-text requested-value">${esc(value)}</text>`;
-    }else marks+=`<rect x="${L+5}" y="${yy}" width="40" height="21" rx="4" class="requested-missing-box"/><text x="${L+25}" y="${yy+15}" text-anchor="middle" class="chart-text requested-missing-value">${esc(value)}</text>`;
-    marks+='</g>';
-   });
-  });
-  const metricNote=chartMetric==='active_april1'?'Estudantes na data de corte de cada ano; '+levels[chartLevel]+'.':chartMetric==='enrollments'?'Vínculos estudante–turma; um estudante pode aparecer em várias turmas.':chartMetric==='nominal_class_hours'?'Teoria + prática: carga curricular nominal, sem estudos; não é carga efetivamente ministrada pelo docente.':chartMetric==='curricular_hours'?'Soma da carga curricular por turma, incluindo teoria, prática e estudos.':chartMetric==='credits_offered'?'Soma dos créditos por turma; não é multiplicada pelo número de estudantes.':chartMetric==='sections_lt5'?'Menos de cinco inclui zero e exclui cinco.':chartMetric==='sections_gt30'?'Mais de trinta exclui trinta.':chartMetric==='degrees'?'Diplomas concedidos no ano; '+levels[chartLevel]+'.':'Contagem de turmas oferecidas em cada ano.';
-  return `<article class="panel requested-comparison compact-comparison"><div class="panel-heading"><div><h3>${esc(chartTitle)}</h3><p>Valores anuais por programa · ${ys.join(' e ')} · mesma escala para os anos exibidos</p></div><button class="chart-action" data-export-svg="${id}" aria-label="Baixar SVG: ${esc(chartTitle)}">SVG ↓</button></div><div class="requested-chart-scroll"><svg id="${id}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(chartTitle+' por programa, '+ys.join(' e ')+'. ND não disponível; NA não se aplica.')}" xmlns="http://www.w3.org/2000/svg"><title>${esc(chartTitle+' · '+ys.join(' e '))}</title>${marks}</svg></div>${legend(ps)}<div class="panel-foot">${esc(metricNote)} Valores e marcadores ND/NA abrem a fonte. ND e NA não são barras de valor zero.</div></article>`;
+
+  const charts=[{metric:'enrollments',family:'participation',label:'Matrículas em disciplinas'},{metric:'approvals',family:'participation',label:'Aprovações em disciplinas'},{metric:'sections',family:'occupation',label:'Turmas oferecidas'},{metric:'enrollments_per_section',family:'occupation',label:'Matriculados por turma'}],participationMax=Math.max(0,...ps.flatMap(p=>restrictedParticipationMetrics.flatMap(metric=>ys.map(year=>restrictedGet('disciplines',metric,year,p.id)))).filter(M.numeric).map(r=>r.value)),panels=charts.map(chart=>restrictedCombinedChart({section:'disciplines',level:null,...chart,metrics:[chart.metric]},ps,ys,chart.family==='participation'?participationMax:null)).join('');
+
+  return filters+controls+`<div class="chart-grid" data-restricted-dashboard>${panels}</div>`;
+
  }
- function requested(){
-  const ys=state.quadroYear==='both'?[2024,2025]:[Number(state.quadroYear)],ps=selected(),rs=[];
-  const groups=[['Oferta e participação',[['nominal_class_hours',null,'Carga nominal de aulas (h)'],['credits_offered',null,'Créditos ofertados'],['curricular_hours',null,'Carga curricular total (h)'],['sections',null,'Número de turmas'],['enrollments',null,'Matrículas em disciplinas']]],['Tamanho das turmas',[['sections_lt5',null,'Turmas com menos de 5 matriculados'],['sections_gt30',null,'Turmas com mais de 30 matriculados']]],['Alunos ativos em 1º de abril',[['active_april1','ME','Ativos em 1º de abril · Mestrado'],['active_april1','DO_DD','Ativos em 1º de abril · Doutorado (DO + DD)']]],['Diplomados no ano',[['degrees','ME','Diplomados · Mestrado'],['degrees','DO_DD','Diplomados · Doutorado (DO + DD)']]]];
-  const comparison=groups.map(([title,items])=>`<section class="requested-group"><div class="section-heading"><h2>${esc(title)}</h2></div><div class="requested-comparison-grid">${items.map(([metric,level,text])=>requestedComparison(metric,level,text,ys,ps)).join('')}</div></section>`).join('');
-  exportRows=[['Indicador','Nível','Ano',...ps.flatMap(p=>[p.id,p.id+' situação'])]];
-  const tabs=`<div class="toolbar requested-toolbar"><span>Período do quadro</span><div class="segmented"><button data-quadro-year="both" class="${ys.length===2?'active':''}">2024 e 2025</button><button data-quadro-year="2024" class="${state.quadroYear==='2024'?'active':''}">2024</button><button data-quadro-year="2025" class="${state.quadroYear==='2025'?'active':''}">2025</button></div><span class="note">Todos os indicadores; filtros de programas e anos aplicados a cada gráfico.</span><button class="chart-action" data-action="csv">CSV do quadro ↓</button></div>`;
-  const tables=ys.map(year=>{let body='';requestedItems.forEach(([group,items])=>{body+=`<tr class="group-row"><th colspan="${ps.length+1}">${group}</th></tr>`;items.forEach(([metric,level])=>{const vals=ps.map(p=>get('requested_2024_2025',metric,year,p.id,level));rs.push(...vals);exportRows.push([requestedLabels[metric],levels[level]||'',year,...vals.flatMap(r=>[r.value??'',r.status])]);body+=`<tr><td>${esc(requestedLabels[metric])}${level?`<span class="metric-subnote">${esc(levels[level])}</span>`:''}${metric==='nominal_class_hours'?'<span class="metric-subnote">Teóricas + práticas · carga nominal, em horas</span>':''}</td>${vals.map(r=>`<td>${cell(r)}</td>`).join('')}</tr>`;});});return `<div class="section-heading"><h2>${year}</h2><span class="period-tag">${ps.length} programas</span></div><article class="panel"><div class="table-wrap"><table class="data-table requested-table"><thead><tr><th scope="col">Indicador</th>${ps.map(p=>`<th scope="col" title="${esc(p.name)}">${p.id}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div></article>`;}).join('');
-  const nd=rs.filter(r=>r.status==='ND').length,na=rs.filter(r=>r.status==='NA').length,approx=rs.filter(r=>r.status==='approximate').length;
-  return tabs+comparison+`<div class="coverage-strip"><span><strong>${rs.length-nd-na}</strong> valores documentados</span><span><strong>${approx}</strong> estimativas</span><span><strong>${nd}</strong> não disponíveis</span><span><strong>${na}</strong> não se aplicam</span></div>`+tables+`<div class="callout"><strong>Leia junto com os critérios.</strong> A classificação dos demais programas pela área atual da ficha segue hipótese adotada de manutenção do vínculo histórico, quando indicada na fonte. &lt;5 exclui cinco; &gt;30 exclui trinta. Ativos têm data de referência exata, 1º de abril. Cargas nominais seguem as fichas e a hipótese adotada de manutenção entre versões quando indicada na fonte; não medem horas efetivamente ministradas por docente. Clique em um valor, ND ou NA para ver a referência e a observação específica.</div>`;
- }
+
  function sources(){
+
+  const descriptionFor=s=>[s.description,s.semantic_note,s.note,s.scope].find(value=>typeof value==='string'&&value.trim())||'';
+
   const sources=Array.isArray(D.sources)?D.sources:Object.values(D.sources||{});
-  const cards=sources.map((s,i)=>`<article class="source-card"><h3>${esc(s.label||s.title||['Titulações e matrículas nos programas','Disciplinas e turmas','Quadro de 2024–2025'][i]||'Fonte documental')}</h3><div class="source-file">${esc(basename(s.file||s.filename||s.path))}</div><p>${esc(s.description||s.semantic_note||s.note||'Valores extraídos da planilha, com identificação da aba e célula de origem.')}</p>${s.sha256?`<details><summary>Identidade do arquivo (SHA-256)</summary><code>${esc(s.sha256)}</code></details>`:''}</article>`).join('');
-  return `<div class="source-grid">${cards}</div><div class="section-heading"><div><h2>Critérios de leitura</h2><p>As comparações preservam os universos das fontes originais.</p></div></div><div class="methods-grid"><article class="method"><h3>ND, NA, zero e estimativa</h3><p><strong>ND</strong>: não há informação suficiente na base. <strong>NA</strong>: o indicador não se aplica. <strong>0</strong>: zero documentado. <strong>≈</strong>: valor aproximado, com método indicado. Ausências não são convertidas em zero nem incluídas no denominador das médias.</p></article><article class="method"><h3>Mestrado e doutorado</h3><p>Nas titulações, doutorado agrega DO e DD (doutorado direto). Matrículas regulares e especiais são mantidas separadas. A série anual de matrícula não substitui a posição de alunos ativos em 1º de abril.</p></article><article class="method"><h3>Disciplinas e participação</h3><p>Turmas e disciplinas são contagens. Matrículas, inscrições e aprovações derivadas de médias publicadas preservam o arredondamento. Um aluno pode ter vínculos com várias disciplinas. A diferença entre inscritos e matriculados não mede evasão.</p></article><article class="method"><h3>Médias e taxas</h3><p>As barras comparam a média aritmética dos indicadores anuais no intervalo selecionado. A cobertura acompanha a tabela. Matrículas por turma usam a ponderação pelo número de turmas dentro de cada ano; a taxa de aprovação usa os vínculos aprovados e matriculados.</p></article><article class="method"><h3>Carga horária nominal</h3><p>Aulas nominais = horas teóricas e práticas semanais × duração da ficha. Créditos e carga curricular total são campos históricos independentes. Componentes de fichas atuais só são usados sob a hipótese adotada de manutenção entre versões e com consistência conferida.</p></article><article class="method"><h3>Programa e associação histórica</h3><p>Programa não é departamento. A associação histórica de uma oferta depende da fonte do programa ou da área. O prefixo do código não define programa. Para a extensão de 2024–2025, adota-se o vínculo atual explícito da ficha nas ofertas históricas, sob hipótese de manutenção. Essa classificação é indicada como hipótese, sem alegar comprovação da área histórica. Ofertas compartilhadas conservam os vínculos documentados.</p></article></div><article class="panel"><div class="panel-heading"><div><h3>Cobertura observada por programa</h3><p>Quantidade de anos com valor disponível na base histórica de 2012–2025.</p></div></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Programa</th><th>Titulações</th><th>Matrículas regulares</th><th>Disciplinas</th></tr></thead><tbody>${programs.map(p=>`<tr><td>${p.id} · ${esc(p.name)}</td><td>${years.filter(y=>M.numeric(get('degrees','degrees',y,p.id,'total'))).length}/14</td><td>${years.filter(y=>M.numeric(get('enrollment','regular_enrollment',y,p.id,'total'))).length}/14</td><td>${years.filter(y=>M.numeric(get('disciplines','sections',y,p.id))).length}/14</td></tr>`).join('')}</tbody></table></div></article><div class="callout"><strong>Proveniência acessível em cada valor.</strong> As janelas de detalhe mostram arquivo e referência de origem. As fontes brutas ficam preservadas fora deste painel; esta interface contém apenas agregados. O painel funciona localmente, sem dependências externas ou envio de dados.</div>${(D.notes||D.methodology_notes||[]).length?`<details class="table-disclosure"><summary>Observações documentadas na extração</summary><div class="panel" style="padding:18px">${(D.notes||D.methodology_notes||[]).map(n=>`<p class="mini-note" style="margin-bottom:8px">${esc(typeof n==='string'?n:JSON.stringify(n))}</p>`).join('')}</div></details>`:''}`;
+
+  startTableExport();
+
+  for(const source of sources)exportTableRecord('Fontes',{section:'sources',metric:source.id||'',source,status:'',semantic_note:descriptionFor(source)},{label:source.label||source.title||source.id||'Fonte admitida',origin:sourceAccessLabel(source.access)});
+
+  const coverageFamilies=[...seriesGroups.flatMap(group=>group.levels.map(level=>[group.section,group.metric,level])),...Object.keys(disciplineMetricLabels).map(metric=>['disciplines',metric,null])];
+  const coverageGroups=coverageFamilies.map(([section,metric,level])=>{
+   const perProgram=programs.map(p=>{
+    const rows=years.map(year=>metricRecord(section,metric,year,p.id,level));
+    exportCoverage('Cobertura das fontes',rows,years,{section,metric,program:p.id,level});
+    const valid=rows.filter(M.numeric).map(r=>r.year),na=rows.filter(r=>r.status==='NA').map(r=>r.year),outside=rows.filter(r=>r.coverage_restricted).map(r=>r.year),missing=rows.filter(r=>r.status==='ND'&&!r.coverage_restricted).map(r=>r.year),publicSeries=section==='degrees'||(section==='enrollment'&&metric!=='active_april1');
+    return `<article data-coverage-program="${esc(p.id)}"><h4>${esc(p.id)} · ${esc(p.name)}</h4><p>Valores documentados: <strong>${valid.length}/${years.length}</strong> anos · ${esc(yearList(valid))}.</p>${missing.length?`<p><strong>${publicSeries?'Fonte pública ainda não localizada':'Consulta autenticada ainda não coletada'}:</strong> ${esc(yearList(missing))}.${publicSeries?'':' Fonte pública equivalente ainda não localizada para esses recortes.'}</p>`:''}${outside.length?`<p>Valor individual obtido; falta cobertura comum: ${esc(yearList(outside))}.</p>`:''}${na.length?`<p><strong>Não se aplica (NA):</strong> ${esc(yearList(na))}.</p>`:''}</article>`;
+   }).join('');
+   return `<details class="table-disclosure" data-coverage-metric="${esc(metric)}" data-coverage-level="${esc(level||'')}"><summary>${esc(label(section,metric,level))}</summary><div class="coverage-program-grid">${perProgram}</div></details>`;
+  }).join('');
+  const coverage=`<section class="coverage-inventory" data-main-coverage><div class="section-heading"><div><h2>Cobertura e lacunas · ${esc(fullPeriod)}</h2><p>Por indicador e programa. ND indica informação ainda não obtida; NA indica que o recorte não se aplica.</p></div></div>${coverageGroups}</section>`;
+
+  const cards=sources.map((s,i)=>`<article class="source-card"><span class="status-tag">${esc(sourceAccessLabel(s.access))}</span><h3>${esc(s.label||s.title||s.id||'Fonte admitida')}</h3><div class="source-file">${esc(basename(s.file||s.filename||s.path))}</div>${descriptionFor(s)?`<p>${esc(descriptionFor(s))}</p>`:''}${safeSourceURL(s.url)?`<p><a class="text-button" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">Abrir fonte ↗</a></p>`:''}${s.sha256?`<details><summary>Identidade do arquivo (SHA-256)</summary><code>${esc(s.sha256)}</code></details>`:''}</article>`).join('');
+
+  return `<div class="toolbar">${tableDownloadButton()}</div>${coverage}<div class="source-grid">${cards}</div><div class="section-heading"><div><h2>Critérios de leitura</h2><p>As comparações preservam os universos das fontes originais.</p></div></div><div class="methods-grid"><article class="method"><h3>ND, NA, zero e estimativa</h3><p><strong>ND</strong>: não há informação suficiente na base. <strong>NA</strong>: o indicador não se aplica. <strong>0</strong>: zero documentado. <strong>≈</strong>: valor aproximado, com método indicado. Ausências não são convertidas em zero nem incluídas no denominador das médias.</p></article><article class="method"><h3>Titulações, matrículas e ativos</h3><p>Titulações são diplomas concedidos; doutorado agrega DO e DD (doutorado direto). Matrículas regulares são contagens anuais nos programas, separadas dos alunos especiais. A série anual não substitui a posição de alunos ativos na data exata de 1º de abril.</p></article><article class="method"><h3>Disciplinas e participação</h3><p>Matrículas em disciplinas são vínculos com turmas, não pessoas distintas. Produtos de turmas × médias publicadas são aproximações; matrículas, inscrições e aprovações assim derivadas preservam o arredondamento. A diferença entre inscritos e matriculados não mede evasão.</p></article><article class="method"><h3>Participações percentuais</h3><p>Denominador fixo: ${esc(unitLabel)}. Cada percentual usa todos os programas configurados no mesmo ano e nível, mesmo quando alguns estão desmarcados. A média dos percentuais anuais não é a participação nos totais acumulados.</p></article><article class="method"><h3>Médias e taxas</h3><p>As barras comparam a média aritmética dos indicadores anuais no intervalo selecionado. A cobertura acompanha a tabela. Matrículas por turma usam a soma dos produtos de turmas × médias dividida pelo número de turmas dentro de cada ano; a taxa de aprovação usa os vínculos aprovados e matriculados.</p></article><article class="method"><h3>Carga horária nominal</h3><p>Aulas nominais = horas teóricas e práticas semanais × duração da ficha; excluem estudos e não medem horas efetivamente ministradas por docente. Créditos e carga curricular total são campos históricos independentes. Componentes de fichas atuais só são usados sob a hipótese adotada de manutenção entre versões e com consistência conferida.</p></article><article class="method"><h3>Cortes de tamanho das turmas</h3><p>Menos de cinco inclui zero e exclui cinco; mais de trinta exclui trinta. Esses cortes exigem distribuição documentada de matrículas por turma. Totais, médias e desvios-padrão arredondados não reconstroem a distribuição individual.</p></article><article class="method"><h3>Cobertura e períodos sem dados</h3><p>A comparação usa o mesmo recorte dos programas configurados. Para completar lacunas, são necessários relatórios equivalentes de ofertas e matrículas, distribuições por turma, posições de ativos em 1º de abril por nível e versões documentadas das fichas para créditos e cargas. Arquivos com perfil específico ficam no módulo próprio e não completam automaticamente a base principal.</p></article><article class="method"><h3>Programa e associação histórica</h3><p>Programa não é departamento. A associação histórica de uma oferta depende da fonte do programa ou da área. O prefixo do código não define programa. Quando indicado na origem, a associação utiliza o vínculo atual explícito da ficha nas ofertas históricas sob hipótese de manutenção. Essa classificação é indicada como hipótese, sem alegar comprovação da área histórica. Ofertas compartilhadas conservam os vínculos documentados.</p></article></div>${sourceLimits('degrees')}${(D.notes||D.methodology_notes||[]).length?`<details class="table-disclosure"><summary>Observações documentadas na extração</summary><div class="panel" style="padding:18px">${(D.notes||D.methodology_notes||[]).map(n=>`<p class="mini-note" style="margin-bottom:8px">${esc(typeof n==='string'?n:JSON.stringify(n))}</p>`).join('')}</div></details>`:''}`;
+
  }
+
  function render(){
-  derived=new Map();nextDerived=0;chartCount=0;exportRows=[];
+
+  derived=new Map();nextDerived=0;chartCount=0;exportRows=[];postControls='';
+  const active=document.activeElement,focusId=active?.id,focusData=[['restricted-program',active?.dataset?.restrictedProgram],['series-mode',active?.dataset?.seriesMode]].find(([,value])=>value);
+
   const graduation=state.view==='graduation';
+
   $('#main-nav').hidden=graduation;$('#graduation-nav').hidden=!graduation;
+
+  const restrictedNavigation=$('#main-nav [data-view="restricted"]');if(restrictedNavigation)restrictedNavigation.hidden=!restrictedRecords.length;
+
   $('#section-nav-label').textContent=graduation?'GRADUAÇÃO':'PÓS-GRADUAÇÃO';
+
   $$('#area-nav a').forEach(a=>{const current=(a.dataset.area==='graduation')===graduation;a.classList.toggle('active',current);if(current)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current');});
+
   $$('#main-nav a').forEach(a=>{const current=!graduation&&a.dataset.view===state.view;a.classList.toggle('active',current);if(current)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+
   const commonDepartments=window.SIAPOS_GRADUACAO?.hasCommonDepartments===true;
+
   const extraMAC=$('#graduation-nav [data-grad-view="mac-adicional"]');if(extraMAC)extraMAC.hidden=!commonDepartments;
-  const departmentLink=$('#graduation-nav [data-grad-view="department"]');if(departmentLink){departmentLink.querySelector('strong').textContent=commonDepartments?(window.SIAPOS_GRADUACAO.departmentTitle||'Disciplinas por departamento'):'Disciplinas por conjunto';departmentLink.querySelector('small').textContent=commonDepartments?(window.SIAPOS_GRADUACAO.departmentDatasetKind==='course_section_registry'?'Cadastro de turmas':'Relatórios do Júpiter'):'Turmas e participação';}
+
+  const departmentLink=$('#graduation-nav [data-grad-view="department"]');if(departmentLink){departmentLink.querySelector('strong').textContent=commonDepartments?(window.SIAPOS_GRADUACAO.departmentTitle||'Disciplinas por departamento'):'Disciplinas no Júpiter';departmentLink.querySelector('small').textContent=commonDepartments?(window.SIAPOS_GRADUACAO.departmentDatasetKind==='course_section_registry'?'Cadastro de turmas':'Relatórios do Júpiter'):'Cadastro de turmas';}
+
   $$('#graduation-nav a').filter(a=>!a.hidden).forEach((a,i)=>{a.querySelector('.nav-number').textContent=String(i+1).padStart(2,'0');});
+
   $$('#graduation-nav a').forEach(a=>{const current=graduation&&a.dataset.gradView===state.gradTab;a.classList.toggle('active',current);if(current)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
-  const t=titles[state.view];$('#page-eyebrow').textContent=t[0];$('#page-title').textContent=t[1];$('#page-description').textContent=t[2];
-  $('#filters').hidden=state.view==='sources'||state.view==='graduation';$('#year-controls').hidden=state.view==='requested';
+
+  const t=titles[state.view];$('#page-eyebrow').textContent=t[0];$('#page-eyebrow').hidden=!t[0];$('#page-title').textContent=t[1];$('#page-description').textContent=t[2];$('#page-description').hidden=!t[2];
+
+  if(!graduation){const brand=$('.brand small');if(brand&&D.site_subtitle)brand.textContent=D.site_subtitle;const restrictedLink=$('#main-nav [data-view="restricted"] small');if(restrictedLink)restrictedLink.textContent='Originais fornecidos'+(restrictedPrograms.length?' · '+restrictedPrograms.map(p=>p.id).join('/'):'');}
+
+  $('#filters').hidden=state.view==='sources'||state.view==='graduation'||state.view==='restricted';$('#year-controls').hidden=false;
+
   $('#filter-caption').textContent=`${selectedYears().length} ano(s) · ${state.selected.size} programa(s)`;
+
   if(state.view==='graduation'){$('#view-content').innerHTML='<div id="grad-root"></div>';window.SIAPOS_GRADUACAO?.setTab(state.gradTab);window.SIAPOS_GRADUACAO?.mount($('#grad-root'));}
-  else $('#view-content').innerHTML=state.view!=='sources'&&!state.selected.size?empty():({overview,series,disciplines,requested,sources})[state.view]();
+
+  else $('#view-content').innerHTML=!['sources','restricted'].includes(state.view)&&!state.selected.size?empty():({overview,series,disciplines,restricted,sources})[state.view]();
+
+  $('#post-view-controls').innerHTML=postControls;$('#post-view-controls').hidden=!postControls;
+  if(!graduation){if(focusId)document.querySelector('#'+focusId)?.focus({preventScroll:true});else if(focusData)document.querySelector('[data-'+focusData[0]+'="'+esc(focusData[1])+'"]')?.focus({preventScroll:true});}
+  window.SIAPOS_FILTERS?.refresh();
   $('#chart-tooltip').hidden=true;
+
  }
+
  function sourceFor(record){return sourceRef(record);}
+
+ function sourceAccessLabel(access){const value=String(access||'');return value==='public'?'Pública':/specific|restric/.test(value)?'Janus · perfil específico':value.startsWith('mixed')?'Mista':/authentic|janus/.test(value)?'Janus autenticado · conforme perfil autorizado':/config|metadata/.test(value)?'Configuração / regra de aplicabilidade':'Acesso não identificado';}
+
+ const safeSourceURL=url=>/^https?:\/\//i.test(String(url||''))?String(url):null;
+
+ function sourceChain(record){const registry=record._restricted?restrictedSources:mainSources,found=new Map();function visit(id){if(found.has(id))return;const source=registry.get(id);if(!source)return;found.set(id,source);for(const parent of Array.isArray(source.depends_on)?source.depends_on:[])visit(typeof parent==='string'?parent:parent?.id);}for(const id of record.provenance?.source_ids||[])visit(id);return [...found.values()];}
+
+
+
  function sourceLocator(s){return s.kind==='janus_html'||s.locator?String(s.locator||'Relatório Janus'): [s.sheet,s.cell||s.range].filter(Boolean).join('!');}
+
  function sourceCitation(s){return [basename(s.file||s.filename||s.path),sourceLocator(s),s.sha256||s.hash?`SHA-256: ${s.sha256||s.hash}`:''].filter(Boolean).join(' · ');}
+
  function showSource(record){
+
   if(!record)return;const s=sourceFor(record),der=record.records||[],name=label(record.section,record.metric,record.level);
+
   const hasAssumption=(record.qualifiers||[]).some(q=>/hip[oó]tese/i.test(String(q)))||/hip[oó]tese/i.test(record.semantic_note||'');
-  let content=`<p>${esc(name)}${record.program?' · '+esc(record.program):''} · ${esc(record.year??'')}</p><div class="source-value">${esc(format(record,{mean:record.derived_kind==='mean'}))}</div><span class="status-tag ${record.status}">${hasAssumption&&M.numeric(record)?'Sob hipótese indicada':({exact:'Valor documentado / cálculo direto',approximate:'Valor aproximado',ND:'Não disponível',NA:'Não se aplica'})[record.status]||esc(record.status)}</span><p>${esc(record.semantic_note||record.note||defs.get(record.section+'.'+record.metric)?.semantic_note||'Consulte a referência abaixo para o universo do indicador.')}</p>`;
+
+  let content=`<p>${esc(name)}${record.program?' · '+esc(record.program):''} · ${esc(record.year??'')}</p><div class="source-value">${esc(format(record,{mean:record.derived_kind==='mean'}))}</div><span class="status-tag ${record.status}">${hasAssumption&&M.numeric(record)?'Sob hipótese indicada':({exact:'Valor documentado / cálculo direto',calculated:'Cálculo a partir das fontes admitidas',published:'Valor publicado',derived:'Indicador calculado',approximate:'Valor aproximado',ND:'Não disponível',NA:'Não se aplica'})[record.status]||esc(record.status)}</span><p>${esc(record.semantic_note||record.note||defs.get(record.section+'.'+record.metric)?.semantic_note||'Consulte a referência abaixo para o universo do indicador.')}</p>`;
+
+  if(record.coverage_restricted&&typeof record.available_value==='number')content+=`<div class="callout"><strong>Valor individual já obtido:</strong> ${esc(format({...record,value:record.available_value,status:record.available_status||'exact'}))}. Ele permanece fora da comparação e das médias comuns enquanto faltar cobertura equivalente dos outros programas. Sua origem é a fonte admitida identificada abaixo, não os arquivos com perfil específico.</div>`;
+
   if(record.qualifiers?.length)content+=`<div class="callout warning"><strong>Hipóteses e qualificações</strong>${record.qualifiers.map(q=>`<p>${esc(q)}</p>`).join('')}</div>`;
-  if(der.length){content+=`<p>${record.derived_kind==='mean'?`Média sobre ${record.n} de ${record.expected_n} anos.`:record.derived_kind==='ime_share'?`Numerador: ${number(record.numerator??0)}. Total IME: ${number(record.denominator??0)}. Composição do denominador abaixo.`:`Composição dos programas selecionados: ${record.n} de ${record.expected_n} aplicáveis com valores.`}</p><div class="table-wrap"><table class="data-table"><thead><tr><th>${record.derived_kind==='mean'?'Ano':'Programa'}</th><th>Valor</th><th>Referência</th></tr></thead><tbody>${der.map(r=>`<tr><td>${esc(record.derived_kind==='mean'?r.year:r.program)}</td><td>${esc(format(r))}</td><td style="font-size:10px;white-space:normal">${esc(sourceCitation(sourceFor(r)))}</td></tr>`).join('')}</tbody></table></div>`;}
-  else content+=`<dl class="source-details"><dt>Programa</dt><dd>${esc(names[record.program]||record.program||'')}</dd><dt>Arquivo</dt><dd>${esc(basename(s.file||s.filename||s.path)||'Sem fonte individual documentada')}</dd><dt>${s.kind==='janus_html'||s.locator?'Localizador da fonte HTML':'Aba / célula'}</dt><dd>${esc(sourceLocator(s)||'Não disponível')}</dd>${s.sha256||s.hash?`<dt>SHA-256</dt><dd style="overflow-wrap:anywhere">${esc(s.sha256||s.hash)}</dd>`:''}<dt>Unidade</dt><dd>${esc(record.unit||defs.get(record.section+'.'+record.metric)?.unit||'Contagem')}</dd></dl>`;
+
+  if(der.length){content+=`<p>${record.derived_kind==='mean'?`Média sobre ${record.n} de ${record.expected_n} anos.`:record.derived_kind==='ime_share'?`Numerador: ${number(record.numerator??0)}. Total ${esc(unitLabel)}: ${number(record.denominator??0)}. Composição do denominador abaixo.`:`Composição dos programas selecionados: ${record.n} de ${record.expected_n} aplicáveis com valores.`}</p><div class="table-wrap"><table class="data-table"><thead><tr><th>${record.derived_kind==='mean'?'Ano':'Programa'}</th><th>Valor</th><th>Referência</th></tr></thead><tbody>${der.map(r=>`<tr><td>${esc(record.derived_kind==='mean'?r.year:r.program)}</td><td>${esc(format(r))}</td><td style="font-size:10px;white-space:normal">${esc(sourceCitation(sourceFor(r)))}</td></tr>`).join('')}</tbody></table></div>`;}
+
+  else content+=`<dl class="source-details"><dt>Origem da informação</dt><dd>${esc(originFor(record))}</dd><dt>Programa</dt><dd>${esc((record._restricted?restrictedNames:names)[record.program]||record.program||'')}</dd><dt>Arquivo</dt><dd>${esc(basename(s.file||s.filename||s.path)||'Sem fonte individual documentada')}</dd><dt>${s.kind==='janus_html'||s.locator?'Localizador da fonte HTML':'Aba / célula'}</dt><dd>${esc(sourceLocator(s)||'Não disponível')}</dd>${s.sha256||s.hash?`<dt>SHA-256</dt><dd style="overflow-wrap:anywhere">${esc(s.sha256||s.hash)}</dd>`:''}<dt>Unidade</dt><dd>${esc(record.unit||defs.get(record.section+'.'+record.metric)?.unit||'Contagem')}</dd></dl>`;
+
+  if(safeSourceURL(s.url))content+=`<p><a class="text-button" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">Abrir fonte ↗</a></p>`;
+
+  const chain=sourceChain(record);if(chain.length)content+=`<details class="source-chain"><summary>Fontes que sustentam este valor · ${chain.length}</summary><div class="table-wrap"><table class="data-table"><thead><tr><th>Fonte</th><th>Origem</th><th>Referência</th></tr></thead><tbody>${chain.map(c=>`<tr><td>${esc(c.title||c.label||c.id)}</td><td>${esc(sourceAccessLabel(c.access))}</td><td>${esc(sourceCitation(c))}${safeSourceURL(c.url)?`<br><a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">Abrir fonte ↗</a>`:''}</td></tr>`).join('')}</tbody></table></div></details>`;
+
   if(s.course_codes?.length)content+=`<details><summary>Disciplinas incluídas (${s.course_codes.length})</summary><p>${esc(s.course_codes.join(', '))}</p></details>`;
+
   if(s.classification_sources?.length)content+=`<details><summary>Fontes da associação aos programas</summary><div style="overflow-wrap:anywhere">${s.classification_sources.map(c=>`<p>${esc(typeof c==='string'?c:JSON.stringify(c))}</p>`).join('')}</div></details>`;
+
   $('#source-title').textContent=name;$('#source-content').innerHTML=content;
-  copyText=[name,record.program,record.year,format(record),record.semantic_note||record.note||'',...(record.qualifiers||[]),der.length?der.map(r=>`${r.year} ${r.program}: ${format(r)}; ${sourceCitation(sourceFor(r))}`).join('\n'):sourceCitation(s),s.classification_sources?.length?JSON.stringify(s.classification_sources):''].filter(v=>v!=null).join('\n');
+
+  copyText=[name,originFor(record),record.program,record.year,format(record),record.semantic_note||record.note||'',...(record.qualifiers||[]),der.length?der.map(r=>`${r.year} ${r.program}: ${format(r)}; ${sourceCitation(sourceFor(r))}`).join('\n'):sourceCitation(s),s.classification_sources?.length?JSON.stringify(s.classification_sources):''].filter(v=>v!=null).join('\n');
+
   $('#source-dialog').showModal();
+
  }
+
  function notify(message){const el=$('#toast');el.textContent=message;el.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.hidden=true,2600);}
+
  function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
- function exportSVG(id){const src=document.getElementById(id),svg=src.cloneNode(true),original=[src,...src.querySelectorAll('*')],clones=[svg,...svg.querySelectorAll('*')];original.forEach((el,i)=>{const cs=getComputedStyle(el);['fill','stroke','font-family','font-size','font-weight'].forEach(k=>clones[i].style.setProperty(k,cs.getPropertyValue(k)));clones[i].removeAttribute('tabindex');clones[i].removeAttribute('data-source');clones[i].removeAttribute('data-tip');});download(new Blob([new XMLSerializer().serializeToString(svg)],{type:'image/svg+xml;charset=utf-8'}),`ime-${state.view}-${state.view==='requested'?'2024-2025':rangeLabel()}-${id}.svg`);}
- function exportCSV(){const csv=exportRows.map(row=>row.map(v=>'"'+(typeof v==='number'?String(v).replace('.',','):String(v??'')).replace(/"/g,'""')+'"').join(';')).join('\r\n');download(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}),`ime-${state.view}-${state.view==='requested'?'2024-2025':rangeLabel()}.csv`);}
- function reset(){state.start=2012;state.end=2025;state.selected=new Set(programOrder);$('#start-year').value=state.start;$('#end-year').value=state.end;$$('#program-filters input').forEach(x=>x.checked=true);render();}
- $('#program-filters').innerHTML=programs.map(p=>`<label class="program-chip" title="${esc(p.name)}"><input type="checkbox" value="${p.id}" checked><span class="program-dot" style="background:${p.color}"></span><strong>${p.id}</strong><span class="full-name">${esc(p.name)}</span></label>`).join('');
+
+ function exportSVG(id){const src=document.getElementById(id),svg=src.cloneNode(true),original=[src,...src.querySelectorAll('*')],clones=[svg,...svg.querySelectorAll('*')];original.forEach((el,i)=>{const cs=getComputedStyle(el);['fill','stroke','font-family','font-size','font-weight'].forEach(k=>clones[i].style.setProperty(k,cs.getPropertyValue(k)));clones[i].removeAttribute('tabindex');clones[i].removeAttribute('data-source');clones[i].removeAttribute('data-tip');});download(new Blob([new XMLSerializer().serializeToString(svg)],{type:'image/svg+xml;charset=utf-8'}),`siapos-${state.view}-${state.view==='restricted'?state.restrictedStart+'-'+state.restrictedEnd:rangeLabel()}-${id}.svg`);}
+
+ function exportCSV(){const csv=exportRows.map(row=>row.map(v=>'"'+(typeof v==='number'?String(v).replace('.',','):String(v??'')).replace(/"/g,'""')+'"').join(';')).join('\r\n');download(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}),`siapos-${state.view}-${state.view==='restricted'?state.restrictedStart+'-'+state.restrictedEnd:state.view==='sources'?fullPeriod:rangeLabel()}.csv`);}
+
+ function reset(){state.start=periodStart;state.end=periodEnd;state.selected=new Set(programOrder);$('#start-year').value=state.start;$('#end-year').value=state.end;$$('#program-filters input').forEach(x=>x.checked=true);render();}
+
+ $('#program-filters').innerHTML=programs.map(p=>`<label class="program-chip" title="${esc(p.name)}"><input type="checkbox" value="${p.id}" aria-label="${esc(p.name)}" checked><span class="program-dot" style="background:${p.color}"></span><strong>${p.id}</strong><span class="full-name">${esc(p.name)}</span></label>`).join('');
+
  ['start-year','end-year'].forEach(id=>$('#'+id).innerHTML=years.map(y=>`<option value="${y}">${y}</option>`).join(''));$('#start-year').value=state.start;$('#end-year').value=state.end;
- const built=D.generated_at||D.created_at||D.generated_at_utc||D.created_at_utc;$('#snapshot').textContent=built?'Base documental · '+new Date(built).toLocaleDateString('pt-BR'):'Base documental · 3 planilhas';
+
  $('#program-filters').addEventListener('change',e=>{if(e.target.checked)state.selected.add(e.target.value);else state.selected.delete(e.target.value);render();});
+
  $('#select-all').addEventListener('click',()=>{state.selected=new Set(programOrder);$$('#program-filters input').forEach(x=>x.checked=true);render();});
- $('#select-cc-mat').addEventListener('click',()=>{state.selected=new Set(['CC','MAT']);$$('#program-filters input').forEach(x=>x.checked=state.selected.has(x.value));render();});
+
  $('#start-year').addEventListener('change',e=>{state.start=+e.target.value;if(state.start>state.end){state.end=state.start;$('#end-year').value=state.end;}render();});
+
  $('#end-year').addEventListener('change',e=>{state.end=+e.target.value;if(state.end<state.start){state.start=state.end;$('#start-year').value=state.start;}render();});
+
  $('#reset-filters').addEventListener('click',reset);$('#theme-toggle').addEventListener('click',()=>{document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';});$('#print-view').addEventListener('click',()=>window.print());
+
  $('.skip-link').addEventListener('click',e=>{e.preventDefault();$('#content').focus();});
- document.addEventListener('click',e=>{const a=e.target.closest('[data-source]');if(a){const key=a.dataset.source;showSource(key[0]==='d'?derived.get(key):records[+key]);return;}const svg=e.target.closest('[data-export-svg]');if(svg){exportSVG(svg.dataset.exportSvg);return;}const l=e.target.closest('[data-level]');if(l){state.seriesLevel=l.dataset.level;render();return;}const mode=e.target.closest('[data-series-mode]');if(mode){state.seriesMode=mode.dataset.seriesMode;render();return;}const q=e.target.closest('[data-quadro-year]');if(q){state.quadroYear=q.dataset.quadroYear;render();return;}const action=e.target.closest('[data-action]')?.dataset.action;if(action==='reset')reset();if(action==='csv')exportCSV();});
- document.addEventListener('change',e=>{if(e.target.id==='series-metric'){state.seriesMetric=e.target.value;render();}if(e.target.id==='discipline-metric'){state.disciplineMetric=e.target.value;render();}});
+
+ document.addEventListener('click',e=>{const a=e.target.closest('[data-source]');if(a){const key=a.dataset.source;showSource(key[0]==='d'?derived.get(key):records[+key]);return;}const svg=e.target.closest('[data-export-svg]');if(svg){exportSVG(svg.dataset.exportSvg);return;}const jump=e.target.closest('[data-post-jump]');if(jump){const heading=document.getElementById(jump.dataset.postJump),bar=$('#filters');if(heading){heading.style.scrollMarginTop=((bar?.getBoundingClientRect().height||0)+16)+'px';heading.scrollIntoView({block:'start'});heading.focus({preventScroll:true});}return;}const mode=e.target.closest('[data-series-mode]');if(mode){state.seriesMode=mode.dataset.seriesMode;render();return;}const action=e.target.closest('[data-action]')?.dataset.action;if(action==='restricted-reset'){state.restrictedStart=restrictedYears[0]??periodStart;state.restrictedEnd=restrictedYears.at(-1)??periodEnd;state.restrictedSelected=new Set(restrictedPrograms.map(p=>p.id));render();}if(action==='reset')reset();if(action==='csv')exportCSV();});
+
+ document.addEventListener('change',e=>{if(e.target.id==='restricted-metric'){state.restrictedMetric=e.target.value;render();}if(e.target.id==='restricted-start'){state.restrictedStart=+e.target.value;if(state.restrictedStart>state.restrictedEnd)state.restrictedEnd=state.restrictedStart;render();}if(e.target.id==='restricted-end'){state.restrictedEnd=+e.target.value;if(state.restrictedEnd<state.restrictedStart)state.restrictedStart=state.restrictedEnd;render();}if(e.target.dataset.restrictedProgram){if(e.target.checked)state.restrictedSelected.add(e.target.dataset.restrictedProgram);else state.restrictedSelected.delete(e.target.dataset.restrictedProgram);render();}});
+
  document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('svg [data-source]')){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
+
  function tip(target,x,y){const el=$('#chart-tooltip'),parts=target.dataset.tip.split('|');el.innerHTML=`<strong>${esc(parts[0])}</strong>${esc(parts.slice(1).join(' · '))}`;el.hidden=false;el.style.left=Math.min(window.innerWidth-el.offsetWidth-12,Math.max(10,x+12))+'px';el.style.top=Math.max(10,y-el.offsetHeight-10)+'px';}
+
  document.addEventListener('pointerover',e=>{const t=e.target.closest('[data-tip]');if(t)tip(t,e.clientX,e.clientY);});document.addEventListener('pointerout',e=>{if(e.target.closest('[data-tip]'))$('#chart-tooltip').hidden=true;});document.addEventListener('focusin',e=>{const t=e.target.closest('[data-tip]');if(t){const b=t.getBoundingClientRect();tip(t,b.x,b.y);}});document.addEventListener('focusout',()=>$('#chart-tooltip').hidden=true);
+
  const close=()=>$('#source-dialog').close();$('#close-dialog').addEventListener('click',close);$('#done-dialog').addEventListener('click',close);$('#source-dialog').addEventListener('click',e=>{if(e.target===$('#source-dialog')){const b=e.target.getBoundingClientRect();if(e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom)close();}});
+
  $('#copy-source').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(copyText);notify('Referência copiada.');}catch{const t=document.createElement('textarea');t.value=copyText;$('#source-dialog').appendChild(t);t.select();const ok=document.execCommand('copy');t.remove();notify(ok?'Referência copiada.':'Selecione e copie a referência exibida.');}});
- function viewFromHash(){const value=location.hash.slice(1),parts=value.split('/');if(parts[0]==='graduation'){state.view='graduation';state.gradTab=parts[1]==='mac-adicional'&&!window.SIAPOS_GRADUACAO?.hasCommonDepartments?'department':['snapshot','series','department','anuario','curricula','mac-adicional','sources'].includes(parts[1])?parts[1]:'snapshot';}else state.view=titles[value]?value:'overview';render();}window.addEventListener('hashchange',viewFromHash);viewFromHash();
+
+ function viewFromHash(){const value=location.hash.slice(1),parts=value.split('/');if(parts[0]==='graduation'){state.view='graduation';state.gradTab=parts[1]==='mac-adicional'&&!window.SIAPOS_GRADUACAO?.hasCommonDepartments?'department':['series','department','anuario','curricula','mac-adicional','additional','coverage','sources'].includes(parts[1])?parts[1]:'series';}else state.view=value==='requested'?'disciplines':value==='additional'?'restricted':titles[value]?value:'overview';render();}window.addEventListener('hashchange',viewFromHash);viewFromHash();
+
 })();

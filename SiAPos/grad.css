@@ -1,11 +1,19 @@
 .grad-tabs{display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:20px}
 .grad-tabs button{border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12px;font-weight:600;padding:9px 13px}
 .grad-tabs button.active{background:var(--navy);color:var(--surface);border-color:var(--navy)}
-.grad-filters .year-controls{border-top:1px solid var(--line)}
 .grad-course-filter[hidden]{display:none}
-.grad-course-card .program-snapshot-heading{min-height:65px}
-.grad-course-card dd{font-size:23px}
+.grad-series-index{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:7px 10px;border-top:1px solid var(--line)}
+.grad-series-index button{padding:8px 6px;font-size:12px;font-weight:600;text-align:center;border:1px solid transparent;background:var(--soft);color:var(--navy)}
+.grad-series-index button:hover,.grad-series-index button:focus-visible{background:var(--blue-bg);border-color:var(--line)}
+.grad-series-section h2[id]{scroll-margin-top:150px}
 .grad-data-panel{margin-top:18px;margin-bottom:25px}
+.grad-series-section{margin-bottom:32px}
+.grad-series-section .panel-heading{min-height:70px}
+.grad-series-section+.grad-series-section{border-top:1px solid var(--line);padding-top:28px}
+.grad-series-download{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:18px;padding:22px;margin-top:10px}
+.grad-series-download h2{font-size:17px;margin:0 0 7px}
+.grad-series-download p{font-size:12px;color:var(--muted);line-height:1.6;margin:0;max-width:600px}
+.grad-series-download .button{white-space:normal}
 .grad-value-label{fill:var(--ink);font-weight:650}
 .grad-curricula-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr))}
 .grad-source-ref{white-space:normal!important;min-width:230px;font-size:10px!important;overflow-wrap:anywhere}
@@ -30,5 +38,22 @@
 .grad-linked-sources a{color:var(--accent);overflow-wrap:anywhere}
 .grad-offering-source{padding:8px 0;border-bottom:1px solid var(--line)}
 .grad-offering-source code{font-size:10px;overflow-wrap:anywhere}
-@media(max-width:650px){.grad-tabs{gap:5px}.grad-tabs button{font-size:11px;padding:8px 10px}.grad-course-card .program-snapshot-heading{min-height:0}.grad-filters .program-chip{align-items:flex-start}.grad-filters .program-dot{margin-top:4px}.grad-filters .full-name{white-space:normal}.grad-filters .year-controls{flex-wrap:wrap}}
-@media print{.grad-tabs,.grad-filters,[data-grad-svg],[data-grad-action=csv]{display:none!important}.grad-course-card{break-inside:avoid}#grad-root .chart-grid{grid-template-columns:1fr 1fr}.grad-data-panel{break-inside:avoid}}
+.grad-nc{display:inline-block;color:var(--muted);border:1px dashed var(--line);border-radius:3px;padding:2px 5px;font-size:11px;font-weight:650}
+.grad-coverage-key{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 5px}
+.grad-coverage-key .grad-access-label{margin:0}
+.grad-coverage-table th,.grad-coverage-table td{white-space:normal;min-width:155px;vertical-align:top;line-height:1.6}
+.grad-coverage-table th:first-child{min-width:110px}
+.grad-coverage-table .mini-note{font-weight:400}
+.grad-coverage-gaps{margin:28px 0}
+.grad-coverage-gaps>h3{font-size:17px;margin-bottom:14px}
+.grad-coverage-proof-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:14px;margin:18px 0}
+.grad-coverage-proof{border:1px solid var(--line);border-radius:7px;background:var(--surface);padding:14px;min-width:0;align-self:start}
+.grad-coverage-proof>summary{cursor:pointer;font-size:12px;font-weight:650;color:var(--ink);line-height:1.6}
+.grad-coverage-proof .table-wrap{margin-top:12px}
+.grad-coverage-proof td,.grad-coverage-proof th{padding:8px 6px}
+.grad-coverage-status{font-size:10px;line-height:1.4;padding:4px 6px;border:1px solid var(--line);border-radius:4px;white-space:nowrap;background:var(--surface);color:var(--ink)}
+.grad-coverage-common{background:#eaf3ee;color:#22563b;border-color:#b9d2c3}
+.grad-coverage-additional{background:#edf1fa;color:#315682;border-color:#c7d3e6}
+.grad-coverage-missing{background:var(--amber-bg);color:var(--amber)}
+@media(max-width:650px){.grad-tabs{gap:5px}.grad-tabs button{font-size:11px;padding:8px 10px}.grad-filters .program-chip{align-items:flex-start}.grad-filters .program-dot{margin-top:4px}.grad-filters .full-name{white-space:normal}.grad-filters .year-controls{flex-wrap:wrap}.grad-series-index{grid-template-columns:repeat(2,minmax(0,1fr));padding:6px 10px}}
+@media print{.grad-series-download,.grad-tabs,.grad-filters,[data-grad-svg],[data-grad-action=csv]{display:none!important}#grad-root .chart-grid{grid-template-columns:1fr 1fr}.grad-data-panel{break-inside:avoid}}
