@@ -52,7 +52,7 @@ Todos os dados de graduação usam exclusivamente fontes oficiais públicas ou c
 - O cadastro não contém aprovações, reprovações, notas ou trancamentos. Seus indicadores e taxas permanecem ND. As cargas teórica/prática cadastradas são campos próprios, sem equivalência automática a créditos ou carga docente efetiva.
 - Créditos-aula e carga nominal dessas turmas foram comprovados por fichas públicas da versão explícita em 127 de 186 recortes anuais/semestrais; os outros 59 conservam ND, sem soma parcial como total. Esses 254 campos têm origem mista: cadastro autenticado e fichas públicas. A comparação dos quatro departamentos usa apenas os 17 recortes completos para todos, com 136 valores. Outros 82 valores comprovados dos departamentos ficam em Dados complementares; o prefixo 450 é interdepartamental e separado da interseção.
 - Dados complementares contêm somente os créditos/cargas comprovados fora da interseção comum e o prefixo interdepartamental 450. Os resultados dos arquivos MAC/MAT anteriores, os recortes por ministrantes e seus cálculos derivados foram excluídos; as versões anteriores ficam no arquivo histórico de manutenção.
-- Estatísticas do Anuário, 2012–2025: disciplinas, turmas e dimensões médias dos quatro departamentos, na tabela 3.02; matrículas em disciplinas, aprovações e reprovações do IME como unidade, na tabela 3.07. O código interdepartamental 450 tem cobertura a partir de 2017.
+- Estatísticas do Anuário, 2012–2025: disciplinas, turmas e dimensões médias por departamento, conforme a tabela 3.02. O código interdepartamental 450 tem cobertura a partir de 2017.
 - Referências curriculares de 2024 e 2025: 36 variantes de curso, habilitação ou turno. Essas alternativas não são somadas; os subtotais impressos e as ressalvas das fontes são preservados.
 
 Estoques do primeiro e do segundo semestre permanecem separados. Vagas não equivalem a ingressantes. Os prefixos de disciplinas não identificam o curso de cada aluno nem certificam a lotação dos ministrantes.
@@ -61,9 +61,9 @@ As lacunas de ingresso, de créditos não comprovados e de resultados departamen
 
 As versões históricas das fichas confirmam créditos válidos no período da oferta obtida no cadastro autenticado. Não se aplicou indiscriminadamente a ficha atual aos anos anteriores. A carga nominal corresponde a 15 horas-aula por crédito-aula e por turma; não representa a carga efetivamente ministrada por professor. Resultados, notas e trancamentos departamentais não foram recuperados no relatório acessível e não são preenchidos por arquivos anteriores.
 
-As estatísticas por departamento e por unidade não são repartidas pelos cinco grupos de cursos. Dimensões médias arredondadas não permitem reconstruir matrículas exatas; disciplinas nos dois semestres não são códigos únicos no ano. Cada gráfico, tabela e exportação mantém o escopo e o semestre correspondentes.
+As estatísticas por departamento seguem o recorte da tabela 3.02. Dimensões médias arredondadas não permitem reconstruir matrículas exatas; disciplinas nos dois semestres não são códigos únicos no ano. Cada gráfico, tabela e exportação mantém o escopo e o semestre correspondentes.
 
-As comparações Anuário/DataUSP ficam na visão de fontes, com seus universos distintos identificados. Divergências dos catálogos públicos permanecem sinalizadas: cinco inconsistências em campos e subtotais curriculares. Não se completam campos ausentes por extrapolação de outra edição.
+Divergências dos catálogos públicos permanecem sinalizadas: cinco inconsistências em campos e subtotais curriculares. Não se completam campos ausentes por extrapolação de outra edição.
 
 ## Fontes e recorte público
 

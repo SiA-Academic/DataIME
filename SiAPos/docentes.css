@@ -21,12 +21,9 @@
 .docentes-reading-note{font-size:11px;line-height:1.7;color:var(--muted);margin:10px 2px 25px;max-width:1000px}
 .docentes-methods{margin-bottom:24px}
 .docentes-methods-body{border:1px solid var(--line);border-top:0;padding:0 18px 18px;background:var(--surface);border-radius:0 0 9px 9px}
-.docentes-methods-body .source-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr))}
-.docentes-methods-body .source-card{box-shadow:none}
 .docentes-source-content{padding:20px 22px;max-height:65vh;overflow:auto}
 .docentes-source-content>p{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px}
 .docentes-source-content .source-value{font-size:30px;font-weight:700;color:var(--navy);margin:8px 0}
-.docentes-source-content .source-card{margin-top:12px}
 .docentes-visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(max-width:900px){.sidebar-section-general{padding-bottom:4px}}
 @media(max-width:650px){.docentes-table-wrap th[scope="row"]{min-width:115px;max-width:130px;padding:12px 10px}.docentes-table-wrap th:first-child,.docentes-table-wrap td:first-child{position:sticky;left:0;z-index:1}.docentes-table-wrap thead th:first-child{background:var(--soft);z-index:2}.docentes-summary-table td{font-size:17px}.docentes-methods-body{padding-inline:12px}.docentes-date{font-size:10px}}
