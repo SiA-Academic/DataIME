@@ -158,11 +158,11 @@
   return `<g data-grad-estimate-point ${attributes} style="cursor:pointer">${svgTitle}${interval}<path d="M${x},${y-5}l5,5 -5,5 -5,-5Z" stroke="${entity.color}" stroke-width="2" fill="white"/></g>`;
  }
  function graph(section,metric,semester,entities,kind,title){
-  const ys=selectedYears(),ps=entities.map(p=>({...p})),periodTitle=semLabel(semester)+' · '+range(),isCourseSeries=state.tab==='series'&&section==='cursos',displayTitle=isCourseSeries?(kind==='bar'?'Média no período':periodTitle):title;
+  const ys=selectedYears(),ps=entities.map(p=>({...p,records:kind==='line'?ys.map(year=>get(section,metric,year,semester,p.id)):[]})),periodTitle=semLabel(semester)+' · '+range(),isCourseSeries=state.tab==='series'&&section==='cursos',displayTitle=isCourseSeries?(kind==='bar'?'Média no período':periodTitle):title;
   if(kind==='bar')ps.sort((a,b)=>{const x=average(section,metric,semester,a.id),y=average(section,metric,semester,b.id);return numeric(x)&&numeric(y)?y.value-x.value:numeric(x)?-1:numeric(y)?1:0;});
-  const points=kind==='bar'?ps.map(p=>({p,r:average(section,metric,semester,p.id)})):ps.flatMap(p=>ys.map(year=>({p,year,r:get(section,metric,year,semester,p.id)})));
+  const points=kind==='bar'?ps.map(p=>({p,r:average(section,metric,semester,p.id)})):ps.flatMap(p=>p.records.map(r=>({p,r})));
   const vals=points.filter(x=>numeric(x.r)).map(x=>ratio(x.r)?x.r.value*100:x.r.value),id='grad-chart-'+(++chartId),W=600,H=300,L=55,R=20,T=32,B=45,iw=W-L-R,ih=H-T-B;
-  let svg='';
+  let svg='',trendControl='';
   if(vals.length){
    const max=Math.max(...vals),rough=(max||1)/4,power=10**Math.floor(Math.log10(rough)),step=[1,2,2.5,5,10].find(v=>v*power>=rough)*power,top=Math.ceil((max||1)/step)*step,y=v=>T+ih-v/top*ih;let digits=0;
    while(digits<8&&Math.abs(step*10**digits-Math.round(step*10**digits))>1e-8)digits++;
@@ -170,12 +170,31 @@
    if(kind==='line'){
     const x=i=>ys.length===1?L+iw/2:L+i*iw/(ys.length-1);
     ys.forEach((yr,i)=>{if(ys.length<=8||i%2===0||i===ys.length-1)svg+=`<text x="${x(i)}" y="${H-17}" text-anchor="middle" class="chart-text">${yr}</text>`;});
-    ps.forEach(p=>{let d='',connected=false,marks='';ys.forEach((yr,i)=>{const r=get(section,metric,yr,semester,p.id);if(!numeric(r)){connected=false;return;}const xx=x(i),yy=y(ratio(r)?r.value*100:r.value);d+=(connected?'L':'M')+xx+','+yy+' ';connected=true;marks+=annualMark(r,p,xx,yy,y,semester);});svg+=`<path d="${d}" fill="none" stroke="${p.color}" stroke-width="2.2"/>`+marks;});
+    const trend=window.SIAPOS_TREND;
+    let marks='',medians='';
+    for(const p of ps){
+     let d='',connected=false;
+     const values=p.records.map((r,i)=>{
+      if(!numeric(r)){connected=false;return null;}
+      const value=ratio(r)?r.value*100:r.value,xx=x(i),yy=y(value);
+      d+=(connected?'L':'M')+xx+','+yy+' ';
+      connected=true;marks+=annualMark(r,p,xx,yy,y,semester);
+      return value;
+     });
+     svg+=`<path data-observed-line d="${d}" fill="none" stroke="${p.color}" stroke-width="2.2"/>`;
+     if(trend)medians+=trend.series(ys,values,x,y,p.color,p.id);
+    }
+    if(medians){
+     const key=['grad',section,metric,semester??'annual'].join('|')+(state.tab==='additional'&&state.additionalView==='interdepartmental'?'|450':'');
+     trendControl=trend.control(key,id,section==='cursos'&&metric==='concluintes');
+     svg+=`<g class="chart-median-layer" pointer-events="none">${medians}${trend.svgKey(W-R)}</g>`;
+    }
+    svg+=marks;
    }else ps.forEach((p,i)=>{const r=points[i].r,xx=L+iw*(i+.5)/ps.length,bw=Math.min(52,iw/ps.length*.55);svg+=`<text x="${xx}" y="${H-17}" text-anchor="middle" class="chart-text">${esc(p.id)}</text>`;if(!numeric(r)){svg+=`<text x="${xx}" y="${T+ih-8}" text-anchor="middle" class="chart-text">${r.status}</text>`;return;}const yy=y(ratio(r)?r.value*100:r.value),description=[format(r,true)+' ('+r.n+'/'+r.expected_n+' anos)',estimateDescription(r),intakeOrigin(r)].filter(Boolean).join(' · ');svg+=`<rect x="${xx-bw/2}" y="${yy}" width="${bw}" height="${T+ih-yy}" rx="3" fill="${p.color}" role="button" tabindex="0" aria-label="${esc(p.name+' · média '+description+', '+semLabel(semester)+', '+range()+'. Consultar origem.')}" data-grad-source="${ref(r)}" data-tip="${esc(p.id+' · média '+range()+'|'+description)}"/><text x="${xx}" y="${Math.max(16,yy-8)}" text-anchor="middle" class="chart-text grad-value-label">${esc(format(r,true))}</text>`;});
   }else svg=`<text x="${W/2}" y="${H/2}" text-anchor="middle" class="chart-text">${state.tab==='department'&&section==='departamento_jupiter'&&creditMetricIds.includes(metric)?'Sem recortes com cobertura comum nesta seleção.':'Sem valores documentados nesta seleção.'}</text>`;
   const containsEstimates=points.some(({r})=>estimated(r));
   const chartLegend=kind==='line'?legend(ps,containsEstimates,points.some(({r})=>reportedIntake(r))):containsEstimates?'<div class="legend"><span>≈ Média que inclui anos estimados</span></div>':'';
-  return `<article class="panel"><div class="panel-heading"><div><h3>${esc(displayTitle)}</h3>${isCourseSeries&&kind==='line'?'':`<p>${esc(periodTitle)}</p>`}</div><button class="chart-action" data-grad-svg="${id}">SVG ↓</button></div><div class="chart-container"><svg id="${id}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(title+' · '+semLabel(semester))}"><title>${esc(title+' · '+semLabel(semester)+' · '+range())}</title>${containsEstimates?`<desc>${esc(points.filter(({r})=>estimated(r)).map(({r})=>r.course+' · '+r.year+' · '+estimateDescription(r)).join(' '))}</desc>`:''}${svg}</svg></div>${chartLegend}</article>`;
+  return `<article class="panel"><div class="panel-heading"><div><h3>${esc(displayTitle)}</h3>${isCourseSeries&&kind==='line'?'':`<p>${esc(periodTitle)}</p>`}</div><div class="chart-actions">${trendControl}<button class="chart-action" data-grad-svg="${id}">SVG ↓</button></div></div><div class="chart-container"><svg id="${id}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(title+' · '+semLabel(semester))}"><title>${esc(title+' · '+semLabel(semester)+' · '+range())}</title>${containsEstimates?`<desc>${esc(points.filter(({r})=>estimated(r)).map(({r})=>r.course+' · '+r.year+' · '+estimateDescription(r)).join(' '))}</desc>`:''}${svg}</svg></div>${chartLegend}</article>`;
  }
  const estimateColumns=['Estimativa por possível sobreposição','Limite inferior','Limite superior'];
  const estimateCells=r=>estimated(r)?['Sim',estimateBound(r,'lower_bound')??'',estimateBound(r,'upper_bound')??'']:['','',''];
@@ -409,7 +428,7 @@ function sourcesExport(visibleSources,collection){
  }
  function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
  function exportCSV(){const text=csvRows.map(r=>r.map(v=>'"'+(typeof v==='number'?String(v).replace('.',','):String(v??'')).replace(/"/g,'""')+'"').join(';')).join('\r\n');download(new Blob(['\uFEFF'+text],{type:'text/csv;charset=utf-8'}),'siapos-graduacao-'+state.tab+(state.tab==='additional'?'-'+state.additionalView:'')+'-'+(state.tab==='coverage'?'2012-2025':range())+'.csv');}
- function exportSVG(id){const original=document.getElementById(id),clone=original.cloneNode(true),a=[original,...original.querySelectorAll('*')],b=[clone,...clone.querySelectorAll('*')];a.forEach((e,i)=>{const cs=getComputedStyle(e);['fill','stroke','font-size','font-weight','font-family'].forEach(k=>b[i].style.setProperty(k,cs.getPropertyValue(k)));['data-grad-source','data-tip','tabindex'].forEach(k=>b[i].removeAttribute(k));});download(new Blob([new XMLSerializer().serializeToString(clone)],{type:'image/svg+xml;charset=utf-8'}),'siapos-graduacao-'+state.tab+'-'+range()+'-'+id+'.svg');}
+ function exportSVG(id){const original=document.getElementById(id),clone=original.cloneNode(true),a=[original,...original.querySelectorAll('*')],b=[clone,...clone.querySelectorAll('*')];a.forEach((e,i)=>{const cs=getComputedStyle(e);['display','opacity','fill','stroke','font-size','font-weight','font-family'].forEach(k=>b[i].style.setProperty(k,cs.getPropertyValue(k)));['data-grad-source','data-tip','tabindex'].forEach(k=>b[i].removeAttribute(k));});download(new Blob([new XMLSerializer().serializeToString(clone)],{type:'image/svg+xml;charset=utf-8'}),'siapos-graduacao-'+state.tab+'-'+range()+'-'+id+'.svg');}
  const dialog=document.createElement('dialog');dialog.id='grad-source-dialog';dialog.setAttribute('aria-labelledby','grad-source-title');dialog.innerHTML='<div class="dialog-header"><h2 id="grad-source-title">Origem do indicador</h2><button class="icon-button" data-grad-close aria-label="Fechar origem">×</button></div><div id="grad-source-content"></div><div class="dialog-actions"><button class="button secondary" data-grad-copy>Copiar referência</button><button class="button" data-grad-close>Fechar</button></div>';document.body.appendChild(dialog);
  document.addEventListener('click',async e=>{
   const a=e.target.closest('[data-grad-source]');if(a){modal(refs.get(a.dataset.gradSource));return;}const svg=e.target.closest('[data-grad-svg]');if(svg){exportSVG(svg.dataset.gradSvg);return;}

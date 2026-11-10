@@ -206,7 +206,7 @@
 
   const W=580,H=290,L=51,R=18,T=29,B=43,iw=W-L-R,ih=H-T-B;
 
-  let inner='';
+  let inner='',trendControl='';
 
   if(values.length){
 
@@ -226,7 +226,31 @@
 
     ys.forEach((year,i)=>{if(ys.length<=8||i%2===0||i===ys.length-1)inner+=`<text x="${x(i)}" y="${H-18}" text-anchor="middle" class="chart-text">${year}</text>`;});
 
-    ps.forEach(p=>{let path='',connected=false;const marks=[];ys.forEach((year,i)=>{const r=viewMetric(section,metric,year,p.id,level);if(!M.numeric(r)){connected=false;return;}const yy=y(isRatio(r)?r.value*100:r.value),xx=x(i);path+=(connected?'L':'M')+xx+','+yy+' ';connected=true;let rid=r._id;if(rid==null){rid='d'+nextDerived++;derived.set(rid,r);}marks.push(`<circle cx="${xx}" cy="${yy}" r="3.4" fill="${p.color}" class="chart-point" tabindex="0" role="button" data-source="${esc(rid)}" data-tip="${esc(p.id+' · '+year+'|'+format(r))}" aria-label="${esc(p.name+' '+year+': '+format(r)+'. Consultar fonte.')}"><title>${esc(p.id+' · '+year+': '+format(r))}</title></circle>`);});inner+=`<path d="${path}" stroke="${p.color}" fill="none" stroke-width="2.2" stroke-linejoin="round"/>`+marks.join('');});
+    const trend=window.SIAPOS_TREND;
+    let medianCurves='',pointMarks='';
+    ps.forEach(p=>{
+     let path='',connected=false;
+     const annualValues=[];
+     ys.forEach((year,i)=>{
+      const r=viewMetric(section,metric,year,p.id,level);
+      const value=M.numeric(r)?(isRatio(r)?r.value*100:r.value):null;
+      annualValues.push(value);
+      if(value===null){connected=false;return;}
+      const yy=y(value),xx=x(i);
+      path+=(connected?'L':'M')+xx+','+yy+' ';
+      connected=true;
+      let rid=r._id;
+      if(rid==null){rid='d'+nextDerived++;derived.set(rid,r);}
+      pointMarks+=`<circle cx="${xx}" cy="${yy}" r="3.4" fill="${p.color}" class="chart-point" tabindex="0" role="button" data-source="${esc(rid)}" data-tip="${esc(p.id+' · '+year+'|'+format(r))}" aria-label="${esc(p.name+' '+year+': '+format(r)+'. Consultar fonte.')}"><title>${esc(p.id+' · '+year+': '+format(r))}</title></circle>`;
+     });
+     inner+=`<path data-observed-line d="${path}" stroke="${p.color}" fill="none" stroke-width="2.2" stroke-linejoin="round"/>`;
+     if(trend)medianCurves+=trend.series(ys,annualValues,x,y,p.color,p.id);
+    });
+    if(medianCurves){
+     inner+=`<g class="chart-median-layer" pointer-events="none">${medianCurves}${trend.svgKey(W-R)}</g>`;
+     trendControl=trend.control(['pos',section,metric,level||''].join('|'),id,false);
+    }
+    inner+=pointMarks;
 
    }else{
 
@@ -236,7 +260,7 @@
 
   }else inner=`<text x="${W/2}" y="${H/2}" text-anchor="middle" class="chart-text">Sem valores documentados para esta seleção.</text>`;
 
-  return `<article class="panel"><div class="panel-heading"><div><h3>${esc(title)}</h3>${subtitle?`<p>${esc(subtitle)}</p>`:''}</div><div class="chart-actions"><button class="chart-action" data-export-svg="${id}" aria-label="Baixar SVG: ${esc(chartDescription)}">SVG ↓</button></div></div><div class="chart-container"><svg id="${id}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(chartDescription)}" xmlns="http://www.w3.org/2000/svg"><title>${esc(chartDescription)}</title>${inner}</svg></div>${kind==='bar'?'':legend(ps)}</article>`;
+  return `<article class="panel"><div class="panel-heading"><div><h3>${esc(title)}</h3>${subtitle?`<p>${esc(subtitle)}</p>`:''}</div><div class="chart-actions">${trendControl}<button class="chart-action" data-export-svg="${id}" aria-label="Baixar SVG: ${esc(chartDescription)}">SVG ↓</button></div></div><div class="chart-container"><svg id="${id}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(chartDescription)}" xmlns="http://www.w3.org/2000/svg"><title>${esc(chartDescription)}</title>${inner}</svg></div>${kind==='bar'?'':legend(ps)}</article>`;
 
  }
 
@@ -397,11 +421,36 @@
 
   ys.forEach((year,i)=>{if(ys.length<=8||i%2===0||i===ys.length-1)svg+=`<text x="${x(i)}" y="${T+plotH+22}" text-anchor="middle" class="chart-text">${year}</text>`;});
 
-  series.forEach((s,seriesIndex)=>{let path='',connected=false,marks='';ys.forEach((year,i)=>{const r=restrictedGet(choice.section,s.metric,year,s.p.id,choice.level);if(!M.numeric(r)){connected=false;return;}const xx=x(i),yy=y(r.value);path+=(connected?'L':'M')+xx+','+yy+' ';connected=true;marks+=`<circle cx="${xx}" cy="${yy}" r="3.4" fill="${s.style.hollow?'var(--surface)':s.color}" stroke="${s.color}" stroke-width="1.7" style="stroke:${s.color};stroke-width:1.7" class="chart-point" tabindex="0" role="button" data-source="${restrictedRef(r)}" data-restricted-metric="${esc(s.metric)}" data-restricted-program="${esc(s.p.id)}" data-tip="${esc(s.p.id+' · '+s.style.name+' · '+year+'|'+format(r))}" aria-label="${esc(s.p.name+' · '+s.style.name+' · '+year+': '+format(r)+'. Consultar origem.')}"/>`;});const dash=s.style.dash?` stroke-dasharray="${s.style.dash}"`:'';svg+=`<path d="${path}" fill="none" stroke="${s.color}" stroke-width="2.7"${dash} data-restricted-series="${esc(s.p.id+'|'+s.metric)}"/>`+marks;const lx=L+(seriesIndex%legendColumns)*iw/legendColumns,ly=T+plotH+B+Math.floor(seriesIndex/legendColumns)*22;svg+=`<g data-restricted-legend-series="${esc(s.p.id+'|'+s.metric)}"><line x1="${lx}" x2="${lx+24}" y1="${ly}" y2="${ly}" stroke="${s.color}" stroke-width="2.7"${dash}/><circle cx="${lx+12}" cy="${ly}" r="3.1" fill="${s.style.hollow?'var(--surface)':s.color}" stroke="${s.color}" stroke-width="1.5"/><text x="${lx+32}" y="${ly+4}" class="chart-text"><title>${esc(s.p.name+' · '+s.style.name)}</title>${esc(s.p.id+' · '+s.style.name)}</text></g>`;});
+  const trend=window.SIAPOS_TREND;
+  let medianCurves='',pointMarks='',legendMarkup='',trendControl='';
+  series.forEach((s,seriesIndex)=>{
+   let path='',connected=false;
+   const annualValues=[];
+   ys.forEach((year,i)=>{
+    const r=restrictedGet(choice.section,s.metric,year,s.p.id,choice.level);
+    const value=M.numeric(r)?r.value:null;
+    annualValues.push(value);
+    if(value===null){connected=false;return;}
+    const xx=x(i),yy=y(value);
+    path+=(connected?'L':'M')+xx+','+yy+' ';
+    connected=true;
+    pointMarks+=`<circle cx="${xx}" cy="${yy}" r="3.4" fill="${s.style.hollow?'var(--surface)':s.color}" stroke="${s.color}" stroke-width="1.7" style="stroke:${s.color};stroke-width:1.7" class="chart-point" tabindex="0" role="button" data-source="${restrictedRef(r)}" data-restricted-metric="${esc(s.metric)}" data-restricted-program="${esc(s.p.id)}" data-tip="${esc(s.p.id+' · '+s.style.name+' · '+year+'|'+format(r))}" aria-label="${esc(s.p.name+' · '+s.style.name+' · '+year+': '+format(r)+'. Consultar origem.')}"/>`;
+   });
+   const dash=s.style.dash?` stroke-dasharray="${s.style.dash}"`:'';
+   svg+=`<path data-observed-line d="${path}" fill="none" stroke="${s.color}" stroke-width="2.7"${dash} data-restricted-series="${esc(s.p.id+'|'+s.metric)}"/>`;
+   if(trend)medianCurves+=trend.series(ys,annualValues,x,y,s.color,s.p.id);
+   const lx=L+(seriesIndex%legendColumns)*iw/legendColumns,ly=T+plotH+B+Math.floor(seriesIndex/legendColumns)*22;
+   legendMarkup+=`<g data-restricted-legend-series="${esc(s.p.id+'|'+s.metric)}"><line x1="${lx}" x2="${lx+24}" y1="${ly}" y2="${ly}" stroke="${s.color}" stroke-width="2.7"${dash}/><circle cx="${lx+12}" cy="${ly}" r="3.1" fill="${s.style.hollow?'var(--surface)':s.color}" stroke="${s.color}" stroke-width="1.5"/><text x="${lx+32}" y="${ly+4}" class="chart-text"><title>${esc(s.p.name+' · '+s.style.name)}</title>${esc(s.p.id+' · '+s.style.name)}</text></g>`;
+  });
+  if(medianCurves){
+   svg+=`<g class="chart-median-layer" pointer-events="none">${medianCurves}${trend.svgKey(W-R)}</g>`;
+   trendControl=trend.control(['pos','restricted',choice.section,metrics.join(','),choice.level||''].join('|'),id,false);
+  }
+  svg+=pointMarks+legendMarkup;
 
   if(!values.length)svg+=`<text x="300" y="145" text-anchor="middle" class="chart-text">Sem valores documentados nesta seleção.</text>`;
 
-  return `<article class="panel"><div class="panel-heading"><div><h3>${esc(chartLabel)}</h3><p>${esc(ps.map(p=>p.id).join(' · '))} · ${esc(yearList(ys))}</p></div><button class="chart-action" data-export-svg="${id}">SVG ↓</button></div><div class="chart-container"><svg id="${id}" viewBox="0 0 ${W} ${H}" role="img" data-restricted-dashboard-chart ${family==='participation'?'data-restricted-participation-chart':'data-restricted-occupation-chart'} data-restricted-family="${family}" data-restricted-chart-metric="${esc(metrics.join(','))}" data-restricted-chart-program="${esc(ps.map(p=>p.id).join(','))}" data-restricted-scale-max="${top}" aria-label="${esc((ps.length===1?ps[0].name+' · ':'')+chartLabel+' · '+yearList(ys))}" xmlns="http://www.w3.org/2000/svg"><title>${esc(chartLabel)}</title>${svg}</svg></div></article>`;
+  return `<article class="panel"><div class="panel-heading"><div><h3>${esc(chartLabel)}</h3><p>${esc(ps.map(p=>p.id).join(' · '))} · ${esc(yearList(ys))}</p></div><div class="chart-actions">${trendControl}<button class="chart-action" data-export-svg="${id}">SVG ↓</button></div></div><div class="chart-container"><svg id="${id}" viewBox="0 0 ${W} ${H}" role="img" data-restricted-dashboard-chart ${family==='participation'?'data-restricted-participation-chart':'data-restricted-occupation-chart'} data-restricted-family="${family}" data-restricted-chart-metric="${esc(metrics.join(','))}" data-restricted-chart-program="${esc(ps.map(p=>p.id).join(','))}" data-restricted-scale-max="${top}" aria-label="${esc((ps.length===1?ps[0].name+' · ':'')+chartLabel+' · '+yearList(ys))}" xmlns="http://www.w3.org/2000/svg"><title>${esc(chartLabel)}</title>${svg}</svg></div></article>`;
 
  }
 
@@ -622,7 +671,7 @@
 
  function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 
- function exportSVG(id){const src=document.getElementById(id),svg=src.cloneNode(true),original=[src,...src.querySelectorAll('*')],clones=[svg,...svg.querySelectorAll('*')];original.forEach((el,i)=>{const cs=getComputedStyle(el);['fill','stroke','font-family','font-size','font-weight'].forEach(k=>clones[i].style.setProperty(k,cs.getPropertyValue(k)));clones[i].removeAttribute('tabindex');clones[i].removeAttribute('data-source');clones[i].removeAttribute('data-tip');});download(new Blob([new XMLSerializer().serializeToString(svg)],{type:'image/svg+xml;charset=utf-8'}),`siapos-${state.view}-${state.view==='restricted'?state.restrictedStart+'-'+state.restrictedEnd:rangeLabel()}-${id}.svg`);}
+ function exportSVG(id){const src=document.getElementById(id),svg=src.cloneNode(true),original=[src,...src.querySelectorAll('*')],clones=[svg,...svg.querySelectorAll('*')];original.forEach((el,i)=>{const cs=getComputedStyle(el);['fill','stroke','font-family','font-size','font-weight','display','opacity'].forEach(k=>clones[i].style.setProperty(k,cs.getPropertyValue(k)));clones[i].removeAttribute('tabindex');clones[i].removeAttribute('data-source');clones[i].removeAttribute('data-tip');});download(new Blob([new XMLSerializer().serializeToString(svg)],{type:'image/svg+xml;charset=utf-8'}),`siapos-${state.view}-${state.view==='restricted'?state.restrictedStart+'-'+state.restrictedEnd:rangeLabel()}-${id}.svg`);}
 
  function exportCSV(){const csv=exportRows.map(row=>row.map(v=>'"'+(typeof v==='number'?String(v).replace('.',','):String(v??'')).replace(/"/g,'""')+'"').join(';')).join('\r\n');download(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}),`siapos-${state.view}-${state.view==='restricted'?state.restrictedStart+'-'+state.restrictedEnd:state.view==='sources'?fullPeriod:rangeLabel()}.csv`);}
 
