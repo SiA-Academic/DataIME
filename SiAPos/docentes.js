@@ -200,8 +200,27 @@
   function showSource(id){
     const ref=references.get(id);if(!ref)return;
     const {cell,department,label,definition}=ref,refs=(cell.source_ids||[]).map(sourceId=>sources.get(sourceId)).filter(Boolean);
-    dialog.querySelector('#docentes-source-title').textContent=label+' · '+department.id;
-    dialog.querySelector('.docentes-source-content').innerHTML=`<p>${esc(department.name||department.id)} · ${esc(date(dataset.as_of))}</p><div class="source-value">${esc(format(cell))}</div><p>${esc(definition)}</p>${!numeric(cell)&&cell.note?`<p>${esc(cell.note)}</p>`:''}${refs.length?`<ul class="source-list" aria-label="Fontes da contagem">${refs.map(sourceHTML).join('')}</ul>`:'<p>Não há fonte comprovada vinculada a esta contagem.</p>'}`;
+    const roster=department.counts?.total;
+    const known=numeric(cell),total=numeric(roster)?roster.value:null;
+    const share=known&&cell!==roster?departmentShare(cell.value,total):null;
+    let reading=cell.status==='NA'?'Não se aplica a este recorte.':'Contagem indisponível.';
+    if(known){
+      const unit=cell.value===1?'docente':'docentes';
+      reading=share===null?unit:`${unit} de um quadro de ${total} (${percent.format(share)}).`;
+      if(cell===roster&&dataset.scope?.roster_label)reading+=` · ${dataset.scope.roster_label}`;
+    }
+    if(cell!==roster&&dataset.scope?.complete===false)reading+=' Cobertura parcial.';
+    const shortSources=[...new Set(refs.map(s=>(s.title||s.id).split(' — ')[0]))].join(' e ');
+    const context=[department.id,date(dataset.as_of)].filter(Boolean).join(' · ');
+    const details=[definition,cell.note,cell!==roster?dataset.scope?.description:''].filter(Boolean);
+    dialog.querySelector('#docentes-source-title').textContent=label;
+    dialog.querySelector('.docentes-source-content').innerHTML=`<p>${esc(context)}</p>
+      <div class="source-value">${esc(format(cell))}</div><p>${esc(reading)}</p>
+      <p>${shortSources?esc((refs.length===1?'Fonte · ':'Fontes · ')+shortSources):'Fonte não informada.'}</p>
+      <details class="source-more"><summary>Detalhes da fonte</summary>
+        ${details.map(note=>`<p>${esc(note)}</p>`).join('')}
+        ${refs.length?`<ul class="source-list" aria-label="Fontes da contagem">${refs.map(sourceHTML).join('')}</ul>`:''}
+      </details>`;
     dialog.showModal();
   }
   document.addEventListener('click',event=>{

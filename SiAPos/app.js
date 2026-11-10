@@ -545,36 +545,77 @@
 
  function sourceCitation(s){return [basename(s.file||s.filename||s.path),sourceLocator(s)].filter(Boolean).join(' · ');}
 
+ function sourceSummary(record){
+  const {status,metric,derived_kind,n,expected_n}=record;
+  if(record.coverage_restricted&&typeof record.available_value==='number'){
+   const individual=format({...record,value:record.available_value,status:record.available_status||'exact'});
+   return `Valor individual de ${individual}, fora da comparação por falta de cobertura comum.`;
+  }
+  if(derived_kind==='mean'){
+   const participation=record.records.some(r=>r.derived_kind==='ime_share');
+   return `Média ${participation?'das participações anuais':'anual'} com dados em ${n} de ${expected_n} anos.`;
+  }
+  if(derived_kind==='ime_share'){
+   if(!M.numeric(record))return record.denominator===0?'O total dos programas é zero.':'Faltam dados para calcular a participação no total dos programas.';
+   return `${number(record.numerator)} de ${number(record.denominator)} no conjunto dos programas.`;
+  }
+  if(status==='NA')return record.applicability_rule?'O programa não oferece esse nível.':'O indicador não se aplica a este recorte.';
+  if(status==='ND')return 'Sem valor documentado neste recorte.';
+  const qualifiers=record.qualifiers||[];
+  const rounded=qualifiers.some(q=>/arredondamento da média|média publicada.*arredondamento/i.test(q));
+  const notes=[];
+  if(metric==='enrollments_per_section')notes.push('Matrículas divididas pelo número de turmas.');
+  if(metric==='enrollments')notes.push('Cada matrícula é um vínculo com uma turma.');
+  if(metric==='approval_rate')notes.push('Aprovações divididas pelas matrículas em disciplinas.');
+  if(rounded||(record._restricted&&status==='approximate'))notes.push('Cálculo com médias publicadas arredondadas.');
+  else if(status==='approximate')notes.push('Valor estimado.');
+  if(qualifiers.some(q=>/manutenção (?:da área|do vínculo)/i.test(q)))notes.push('O programa da oferta histórica foi inferido pelo vínculo atual da disciplina.');
+  return notes.join(' ');
+ }
+
  function showSource(record){
+  if(!record)return;
+  const s=sourceFor(record),der=record.records||[],name=label(record.section,record.metric,record.level);
+  const program=(record._restricted?restrictedNames:names)[record.program]||record.program;
+  const context=[program,record.year].filter(Boolean).join(' · ');
+  const value=format(record,{mean:record.derived_kind==='mean'});
+  const unit=M.numeric(record)?({hours:' h',credits:' créditos'}[record.unit]||''):'';
+  const note=record.semantic_note||record.note||defs.get(record.section+'.'+record.metric)?.semantic_note;
+  const summary=sourceSummary(record);
+  const sourceName=source=>String(source.title||source.label||basename(source.file||source.filename||source.path)).replace(/ · \d{4}-\d\d-\d\d a \d{4}-\d\d-\d\d$/,'');
+  const sources=der.length?der.filter(M.numeric).map(sourceFor):[s];
+  const titles=[...new Set(sources.map(sourceName).filter(Boolean))];
+  const urls=[...new Set(sources.map(part=>safeSourceURL(part.url)))];
+  const sourceLabel=record._restricted&&titles.length?'Janus · relatório com perfil específico':titles.length===1?titles[0]:titles.length?'Fontes dos valores que compõem o cálculo':'';
+  const href=titles.length===1&&urls.length===1?urls[0]:null;
 
-  if(!record)return;const s=sourceFor(record),der=record.records||[],name=label(record.section,record.metric,record.level);
+  let content=`<p>${esc(context)}</p><div class="source-value">${esc(value+unit)}</div>`;
+  if(summary)content+=`<p>${esc(summary)}</p>`;
+  if(sourceLabel)content+=`<p>Fonte · ${href?`<a href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(sourceLabel)} ↗</a>`:esc(sourceLabel)}</p>`;
 
-  const hasAssumption=(record.qualifiers||[]).some(q=>/hip[oó]tese/i.test(String(q)))||/hip[oó]tese/i.test(record.semantic_note||'');
-
-  let content=`<p>${esc(name)}${record.program?' · '+esc(record.program):''} · ${esc(record.year??'')}</p><div class="source-value">${esc(format(record,{mean:record.derived_kind==='mean'}))}</div><span class="status-tag ${record.status}">${hasAssumption&&M.numeric(record)?'Sob hipótese indicada':({exact:'Valor documentado / cálculo direto',calculated:'Cálculo a partir das fontes admitidas',published:'Valor publicado',derived:'Indicador calculado',approximate:'Valor aproximado',ND:'Não disponível',NA:'Não se aplica'})[record.status]||esc(record.status)}</span><p>${esc(record.semantic_note||record.note||defs.get(record.section+'.'+record.metric)?.semantic_note||'Consulte a referência abaixo para o universo do indicador.')}</p>`;
-
-  if(record.coverage_restricted&&typeof record.available_value==='number')content+=`<div class="callout"><strong>Valor individual já obtido:</strong> ${esc(format({...record,value:record.available_value,status:record.available_status||'exact'}))}. Ele permanece fora da comparação e das médias comuns enquanto faltar cobertura equivalente dos outros programas. Sua origem é a fonte admitida identificada abaixo, não os arquivos com perfil específico.</div>`;
-
-  if(record.qualifiers?.length)content+=`<div class="callout warning"><strong>Hipóteses e qualificações</strong>${record.qualifiers.map(q=>`<p>${esc(q)}</p>`).join('')}</div>`;
-
-  if(der.length){content+=`<p>${record.derived_kind==='mean'?`Média sobre ${record.n} de ${record.expected_n} anos.`:record.derived_kind==='ime_share'?`Numerador: ${number(record.numerator??0)}. Total ${esc(unitLabel)}: ${number(record.denominator??0)}. Composição do denominador abaixo.`:`Composição dos programas selecionados: ${record.n} de ${record.expected_n} aplicáveis com valores.`}</p><div class="table-wrap"><table class="data-table"><thead><tr><th>${record.derived_kind==='mean'?'Ano':'Programa'}</th><th>Valor</th><th>Referência</th></tr></thead><tbody>${der.map(r=>`<tr><td>${esc(record.derived_kind==='mean'?r.year:r.program)}</td><td>${esc(format(r))}</td><td style="font-size:10px;white-space:normal">${esc(sourceCitation(sourceFor(r)))}</td></tr>`).join('')}</tbody></table></div>`;}
-
-  else content+=`<dl class="source-details"><dt>Origem da informação</dt><dd>${esc(originFor(record))}</dd><dt>Programa</dt><dd>${esc((record._restricted?restrictedNames:names)[record.program]||record.program||'')}</dd><dt>Fonte</dt><dd>${esc(s.title||s.label||basename(s.file||s.filename||s.path)||'Sem fonte individual documentada')}</dd><dt>${s.kind==='janus_html'||s.locator?'Localizador da fonte HTML':'Aba / célula'}</dt><dd>${esc(sourceLocator(s)||'Não disponível')}</dd><dt>Unidade</dt><dd>${esc(record.unit||defs.get(record.section+'.'+record.metric)?.unit||'Contagem')}</dd></dl>`;
-
-  if(safeSourceURL(s.url))content+=`<p><a class="text-button" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">Abrir fonte ↗</a></p>`;
-
-  const chain=sourceChain(record);if(chain.length)content+=`<details class="source-chain"><summary>Fontes que sustentam este valor · ${chain.length}</summary><div class="table-wrap"><table class="data-table"><thead><tr><th>Fonte</th><th>Origem</th><th>Referência</th></tr></thead><tbody>${chain.map(c=>`<tr><td>${esc(c.title||c.label||c.id)}</td><td>${esc(sourceAccessLabel(c.access))}</td><td>${esc(sourceCitation(c))}${safeSourceURL(c.url)?`<br><a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">Abrir fonte ↗</a>`:''}</td></tr>`).join('')}</tbody></table></div></details>`;
-
-  if(s.course_codes?.length)content+=`<details><summary>Disciplinas incluídas (${s.course_codes.length})</summary><p>${esc(s.course_codes.join(', '))}</p></details>`;
-
-  if(s.classification_sources?.length)content+=`<details><summary>Fontes da associação aos programas</summary><div style="overflow-wrap:anywhere">${s.classification_sources.map(c=>`<p>${esc(typeof c==='string'?c:JSON.stringify(c))}</p>`).join('')}</div></details>`;
-
-  $('#source-title').textContent=name;$('#source-content').innerHTML=content;
-
-  copyText=[name,originFor(record),record.program,record.year,format(record),record.semantic_note||record.note||'',...(record.qualifiers||[]),der.length?der.map(r=>`${r.year} ${r.program}: ${format(r)}; ${sourceCitation(sourceFor(r))}`).join('\n'):sourceCitation(s),s.classification_sources?.length?JSON.stringify(s.classification_sources):''].filter(v=>v!=null).join('\n');
-
+  let details=note?`<p>${esc(note)}</p>`:'';
+  for(const q of record.qualifiers||[])details+=`<p>${esc(q)}</p>`;
+  if(der.length){
+   const byYear=record.derived_kind==='mean';
+   const rows=der.map(r=>{
+    const source=sourceFor(r),url=safeSourceURL(source.url),citation=sourceCitation(source);
+    return `<tr><td>${esc(byYear?r.year:r.program)}</td><td>${esc(format(r))}</td><td>${url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(citation||sourceName(source))} ↗</a>`:esc(citation)}</td></tr>`;
+   });
+   details+=`<div class="table-wrap"><table class="data-table"><thead><tr><th>${byYear?'Ano':'Programa'}</th><th>Valor</th><th>Referência</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+  }else{
+   const reference=sourceCitation(s);
+   const fields=[['Origem',originFor(record)],['Referência',reference],['Unidade',record.unit||defs.get(record.section+'.'+record.metric)?.unit]];
+   details+=`<dl class="source-details">${fields.filter(([,v])=>v).map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;
+  }
+  const chain=sourceChain(record);
+  if(chain.length)details+=`<div class="table-wrap"><table class="data-table"><caption>Fontes de apoio</caption><thead><tr><th>Fonte</th><th>Acesso</th><th>Referência</th></tr></thead><tbody>${chain.map(c=>`<tr><td>${safeSourceURL(c.url)?`<a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(c.title||c.label||c.id)} ↗</a>`:esc(c.title||c.label||c.id)}</td><td>${esc(sourceAccessLabel(c.access))}</td><td>${esc(sourceCitation(c))}</td></tr>`).join('')}</tbody></table></div>`;
+  if(s.course_codes?.length)details+=`<p><strong>Disciplinas incluídas</strong> · ${esc(s.course_codes.join(', '))}</p>`;
+  if(s.classification_sources?.length)details+=`<p><strong>Fontes da associação aos programas</strong></p>${s.classification_sources.map(c=>`<p>${esc(typeof c==='string'?c:JSON.stringify(c))}</p>`).join('')}`;
+  if(details)content+=`<details class="source-more"><summary>Detalhes da fonte</summary>${details}</details>`;
+  $('#source-title').textContent=name;
+  $('#source-content').innerHTML=content;
+  copyText=[name,originFor(record),record.program,record.year,value+unit,summary,record.semantic_note||record.note||'',...(record.qualifiers||[]),der.length?der.map(r=>`${r.year} ${r.program}: ${format(r)}; ${sourceCitation(sourceFor(r))}`).join('\n'):sourceCitation(s),s.classification_sources?.length?JSON.stringify(s.classification_sources):''].filter(v=>v!=null&&v!=='').join('\n');
   $('#source-dialog').showModal();
-
  }
 
  function notify(message){const el=$('#toast');el.textContent=message;el.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.hidden=true,2600);}

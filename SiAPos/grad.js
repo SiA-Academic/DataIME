@@ -360,17 +360,52 @@ function sourcesExport(visibleSources,collection){
   window.SIAPOS_FILTERS?.refresh();
  }
  function creditProofDetails(r){const p=creditProof(r);if(!p)return '';const count=v=>typeof v==='number'&&Number.isFinite(v)?number(v):'ND',reasons={public_exact_version_unavailable:'Versão exata não disponível na consulta pública.',section_ends_after_public_deactivation:'A oferta termina após a desativação publicada da versão.'},evidence=p.version_evidence||[],unresolved=p.unresolved||[];return `<details class="grad-linked-sources"><summary>Comprovação por versão · ${count(p.sections_matched)} de ${count(p.sections_expected)} turmas</summary><p>${p.complete?'As versões documentadas cobrem todas as turmas deste recorte.':'A comprovação é parcial; as pendências permanecem identificadas e não estabelecem um total histórico completo.'}</p><p>Créditos-aula nominais: ${count(p.class_credits_total)} · Carga nominal de aulas: ${count(p.class_hours_total)} h.</p>${evidence.length?`<div class="table-wrap"><table class="data-table"><thead><tr><th>Disciplina</th><th>Versão</th><th>Turmas</th><th>Créditos-aula</th><th>Vigência da ficha</th><th>Ofertas consideradas</th><th>Ficha pública</th></tr></thead><tbody>${evidence.map(v=>`<tr><td>${esc(v.code)}</td><td>${esc(v.version)}</td><td>${count(v.sections)}</td><td>${count(v.class_credits)}</td><td>${esc(v.activation||'Não informada')} — ${esc(v.deactivation||'Sem desativação publicada')}</td><td>${esc(v.min_section_start||'Não informado')} — ${esc(v.max_section_end||'Não informado')}</td><td>${safeURL(v.source_url)?`<a href="${esc(v.source_url)}" target="_blank" rel="noopener noreferrer">Abrir ficha ↗</a>`:'ND'}</td></tr>`).join('')}</tbody></table></div>`:''}${unresolved.length?`<h3>Pendências da comprovação</h3><div class="table-wrap"><table class="data-table"><thead><tr><th>Disciplina</th><th>Versão</th><th>Turmas</th><th>Motivo</th></tr></thead><tbody>${unresolved.map(v=>`<tr><td>${esc(v.code)}</td><td>${esc(v.version)}</td><td>${count(v.sections)}</td><td>${esc(reasons[v.reason]||v.reason||'Não informado')}</td></tr>`).join('')}</tbody></table></div>`:''}</details>`;}
+ function briefSource(r,s){
+  if(r.records)return '';
+  if(reportedIntake(r))return '<p class="source-credit">Fonte · '+esc(reportedIntakeLabel)+'</p>';
+  const routes=[...new Set(vacancyReviews(r).flatMap(v=>(v.vacancy_reconciliation.components||[]).map(c=>c.route)).filter(Boolean))];
+  if(routes.length)return '<p class="source-credit">Vias de ingresso · '+esc(routes.join(' e '))+'</p>';
+  const title=s.title||base(s.file);
+  if(!title)return '';
+  const name=isSectionRegistry&&r.section==='departamento_jupiter'?title.replace(/ — prefixo [^·]+$/i,''):title;
+  const link=safeURL(s.url)?`<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(name)} ↗</a>`:esc(name);
+  const access=sourceAccess(s);
+  return `<p class="source-credit">Fonte · ${link}${access==='authenticated'?' · Consulta autenticada':access==='mixed'?' · Origem mista':''}</p>`;
+ }
+ function briefReading(r){
+  const notes=[];
+  if(r.derived_kind==='mean')notes.push(`Média de ${r.n} de ${r.expected_n} anos com dados.`);
+  if(r.status==='NC'){
+   const original=r.comparison_original_record;
+   notes.push(numeric(original)?`Fora da comparação comum. Valor documentado neste departamento: ${format(original)}.`:'Sem cobertura comum para comparar os departamentos.');
+  }else if(r.status==='NA')notes.push('O indicador não se aplica a este recorte.');
+  else if(!numeric(r)&&r.metric!=='curriculo'){
+   const proof=creditProof(r);
+   notes.push(Number.isFinite(proof?.sections_matched)&&Number.isFinite(proof?.sections_expected)?`Cobertura documental de ${proof.sections_matched} de ${proof.sections_expected} turmas. Total indisponível.`:'Dado indisponível para este recorte.');
+  }else if(estimated(r)){
+   const interval=estimateRange(r);
+   notes.push(interval?`Estimativa entre ${interval.split('–').join(' e ')}.`:'O valor inclui estimativa.');
+  }else if(r.status==='published_inconsistent')notes.push('A fonte apresenta uma divergência neste valor.');
+  else if(r.status==='published_rounded')notes.push('Média arredondada na fonte.');
+  if(r.section==='departamento_jupiter'&&isSectionRegistry&&r.metric==='matriculas')notes.push('Soma das cinco categorias de matrícula. Um aluno pode aparecer em várias turmas.');
+  return notes.map(note=>`<p>${esc(note)}</p>`).join('');
+ }
  function modal(r){
   if(!r)return;const s=source(r),def=definition(r.metric,r.section),entity=courses.find(c=>c.id===r.course)?.name||(isSectionRegistry&&r.section==='departamento_jupiter'?'Prefixo '+r.department+' · '+(departmentNames[r.department]||r.department):'')||departmentNames[r.department]||(D.anuario_departments||[]).find(d=>d.id===r.department)?.name||r.department||r.course||'',label=def.label||r.title||r.metric;
-  let body=`${r.status==='published_inconsistent'?'<div class="callout warning"><strong>Divergência publicada.</strong> Valores preservados como publicados; consulte as ressalvas.</div>':''}<p>${esc(label)} · ${esc(entity)}${r.year?' · '+esc(r.year):''}${r.semester?' · '+semLabel(r.semester):''}</p>${r.metric==='curriculo'?'':`<div class="source-value">${esc(format(r,r.derived_kind==='mean'))}</div>`}<p>${esc(r.semantic_note||r.description||r.note||def.description||'Consulte o localizador da fonte para o recorte deste indicador.')}</p>`;
-  if(estimated(r))body+=`<p data-grad-estimate-detail><strong>${esc(estimateDescription(r))}</strong></p>`;
-  if(r.status==='NC'){const original=r.comparison_original_record;body+=`<div class="callout ${numeric(original)?'':'warning'}" data-grad-nc-explanation><strong>Fora da cobertura comum.</strong> ${r.derived_kind==='mean'?'Não há recortes comuns para calcular uma média nesta seleção. Isso não apaga os valores documentados individualmente, preservados em Dados complementares.':numeric(original)?`O valor ${esc(format(original))} já está documentado para este departamento e período. Ele foi preservado em Dados complementares; não falta obter esse valor.`:'Este departamento ainda tem uma prova incompleta nesse período. As pendências estão detalhadas abaixo; a comparação comum não combina coberturas distintas.'} <a href="#graduation/additional" data-grad-close>Ver dados complementares →</a></div>`;}
-  if(!reportedIntake(r)&&r.qualifiers?.length)body+=`<div class="callout warning">${r.qualifiers.map(q=>`<p>${esc(q)}</p>`).join('')}</div>`;
-  if(r.records){body+=`<p>Média de ${r.n}/${r.expected_n} anos com valor disponível.</p><div class="table-wrap"><table class="data-table"><thead><tr><th>Ano</th><th>Valor</th><th>Fonte</th></tr></thead><tbody>${r.records.map(v=>`<tr><td>${v.year}</td><td>${esc([format(v),estimateRange(v)].filter(Boolean).join(' · '))}</td><td class="grad-source-ref">${esc(recordSourceText(v))}</td></tr>`).join('')}</tbody></table></div>`;}
-  else if(!reportedIntake(r))body+=`<dl class="source-details"><dt>Fonte</dt><dd>${esc(s.title||base(s.file)||'Não disponível')}</dd><dt>Acesso</dt><dd>${esc(accessLabel(s))}</dd><dt>Referência</dt><dd>${esc(locator(s)||'Não disponível')}</dd></dl>${safeURL(s.url)?`<p><a class="text-button" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">Abrir fonte original ↗</a></p>`:''}${offeringSources(r)}${linkedSources(r)}`;
-  body+=(reportedIntake(r)?intakeDetails(r):courseComponentDetails(r)+inepConsolidationDetails(r))+vacancyDetails(r)+(r.records&&(vacancyReviews(r).length||inepConsolidations(r).length)?linkedSources(r):'')+creditProofDetails(r);
+  const isPrefix=isSectionRegistry&&r.section==='departamento_jupiter';
+  const title=isPrefix&&r.metric==='matriculas'?'Matrículas nas turmas':label;
+  const period=r.semester&&r.year?`${semLabel(r.semester)} de ${r.year}`:r.year;
+  const context=[isPrefix?'Prefixo '+r.department:entity,period].filter(Boolean).join(' · ');
+  const note=r.semantic_note||r.description||r.note||def.description;
+  let details=note?`<p>${esc(note)}</p>`:'';
+  if(estimated(r))details+=`<p data-grad-estimate-detail>${esc(estimateDescription(r))}</p>`;
+  if(!reportedIntake(r)&&r.qualifiers?.length)details+=`<ul>${r.qualifiers.map(q=>`<li>${esc(q)}</li>`).join('')}</ul>`;
+  if(r.records){details+=`<div class="table-wrap"><table class="data-table"><thead><tr><th>Ano</th><th>Valor</th><th>Fonte</th></tr></thead><tbody>${r.records.map(v=>`<tr><td>${esc(v.year)}</td><td>${esc([format(v),estimateRange(v)].filter(Boolean).join(' · '))}</td><td class="grad-source-ref">${esc(recordSourceText(v))}</td></tr>`).join('')}</tbody></table></div>`;}
+  else if(!reportedIntake(r))details+=`<dl class="source-details"><dt>Fonte</dt><dd>${esc(s.title||base(s.file)||'Não disponível')}</dd><dt>Acesso</dt><dd>${esc(accessLabel(s))}</dd><dt>Referência</dt><dd>${esc(locator(s)||'Não disponível')}</dd></dl>${offeringSources(r)}${linkedSources(r)}`;
+  details+=(reportedIntake(r)?intakeDetails(r):courseComponentDetails(r)+inepConsolidationDetails(r))+vacancyDetails(r)+(r.records&&(vacancyReviews(r).length||inepConsolidations(r).length)?linkedSources(r):'')+creditProofDetails(r);
+  const body=`<p class="source-context">${esc(context)}</p>${r.metric==='curriculo'?'':`<div class="source-value">${esc(format(r,r.derived_kind==='mean'))}</div>`}${briefReading(r)}${r.status==='NC'?'<p><a href="#graduation/additional" data-grad-close>Ver dados complementares →</a></p>':''}${briefSource(r,s)}${details?`<details class="source-more"><summary>Detalhes da fonte</summary>${details}</details>`:''}`;
   copyText=[label,entity,r.year,semLabel(r.semester),format(r,r.derived_kind==='mean'),estimateDescription(r)||null,r.semantic_note||def.description,r.status==='NC'&&numeric(r.comparison_original_record)?'Valor documentado em Dados complementares: '+format(r.comparison_original_record):null,...(reportedIntake(r)?[]:r.qualifiers||[]),r.records?r.records.map(v=>v.year+': '+format(v)+'; '+recordSourceText(v)).join('\n'):recordSourceText(r)].filter(v=>v!=null).join('\n');
-  document.getElementById('grad-source-title').textContent='Origem · '+label;document.getElementById('grad-source-content').innerHTML=body;document.getElementById('grad-source-dialog').showModal();
+  document.getElementById('grad-source-title').textContent=title;document.getElementById('grad-source-content').innerHTML=body;document.getElementById('grad-source-dialog').showModal();
  }
  function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
  function exportCSV(){const text=csvRows.map(r=>r.map(v=>'"'+(typeof v==='number'?String(v).replace('.',','):String(v??'')).replace(/"/g,'""')+'"').join(';')).join('\r\n');download(new Blob(['\uFEFF'+text],{type:'text/csv;charset=utf-8'}),'siapos-graduacao-'+state.tab+(state.tab==='additional'?'-'+state.additionalView:'')+'-'+(state.tab==='coverage'?'2012-2025':range())+'.csv');}
