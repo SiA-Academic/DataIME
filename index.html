@@ -4,23 +4,26 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <meta name="description" content="Indicadores da graduação e da pós-graduação do IME-USP.">
+  <meta name="description" content="Indicadores da graduação, da pós-graduação e do quadro docente do IME-USP.">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'self'">
   <title>Dados do IME · IME-USP</title>
   <link rel="stylesheet" href="assets/sia.css?v=dados-ime-20261111-1">
   <link rel="stylesheet" href="assets/painel/styles.css?v=dados-ime-20261111-7">
   <link rel="stylesheet" href="assets/painel/graduacao.css?v=dados-ime-20261111-4">
+  <link rel="stylesheet" href="assets/painel/docentes.css?v=dados-ime-docentes-20261111-2">
   <script src="assets/painel/model.js?v=dados-ime-20261111-4" defer></script>
   <script src="assets/painel/painel.js?v=dados-ime-20261111-1" defer></script>
   <script src="dados/pos-graduacao.js?v=dados-ime-20261111-9" defer></script>
   <script src="dados/graduacao.js?v=dados-ime-20261111-10" defer></script>
+  <script src="dados/docentes.js?v=dados-ime-docentes-20261111-2" defer></script>
   <script src="assets/painel/graduacao.js?v=dados-ime-20261111-9" defer></script>
-  <script src="assets/painel/pos-graduacao.js?v=dados-ime-20261111-10" defer></script>
+  <script src="assets/painel/docentes.js?v=dados-ime-docentes-20261111-2" defer></script>
+  <script src="assets/painel/pos-graduacao.js?v=dados-ime-20261111-11" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#content">Ir para o conteúdo</a>
   <aside class="sidebar">
-    <a class="brand" href="#series" aria-label="Dados do IME — início"><span class="brand-mark" aria-hidden="true">IME</span><span><strong>Dados do IME</strong><small>Graduação e Pós-graduação</small></span></a>
+    <a class="brand" href="#series" aria-label="Dados do IME — início"><span class="brand-mark" aria-hidden="true">IME</span><span><strong>Dados do IME</strong><small>Graduação · Pós · Docentes</small></span></a>
     <div class="sidebar-sections">
       <section class="sidebar-section" aria-labelledby="graduation-nav-label">
         <h2 class="nav-label" id="graduation-nav-label">Graduação</h2>
@@ -36,6 +39,12 @@
           <a href="#series" data-view="series"><strong>Titulações e matrículas</strong></a>
           <a href="#disciplines" data-view="disciplines"><strong>Disciplinas</strong></a>
           <a href="#sources" data-view="sources" class="sources-nav-link"><strong>Fontes e critérios</strong></a>
+        </nav>
+      </section>
+      <section class="sidebar-section" aria-labelledby="faculty-nav-label">
+        <h2 class="nav-label" id="faculty-nav-label">Docentes</h2>
+        <nav aria-label="Visões dos docentes" id="faculty-nav">
+          <a href="#docentes" data-faculty-view="docentes"><strong>Quadro docente</strong></a>
         </nav>
       </section>
     </div>

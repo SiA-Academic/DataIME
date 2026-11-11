@@ -1,6 +1,6 @@
 # Dados do IME
 
-[Painel de indicadores da graduação e da pós-graduação do IME-USP](https://sia-academic.github.io/DataIME/). A navegação lateral reúne titulações e matrículas, disciplinas e fontes. Consulte o [guia da graduação](docs/graduacao.md) ou o [guia da pós-graduação](docs/pos-graduacao.md) para interpretar os números.
+[Painel de indicadores da graduação, da pós-graduação e dos docentes do IME-USP](https://sia-academic.github.io/DataIME/). A navegação lateral reúne as três áreas. Consulte os guias da [graduação](docs/graduacao.md), da [pós-graduação](docs/pos-graduacao.md) e do [quadro docente](docs/docentes.md) para interpretar os números.
 
 Para abrir o painel offline, abra `index.html`. Este repositório contém o site pronto; os arquivos originais e os coletores ficam na base de manutenção local, `SiAPos-base/`.
 

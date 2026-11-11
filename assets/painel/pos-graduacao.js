@@ -68,8 +68,11 @@
  const titles={series:['TITULAÇÕES E MATRÍCULAS · 2012–2025','Titulações e matrículas',''],disciplines:['OFERECIMENTO E PARTICIPAÇÃO','Disciplinas e turmas',''],sources:['TRANSPARÊNCIA DOS INDICADORES','Fontes, cobertura e critérios','Cada número conserva sua referência. Ausência de informação não é zero.']};
 
  titles.series[0]='TITULAÇÕES E MATRÍCULAS · '+fullPeriod;
+ titles.docentes=['Dados do IME · Docentes','Quadro docente e credenciamento',''];
 
  const graduationPanel=window.SIAPOS_GRADUACAO;
+ const facultyPanel=window.SIAPOS_DOCENTES;
+ const facultyLinks=$$('#faculty-nav a');
  const graduationLinks=$$('#graduation-nav a');
  const graduationTitles=Object.fromEntries(graduationLinks.map(link=>[link.dataset.gradView,link.querySelector('strong').textContent]));
  graduationTitles.additional='Dados complementares';
@@ -388,15 +391,16 @@
 
   derived=new Map();nextDerived=0;chartCount=0;exportRows=[];
   const graduation=state.view==='graduation';
+  const faculty=state.view==='docentes';
   const activeTab=graduation?graduationPanel.setTab(state.gradTab):null;
-  for(const link of [...$$('#main-nav a'),...graduationLinks]){
-    const current=graduation?link.dataset.gradView===activeTab:link.dataset.view===state.view;
+  for(const link of [...$$('#main-nav a'),...graduationLinks,...facultyLinks]){
+    const current=graduation?link.dataset.gradView===activeTab:faculty?link.dataset.facultyView==='docentes':link.dataset.view===state.view;
     link.classList.toggle('active',current);
     if(current)link.setAttribute('aria-current','page');
     else link.removeAttribute('aria-current');
   }
 
-  const area=graduation?'Graduação':'Pós-graduação';
+  const area=graduation?'Graduação':faculty?'Docentes':'Pós-graduação';
   const t=graduation?['Dados do IME · Graduação',graduationTitles[activeTab],'Indicadores dos cursos de graduação e das disciplinas oferecidas pelo IME-USP.']:titles[state.view];
   $('#page-eyebrow').textContent=t[0];$('#page-eyebrow').hidden=!t[0];$('#page-title').textContent=t[1];$('#page-description').textContent=t[2];$('#page-description').hidden=!t[2];
   document.title=t[1]+' · '+area+' · Dados do IME';
@@ -404,11 +408,15 @@
   if(graduation){
     $('#view-content').innerHTML='<div id="grad-root"></div>';
     graduationPanel.mount($('#grad-root'));
+  }else if(faculty){
+    $('#view-content').innerHTML='<div id="docentes-root"></div>';
+    facultyPanel.mount($('#docentes-root'));
   }else{
     $('#view-content').innerHTML=({series,disciplines,sources})[state.view]();
   }
   $('.page-footer span:first-child').textContent='Dados do IME · IME-USP';
-  $('.page-footer span:last-child').textContent=(graduation?'2012–2025':fullPeriod)+' · Fontes e limites acompanham os indicadores';
+  const period=faculty?'Referência: '+String(window.DOCENTES_DATA?.as_of||'').split('-').reverse().join('/'):graduation?'2012–2025':fullPeriod;
+  $('.page-footer span:last-child').textContent=period+' · Fontes e limites acompanham os indicadores';
 
   window.SIAPOS_FILTERS?.refresh();
   $('#chart-tooltip').hidden=true;
