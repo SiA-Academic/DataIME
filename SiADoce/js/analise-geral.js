@@ -1,8 +1,25 @@
 (() => {
   "use strict";
 
-  const data = window.SIADOCE_DADOS.simulador;
-  if (!data) return;
+  const institutional = window.SIADOCE_DADOS?.simulador;
+  const bibliography = window.SIADOCE_PUBLICACOES;
+  function aggregatedDataset(source) {
+    if (!source?.perfis) return null;
+    const docentes = source.perfis.flatMap(profile => {
+      const artigos = profile.contagens.flatMap(([ano, tipo, faixa, pendente, externo, total]) =>
+        Array(total).fill({ano, tipo, faixa, pendente, externo}));
+      const docente = {nome: "", anos: profile.anos, anoCV: profile.anoCV, ultimoAnoCompleto: profile.ultimoAnoCompleto,
+        grupoAnalise: profile.grupoAnalise, artigos};
+      return Array(profile.quantidade).fill(docente);
+    });
+    return {...source, docentes};
+  }
+  const publicData = institutional ? null : aggregatedDataset(bibliography);
+  let data = institutional || publicData;
+  if (!data) {
+    document.getElementById("sim-sem-base").hidden = false;
+    return;
+  }
   const engine = window.SiADoceSimulador;
   const defaults = engine.padrao(data.anos);
   const form = document.getElementById("sim-regras");
@@ -14,6 +31,11 @@
   const balance = document.getElementById("sim-balanco");
   const error = document.getElementById("sim-erro");
   const count = document.getElementById("sim-exibidos");
+  const upload = document.getElementById("sim-arquivo");
+  const remove = document.getElementById("sim-remover");
+  const importStatus = document.getElementById("sim-status-importacao");
+  const janusInputs = ["maxEvasao", "minTitulados", "minAtivos", "minEncerrados"];
+  const aggregateNote = document.getElementById("sim-total-agregado");
   const situationNames = { atingiu: "Atingiram os critérios", em_aberto: "Em aberto", abaixo: "Abaixo dos critérios" };
   const categories = { pleno: "Pleno", especifico: "Específico", vencido_com_orientando: "Vencido com orientando" };
   const numerical = ["inicio", "fim", "minTotal", "minPeriodicos", "minCongressos", "maxEvasao", "minTitulados", "minAtivos", "minEncerrados"];
@@ -22,6 +44,8 @@
   let faculty = [];
   let cohorts = [];
   let appliedRules = defaults;
+  let hasJanus = Boolean(institutional);
+  let fileRevision = 0;
 
   function element(tag, text, className) {
     const node = document.createElement(tag);
@@ -69,7 +93,7 @@
     const rules = { incluirExternos: form.elements.incluirExternos.checked };
     for (const key of numerical) {
       const value = form.elements[key].value;
-      rules[key] = value === "" ? null : Number(value);
+      rules[key] = form.elements[key].disabled ? defaults[key] : value === "" ? null : Number(value);
     }
     for (const key of bands) {
       rules[key] = [...controls(key)].filter(input => input.checked).map(input => input.value);
@@ -98,10 +122,10 @@
 
   function personDetails(person) {
     const detail = element("div", null, "sim-detail");
-    const intro = element("p", categories[person.categoria] || person.categoria, "sim-note");
-    if (person.dataCV) intro.append(" · Lattes de " + shortDate(person.dataCV));
-    if (person.lattes) intro.append(" · ", link("Abrir Lattes", person.lattes));
-    detail.append(intro);
+    const intro = element("p", hasJanus ? categories[person.categoria] : null, "sim-note");
+    if (person.dataCV) intro.append((intro.textContent ? " · " : "") + "Lattes de " + shortDate(person.dataCV));
+    if (person.lattes) intro.append(intro.textContent ? " · " : "", link("Abrir Lattes", person.lattes));
+    if (intro.textContent) detail.append(intro);
     if (person.motivos.length) {
       const why = element("ul");
       for (const reason of person.motivos) why.append(element("li", reason));
@@ -114,6 +138,7 @@
     ].join(" · ")));
     if (person.artigos.length) detail.append(publications("Artigos confirmados", person.artigos, false));
     if (person.aConferir.length) detail.append(publications("Publicações a conferir", person.aConferir, true));
+    if (!hasJanus) return detail;
     const j = person.janus;
     const dataJanus = [
       "Titulações " + (j.titulados ?? "—"), "Desligamentos " + (j.desligados ?? "—"),
@@ -160,6 +185,7 @@
   }
 
   function showList() {
+    if (!hasJanus) return;
     const terms = normalized(search.value).split(/\s+/).filter(Boolean);
     function matchesFilters(person) {
       const name = normalized(person.nome);
@@ -204,7 +230,8 @@
     end.setCustomValidity(rules.fim < rules.inicio ? "O ano final deve ser igual ou posterior ao inicial." : "");
     const invalid = form.querySelector("input:invalid, select:invalid");
     error.hidden = !invalid;
-    results.hidden = Boolean(invalid);
+    results.hidden = Boolean(invalid) || !hasJanus;
+    aggregateNote.hidden = Boolean(invalid) || hasJanus;
     balance.hidden = Boolean(invalid);
     if (invalid) {
       error.textContent = invalid.validationMessage;
@@ -216,27 +243,154 @@
       (rules.fim === 2026 ? " · 2026 parcial" : "");
     appliedRules = rules;
     faculty = engine.avaliar(data, rules);
+    const scoreBody = balance.querySelector("tbody");
+    scoreBody.replaceChildren();
     cohorts = data.gruposCredenciamento.map(cohort => {
       const people = faculty.filter(person => person.grupoAnalise === cohort.id);
-      const scoreRow = balance.querySelector('[data-grupo="' + cohort.id + '"]');
-      for (const score of scoreRow.querySelectorAll("[data-placar]")) {
-        score.textContent = people.filter(person => person.situacao === score.dataset.placar).length;
+      const scoreRow = scoreBody.insertRow();
+      scoreRow.dataset.grupo = cohort.id;
+      const heading = element("th");
+      heading.scope = "row";
+      heading.append(hasJanus ? element("a", cohort.nome) : document.createTextNode(cohort.nome));
+      scoreRow.append(heading);
+      for (const key of Object.keys(situationNames)) {
+        const score = scoreRow.insertCell();
+        score.dataset.placar = key;
+        score.textContent = people.filter(person => person.situacao === key).length;
       }
       return { ...cohort, people, scoreRow };
     });
-    showList();
+    if (hasJanus) showList();
+    else {
+      aggregateNote.textContent = numberLabel(faculty.length, "docente com Lattes", "docentes com Lattes") + ". As fichas individuais podem ser abertas em Mais critérios com o arquivo da cópia institucional.";
+      list.replaceChildren();
+      count.textContent = "";
+    }
   }
 
   for (const year of data.anos) {
     for (const key of ["inicio", "fim"]) form.elements[key].add(new Option(String(year), String(year)));
   }
-  document.getElementById("sim-periodo-janus").textContent = data.periodoJanus;
+  function setJanusControls() {
+    const selectedCategory = category.value;
+    category.replaceChildren(new Option("Todos", ""));
+    document.getElementById("sim-orientacoes").hidden = !hasJanus;
+    document.getElementById("sim-filtro-credenciamento").hidden = !hasJanus;
+    document.getElementById("sim-periodo-janus").textContent = hasJanus ? data.periodoJanus : "";
+    for (const name of janusInputs) {
+      form.elements[name].disabled = !hasJanus;
+      if (!hasJanus) form.elements[name].value = defaults[name] ?? "";
+    }
+    if (hasJanus) {
+      const available = [...new Set(data.docentes.map(person => person.categoria))].sort();
+      for (const key of available) category.add(new Option(categories[key] || key, key));
+      if (available.includes(selectedCategory)) category.value = selectedCategory;
+    }
+    remove.hidden = Boolean(institutional) || !hasJanus;
+  }
+
+  function readLocalAnalysis(fileData) {
+    if (fileData?.schema_version !== 1 || typeof bibliography.snapshot !== "string" ||
+        fileData.snapshot !== bibliography.snapshot) {
+      throw new Error("O arquivo pertence a outra versão da base de publicações.");
+    }
+    const fail = () => { throw new Error("O arquivo de análise individual está incompleto ou não corresponde a esta base."); };
+    const local = fileData.simulador;
+    if (!local || !Array.isArray(local.docentes) || local.docentes.length !== publicData.docentes.length ||
+        !Array.isArray(local.anos) || local.anos.length !== publicData.anos.length ||
+        !local.anos.every((year, i) => year === publicData.anos[i]) ||
+        local.fimAnosCompletos !== publicData.fimAnosCompletos ||
+        typeof local.periodoJanus !== "string" || !local.periodoJanus.trim() ||
+        !Array.isArray(local.gruposCredenciamento) || local.gruposCredenciamento.length !== publicData.gruposCredenciamento.length) fail();
+    const groupIds = new Set(publicData.gruposCredenciamento.map(group => group.id));
+    const importedIds = new Set(local.gruposCredenciamento.map(group => group?.id));
+    if (importedIds.size !== groupIds.size || ![...importedIds].every(id => groupIds.has(id))) fail();
+    function address(value) {
+      if (!value) return "";
+      try {
+        const url = new URL(value);
+        if (url.protocol === "http:" || url.protocol === "https:") return url.href;
+      } catch {}
+      fail();
+    }
+    function article(record) {
+      if (!record || !publicData.anos.includes(record.ano) || !["periodico", "anais_congressos"].includes(record.tipo) ||
+          (record.faixa != null && !/^A[1-8]$/.test(record.faixa)) ||
+          typeof record.pendente !== "boolean" || typeof record.externo !== "boolean" ||
+          typeof record.titulo !== "string" || typeof record.veiculo !== "string" || typeof record.motivo !== "string") fail();
+      const {ano, tipo, faixa, pendente, externo, titulo, veiculo, motivo} = record;
+      return {ano, tipo, faixa, pendente, externo, titulo, veiculo, motivo, fonte: address(record.fonte)};
+    }
+    const ids = new Set();
+    const pessoas = local.docentes.map(person => {
+      if (!person || typeof person.id !== "string" || !person.id.trim() || ids.has(person.id) ||
+          typeof person.nome !== "string" || !person.nome.trim() || typeof person.categoria !== "string" ||
+          !Object.hasOwn(categories, person.categoria) || !groupIds.has(person.grupoAnalise) ||
+          !Array.isArray(person.anos) || !person.anos.every(ano => publicData.anos.includes(ano)) ||
+          (person.dataCV != null && !/^\d{4}-\d{2}-\d{2}$/.test(person.dataCV)) ||
+          !Array.isArray(person.artigos) || !person.janus || typeof person.janus !== "object") fail();
+      ids.add(person.id);
+      const janus = {};
+      for (const key of ["alunosDistintos", "titulados", "desligados", "ativos"]) {
+        const value = person.janus[key];
+        if (value !== null && (!Number.isSafeInteger(value) || value < 0)) fail();
+        janus[key] = value;
+      }
+      const {id, nome, categoria, grupoAnalise, anos, dataCV} = person;
+      return {id, nome, categoria, grupoAnalise, anos, dataCV, lattes: address(person.lattes),
+        artigos: person.artigos.map(article), janus};
+    });
+    return {anos: publicData.anos, fimAnosCompletos: publicData.fimAnosCompletos,
+      gruposCredenciamento: publicData.gruposCredenciamento, periodoJanus: local.periodoJanus, docentes: pessoas};
+  }
+
+  async function importFile() {
+    const revision = ++fileRevision;
+    const file = upload.files[0];
+    if (!file) return;
+    try {
+      let parsed;
+      try { parsed = JSON.parse((await file.text()).replace(/^\uFEFF/, "")); }
+      catch { throw new Error("Não foi possível ler o JSON da análise individual."); }
+      if (revision !== fileRevision) return;
+      const combined = readLocalAnalysis(parsed);
+      data = combined;
+      hasJanus = true;
+      setJanusControls();
+      evaluate();
+      importStatus.textContent = "Análise individual carregada para " + combined.docentes.length + " docentes.";
+    } catch (err) {
+      if (revision === fileRevision) importStatus.textContent = err.message;
+    } finally {
+      if (revision === fileRevision) upload.value = "";
+    }
+  }
+
+  if (!institutional) {
+    document.getElementById("sim-importacao").hidden = false;
+    upload.addEventListener("change", importFile);
+    remove.addEventListener("click", () => {
+      ++fileRevision;
+      upload.value = "";
+      data = publicData;
+      hasJanus = false;
+      faculty = [];
+      cohorts = [];
+      list.replaceChildren();
+      count.textContent = "";
+      balance.querySelector("tbody").replaceChildren();
+      search.value = "";
+      status.value = "";
+      setJanusControls();
+      evaluate();
+      importStatus.textContent = "Arquivo removido. Os critérios bibliográficos foram mantidos.";
+    });
+  }
   writeRules(defaults);
+  setJanusControls();
   form.hidden = false;
   evaluate();
-  const facultyCategories = [...new Set(faculty.map(person => person.categoria))].sort((a, b) => a.localeCompare(b, "pt-BR"));
-  for (const key of facultyCategories) category.add(new Option(categories[key] || key, key));
-  form.addEventListener("input", evaluate);
+  form.addEventListener("input", event => { if (event.target !== upload) evaluate(); });
   form.addEventListener("submit", event => event.preventDefault());
   form.addEventListener("reset", event => {
     event.preventDefault();

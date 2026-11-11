@@ -26,6 +26,8 @@
 .sim-type-min input { width: 4.5rem; margin: 0; }
 .sim-external { margin: .85rem 0 1.2rem; }
 .sim-janus-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#sim-importacao input[type="file"] { max-width: 100%; font: inherit; font-size: .85rem; }
+#sim-remover { margin: .45rem 0; }
 .sim-error { background: var(--red-alert-bg); color: var(--red); padding: .6rem 1.35rem; }
 .sim-criteria { overflow: visible; }
 .sim-balance { position: sticky; bottom: 0; z-index: 5; border-top: 1px solid var(--border); border-radius: 0 0 14px 14px; background: var(--entry); box-shadow: 0 -2px 5px rgba(0,0,0,.07); }

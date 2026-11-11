@@ -14,7 +14,7 @@ Abra `index.html` na raiz de uma cópia completa do repositório. O navegador ca
 
 ## Dados e manutenção
 
-Este repositório reúne as interfaces e a manutenção do SIA-Doce, sem etapa de compilação com Hugo. A edição pública do SIA-Doce usa indicadores agregados. Com os insumos institucionais, a rotina local gera `SiADoce-institucional/index.html` com as fichas individuais e os relatórios do programa. Os insumos e a edição nominal ficam fora do Git e do GitHub Pages. O guia de manutenção descreve as entradas e os comandos.
+Este repositório reúne as interfaces e a manutenção do SIA-Doce, sem etapa de compilação com Hugo. A edição pública usa indicadores agregados. Com os insumos institucionais, a rotina local gera `SiADoce-institucional/index.html` com as fichas completas e os relatórios do programa. Os registros individuais do Janus e a edição institucional ficam fora do Git e do GitHub Pages. O guia de manutenção descreve as entradas e os comandos.
 
 Graduação e pós-graduação carregam suas próprias bases. Os filtros, as referências das fontes e as exportações acompanham cada painel. O quadro departamental e de credenciamento do antigo painel está em [SIA-Doce](SiADoce/credenciamento/index.html). Os links anteriores de graduação e credenciamento em `SiAPos/#graduation/…` e `SiAPos/#docentes` encaminham para a página correspondente.
 

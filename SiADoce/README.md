@@ -8,7 +8,7 @@ Abra [a página inicial](index.html) para consultar o acompanhamento do Programa
 |---|---|---|
 | [Docentes](docentes/index.html) | Contagens por credenciamento e modalidade dos alunos ativos | Filtros, ordenação, gráficos por área, fichas nominais, orientações, turmas e exportação PDF |
 | [Produção docente](producao/index.html) | Contagens anuais, critérios, analisador de um currículo externo | Tabela por docente, detalhes por ano, artigos, fontes e currículos |
-| [Análise das publicações](producao/analise-geral/index.html) | Distribuição do grupo para os mínimos de 3, 4 ou 5 artigos | Simulador com critérios editáveis, grupos e registros individuais |
+| [Análise geral das publicações](producao/analise-geral/index.html) | Simulador iniciado em 4 artigos, com período, faixas, mínimos e resultados por grupo | O mesmo simulador com busca por docente, fichas de artigos e critérios de orientação do Janus |
 | [Titulações](titulados/index.html) | Totais por ano e modalidade, evolução mensal, comparação de dois meses e CSV | Também permite buscar e ordenar a tabela por orientador |
 | [Alertas](alertas/index.html) | Contagens por tipo e gravidade | Busca por docente, motivo e área, fichas e relatório PDF |
 | [Configurações](configuracoes/index.html) | Modelo editável para download | Critérios da instância e associação de áreas aos docentes |
@@ -19,7 +19,9 @@ O acompanhamento considera docentes plenos, específicos e vencidos com orientan
 
 O navegador abre as páginas HTML diretamente do disco ou em um servidor estático. Os gráficos, filtros e arquivos de dados são locais. As páginas usam a identidade visual em `../assets/sia.css` e os dados em `dados/dados.js`. O retorno ao portal está disponível no menu de todas as seções.
 
-Os [arquivos de manutenção](../manutencao/SiADoce/README.md) preparam os dados a partir das fontes institucionais e geram a cópia local completa. Os dados identificáveis de docentes e alunos, registros individuais, relatórios Janus e anexos institucionais ficam nessa cópia. O site público distribui a interface, as contagens agregadas, as normas, as diretrizes e o analisador Lattes.
+Os [arquivos de manutenção](../manutencao/SiADoce/README.md) preparam os dados e geram a cópia institucional. Na análise geral, o campo **Mínimo de artigos** começa em quatro. Cada alteração de período, tipo de publicação, faixa ou mínimo recalcula o placar no navegador. **Restaurar proposta** recupera os critérios iniciais.
+
+Na página pública, carregue `SiADoce-institucional/dados/analise-publicacoes.json` em **Mais critérios** para usar as fichas individuais, a busca e os critérios de orientação. O arquivo permanece no navegador até ser removido ou até a página ser recarregada. A edição institucional já abre com essas informações.
 
 Para atualizar as contagens públicas a partir de uma pasta de trabalho já processada, execute na raiz do repositório:
 

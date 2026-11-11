@@ -50,7 +50,11 @@
     const semAno = Array.from({ length: Math.max(0, fimFechado - regras.inicio + 1) },
       (_, i) => regras.inicio + i).some(ano => !docente.anos.includes(ano));
     const dataMinima = fimFechado >= regras.inicio ? fimFechado + "-12-31" : regras.inicio + "-01-01";
-    const coberturaParcial = semAno || !docente.dataCV || docente.dataCV < dataMinima;
+    const anoLimite = fimFechado >= regras.inicio ? docente.ultimoAnoCompleto : docente.anoCV;
+    const cobrePeriodo = Object.hasOwn(docente, "ultimoAnoCompleto")
+      ? anoLimite != null && anoLimite >= (fimFechado >= regras.inicio ? fimFechado : regras.inicio)
+      : Boolean(docente.dataCV && docente.dataCV >= dataMinima);
+    const coberturaParcial = semAno || !cobrePeriodo;
 
     function testarArtigos(nome, confirmados, pendentesDoTipo, minimo, habilitado) {
       if (confirmados >= minimo) return;

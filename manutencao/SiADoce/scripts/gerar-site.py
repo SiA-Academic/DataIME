@@ -13,6 +13,7 @@ PUBLIC = REPO / 'SiADoce'
 DEFAULT_OUTPUT = REPO / 'SiADoce-institucional'
 MARKER = '.sia-doce-institucional'
 from grupos_analise import GRUPOS, carregar_excecoes, grupo_analise
+from publicacoes_site import exportar_analise
 
 sys.path.append(str(ROOT / '.trabalho/dependencias'))
 try:
@@ -144,6 +145,7 @@ def stage_site(staging, root, data):
     target.parent.mkdir(exist_ok=True)
     target.write_text('window.SIADOCE_DADOS = ' + json.dumps(data, ensure_ascii=False, separators=(',', ':'))
                       + ';\n', encoding='utf-8')
+    exportar_analise(target.parent, data)
     (staging / 'controle').mkdir(exist_ok=True)
     shutil.copy2(root / 'content/controle/lattes-docentes.csv', staging / 'controle/lattes-docentes.csv')
     (staging / MARKER).write_text('Instância institucional gerada pelo SIA-Doce.\n', encoding='utf-8')
@@ -171,7 +173,7 @@ def build(destination):
     print(f'Instância institucional: {destination / "index.html"}')
 
 
-def refresh_portal():
+def refresh_portal(destination):
     # O agregador é o próprio gerador do portal, com seleção explícita dos campos.
     downloads = ('analisador-lattes.zip', 'guia-analisar-lattes.md')
     work = ROOT / '.trabalho'
@@ -180,9 +182,11 @@ def refresh_portal():
         staging = Path(temp)
         target = staging / 'dados.js'
         subprocess.run([sys.executable, PUBLIC / 'dados/resumir.py', ROOT, '--saida', target], check=True)
+        shutil.copy2(destination / 'dados/publicacoes.js', staging / 'publicacoes.js')
         for name in downloads:
             shutil.copy2(ROOT / 'static/downloads' / name, staging / name)
         target.replace(PUBLIC / 'dados/dados.js')
+        (staging / 'publicacoes.js').replace(PUBLIC / 'dados/publicacoes.js')
         for name in downloads:
             (staging / name).replace(PUBLIC / 'downloads' / name)
     print(f'Resumos e analisador atualizados em {PUBLIC}.')
@@ -237,6 +241,6 @@ if __name__ == '__main__':
         if not args.verificar:
             build(destination)
             if args.atualizar_portal:
-                refresh_portal()
+                refresh_portal(destination)
     except (OSError, ValueError, KeyError, subprocess.CalledProcessError, yaml.YAMLError) as error:
         sys.exit(str(error))

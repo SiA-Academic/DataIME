@@ -1,6 +1,6 @@
 # Manutenção do SIA-Doce
 
-A interface em `SiADoce/` usa HTML, CSS e JavaScript. O portal distribui os totais do programa. A instância institucional usa as mesmas páginas com o cadastro docente, as orientações, os currículos e os relatórios de conferência. As duas abrem diretamente em um navegador.
+A interface em `SiADoce/` usa HTML, CSS e JavaScript. O portal distribui os totais do programa e as contagens usadas na análise geral das publicações. A instância institucional usa as mesmas páginas com o cadastro docente, as orientações, os currículos e os relatórios de conferência. As duas abrem diretamente em um navegador.
 
 ## Atualização neste checkout
 
@@ -11,6 +11,8 @@ Abra o PowerShell na pasta que contém este guia. Coloque os novos relatórios e
 ```
 
 O comando lê os PDFs, recalcula os indicadores, gera a instância institucional em `../../SiADoce-institucional/` e atualiza os resumos e o analisador em `../../SiADoce/`. Confira os resultados antes de enviar as alterações ao Git. Para atualizar somente a instância institucional, execute `.\build-public.ps1`. Para repor apenas o HTML e os dados do navegador após alterar a interface, use `-UsarDadosPreparados`.
+
+A análise geral começa com o mínimo de quatro artigos. A atualização grava as contagens para o simulador público em `../../SiADoce/dados/publicacoes.js`. O arquivo `../../SiADoce-institucional/dados/analise-publicacoes.json` permite carregar as fichas e as orientações na página pública, em **Mais critérios**, sem enviá-las ao servidor.
 
 Para gerar a instância em outro diretório de acesso institucional, informe uma pasta dedicada à instalação.
 
@@ -64,5 +66,6 @@ python -m unittest discover -s scripts -p 'test_*.py'
 .\scripts\test-titulados.ps1
 .\scripts\test-indicadores-mensais.ps1
 node scripts/test-simular-criterios.cjs
+node scripts/test-analise-publica.cjs
 node scripts/test-producao-avulsa.cjs
 ```

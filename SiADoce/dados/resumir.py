@@ -6,10 +6,6 @@ from html.parser import HTMLParser
 import json
 from pathlib import Path
 import re
-import sys
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "manutencao" / "SiADoce" / "scripts"))
-from grupos_analise import GRUPOS, carregar_excecoes, grupo_analise
 
 
 class Alertas(HTMLParser):
@@ -75,15 +71,6 @@ def resumo(base):
             linha[campo] = sum(valores) if valores else None
         totais_por_ano.append(linha)
 
-    por_grupo = {}
-    excecoes = carregar_excecoes(base)
-    for minimo in producao["criterio_quadrienio"]["minimos"]:
-        chave = str(minimo)
-        por_grupo[chave] = {
-            g["id"]: Counter(d["quadrienio"]["situacoes"][chave] for d in docentes
-                             if d["lattes_status"] == "disponivel" and grupo_analise(d, excecoes) == g["id"])
-            for g in GRUPOS
-        }
     alertas = Alertas.ler(base / "static" / "relatorio-alertas-docentes.html")
     return {
         "institucional": False,
@@ -93,9 +80,7 @@ def resumo(base):
             "alunos": {k: ativos[k] for k in ("mestrado", "doutorado", "doutorado_direto", "total")},
             "ausentes": ler("lattes-ausentes")["total_ausentes"],
             "producao": totais_por_ano,
-            "criterio": producao["criterio_quadrienio"],
-            "grupos": GRUPOS,
-            "cortes_por_grupo": por_grupo,
+            "criterio": {k: producao["criterio_quadrienio"][k] for k in ("inicio", "fim")},
             "alertas": {"docentes": alertas.docentes, "tipos": alertas.tipos},
         },
         "mensal": {k: mensal[k] for k in ("fonte", "fonte_titulados_periodo", "anos", "meses")},

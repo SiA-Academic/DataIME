@@ -63,66 +63,7 @@ window.SIADOCE_DADOS = {
     ],
     "criterio": {
       "inicio": 2022,
-      "fim_anos_completos": 2025,
-      "fim": 2026,
-      "minimos": [
-        3,
-        4,
-        5
-      ],
-      "faixas_periodicos": [
-        "A1",
-        "A2",
-        "A3"
-      ],
-      "faixas_congressos": [
-        "A1",
-        "A2"
-      ],
-      "data_corte": "2026-10-20"
-    },
-    "grupos": [
-      {
-        "id": "plenos",
-        "nome": "Plenos",
-        "categorias": [
-          "pleno"
-        ]
-      },
-      {
-        "id": "demais",
-        "nome": "Específicos e vencidos com orientando",
-        "categorias": [
-          "especifico",
-          "vencido_com_orientando"
-        ]
-      }
-    ],
-    "cortes_por_grupo": {
-      "3": {
-        "plenos": {
-          "em_aberto": 5,
-          "atingiu": 32,
-          "abaixo": 3
-        },
-        "demais": {}
-      },
-      "4": {
-        "plenos": {
-          "em_aberto": 7,
-          "atingiu": 28,
-          "abaixo": 5
-        },
-        "demais": {}
-      },
-      "5": {
-        "plenos": {
-          "em_aberto": 9,
-          "atingiu": 25,
-          "abaixo": 6
-        },
-        "demais": {}
-      }
+      "fim": 2026
     },
     "alertas": {
       "docentes": 40,

@@ -8,7 +8,6 @@
   const rota = document.body.dataset.pagina;
   const $ = seletor => document.querySelector(seletor);
   const painel = $("#consulta-agregada");
-  const situacoes = { atingiu: "Atingiu o mínimo", em_aberto: "Em aberto", abaixo: "Abaixo do mínimo nos registros disponíveis", sem_dados: "Sem dados" };
   const categorias = {pleno: "Plenos", especifico: "Específicos", vencido_com_orientando: "Vencidos com orientando"};
   const soma = itens => itens.reduce((a, b) => a + b, 0);
 
@@ -188,144 +187,9 @@
     });
   }
 
-  function criterioTexto(c) {
-    return "Artigos em periódicos " + c.faixas_periodicos.join(", ") + " e em congressos " + c.faixas_congressos.join(", ") + ". Anos completos de " + c.inicio + " a " + c.fim_anos_completos + " e registros disponíveis de " + c.fim + ".";
-  }
-  function nomeDocente(person, grupo) {
-    const wrap = el("span", person.nome);
-    if (person.quadrienio.confirmados_fora_lattes) {
-      wrap.className = "quadrienio-nome-destacado";
-      wrap.append(el("small", "Atualizar Lattes", "quadrienio-acao-lattes"));
-    }
-    if (grupo === "plenos" && person.categoria === "vencido_com_orientando") {
-      wrap.append(el("small", "Credenciamento vencido", "quadrienio-credenciamento-vencido"));
-    }
-    return wrap;
-  }
-  function referencias(ficha, d, grupo, estado) {
-    const q = d.quadrienio;
-    const externos = q.complementos.filter(c => c.estado === estado);
-    const refs = q[grupo];
-    if (!refs.length && !externos.length) return;
-    ficha.append(el("h4", (grupo === "artigos" ? "Artigos contados" : "Registros pendentes") + " (" + (refs.length + externos.length) + ")"));
-    const ul = el("ul"); ul.dataset.grupo = grupo;
-    function registro(pub, ano) {
-      const li = el("li"); li.dataset.ano = ano;
-      li.append(el("strong", ano + " · " + pub.titulo), el("span", (pub.tipo === "periodico" ? "Periódico" : "Congresso") + " · " + pub.veiculo + (pub.faixa ? " · " + pub.faixa : "")));
-      ul.append(li);
-      return li;
-    }
-    for (const ref of refs) {
-      const pub = d.anos.find(a => a.ano === ref.ano).publicacoes[ref.indice];
-      const li = registro(pub, ref.ano); li.dataset.indice = ref.indice;
-      if (grupo !== "artigos") li.append(el("span", pub.motivo));
-      if (pub.fonte_artigo_evento) li.append(link("Consultar fonte", pub.fonte_artigo_evento));
-    }
-    for (const pub of externos) {
-      const li = registro(pub, pub.ano);
-      if (pub.doi) li.dataset.doi = pub.doi;
-      else if (pub.id_anais) li.dataset.idAnais = pub.id_anais;
-      li.append(el("span", pub.estado === "incluido" && !pub.referencia_cv ? "Contado fora do Lattes importado" : "Verificação editorial"));
-      if (pub.fonte) li.append(link("Consultar fonte", pub.fonte));
-      if (pub.doi) li.append(el("span", "DOI " + pub.doi));
-      li.append(el("span", pub.nota));
-    }
-    ficha.append(ul);
-  }
-
-  function balanco(container, grupos, contagens) {
-    tabela(container, "Docentes por credenciamento no Janus e situação",
-      ["Vínculo no Janus", "Atingiram", "Em aberto", "Abaixo", "Sem dados"],
-      grupos.map(g => [g.nome, ...Object.keys(situacoes).map(k => contagens[g.id][k] || 0)]));
-    Array.from(container.lastElementChild.querySelectorAll("tbody tr")).forEach((tr,i) => {
-      tr.dataset.credenciamento = grupos[i].id;
-      Object.keys(situacoes).forEach((k,j) => { tr.cells[j+1].dataset.situacao = k; });
-    });
-  }
-
-  function quadrienio() {
-    const minimo = $(".production-page").dataset.minimo;
-    $(".production-heading .lead").textContent = criterioTexto(resumo.criterio);
-    const grupo = institucional ? dados.producao.docentes.filter(d => d.lattes_status === "disponivel") : [];
-    const ordem = Object.keys(situacoes);
-    const grupos = institucional ? dados.simulador.gruposCredenciamento : resumo.grupos;
-    const grupoPorDocente = institucional ? new Map(dados.simulador.docentes.map(d => [d.id, d.grupoAnalise])) : null;
-    const contagens = institucional ? Object.fromEntries(grupos.map(g => [g.id, Object.fromEntries(ordem.map(k =>
-      [k, grupo.filter(d => grupoPorDocente.get(d.id) === g.id && d.quadrienio.situacoes[minimo] === k).length]))])) : resumo.cortes_por_grupo[minimo];
-    const quadro = $(".quadrienio-metrics");
-    quadro.className = "quadrienio-balanco";
-    balanco(quadro, grupos, contagens);
-    if (!institucional) return;
-    grupo.sort((a, b) => ordem.indexOf(a.quadrienio.situacoes[minimo]) - ordem.indexOf(b.quadrienio.situacoes[minimo]) ||
-      Number(Boolean(b.quadrienio.confirmados_fora_lattes)) - Number(Boolean(a.quadrienio.confirmados_fora_lattes)) || a.nome.localeCompare(b.nome, "pt-BR"));
-    $("#quadrienio-titulo + p").textContent = grupo.length + " docentes com Lattes disponível. Selecione o nome para conferir os artigos e as fontes.";
-    $("#quadrienio-conferencia + p").textContent = "Base de referência: " + resumo.criterio.data_corte.split("-").reverse().join("/") + ".";
-    $(".production-table-footnote").textContent = "O mínimo selecionado é de " + minimo + " artigos confirmados. A situação fica em aberto quando há pendências suficientes para atingir esse mínimo ou quando a cobertura dos anos completos é parcial.";
-    const tabelaDocentes = $("#quadrienio-rows");
-    const fichas = $(".quadrienio-details");
-    tabelaDocentes.tBodies[0].remove();
-    const secoes = grupos.map(g => {
-      const total = soma(Object.values(contagens[g.id]));
-      const titulo = g.nome + " (" + total + ")";
-      const corpo = tabelaDocentes.createTBody(); corpo.dataset.credenciamento = g.id;
-      const linha = corpo.insertRow(); linha.className = "quadrienio-group";
-      const cab = el("th", titulo); cab.colSpan = 6; cab.scope = "rowgroup"; cab.id = "grupo-tabela-" + g.id;
-      corpo.setAttribute("aria-labelledby", cab.id); linha.append(cab);
-      const secao = el("section", null, "quadrienio-details"); secao.dataset.credenciamento = g.id;
-      const h = el("h3", titulo, "quadrienio-group"); h.id = "grupo-fichas-" + g.id;
-      secao.setAttribute("aria-labelledby", h.id); secao.append(h); fichas.before(secao);
-      return {grupo: g, corpo, secao};
-    });
-    fichas.remove();
-    grupo.forEach(d => {
-      const q = d.quadrienio, estado = q.situacoes[minimo];
-      const grupoId = grupoPorDocente.get(d.id);
-      const {corpo, secao} = secoes.find(s => s.grupo.id === grupoId);
-      const tr = corpo.insertRow(); tr.id = "linha-" + d.id; tr.dataset.docenteId = d.id; tr.dataset.situacao = estado;
-      const th = el("th"); th.scope = "row";
-      const a = el("a"); a.href = "#registros-" + d.id; a.append(nomeDocente(d, grupoId)); th.append(a); tr.append(th);
-      [["Periódicos",q.periodicos],["Congressos",q.congressos],["Total confirmado",q.total],["Pendentes",q.pendentes],["Situação",situacoes[estado]]].forEach(([rotulo,v]) => {
-        const cell = tr.insertCell(); cell.dataset.label = rotulo; cell.textContent = v ?? "—";
-      });
-      if (!q.cobertura_completa) tr.lastElementChild.append(el("small","Cobertura parcial","quadrienio-coverage"));
-      const details = el("details"); details.id = "detalhes-" + d.id; details.dataset.situacao = estado;
-      const summary = el("summary"); summary.append(nomeDocente(d, grupoId)); details.append(summary);
-      const ficha = el("div", null, "quadrienio-records"); ficha.id = "registros-" + d.id; ficha.tabIndex = -1;
-      a.addEventListener("click", () => { details.open = true; });
-      if (location.hash === "#" + ficha.id) details.open = true;
-      if (d.lattes_atualizado_em) ficha.append(el("p", "Lattes atualizado em " + d.lattes_atualizado_em.split("-").reverse().join("/") + "."));
-      ficha.append(el("p", q.motivo_cobertura));
-      if (d.lattes_pdf) ficha.append(link("Abrir currículo (PDF)", d.lattes_pdf));
-      if (q.total === 0) ficha.append(el("p", "Nenhum artigo confirmado nas faixas da proposta."));
-      referencias(ficha, d, "artigos", "incluido");
-      referencias(ficha, d, "a_conferir", "pendente");
-      const voltar = el("a", "Voltar à linha de " + d.nome); voltar.href = "#" + tr.id; ficha.append(voltar);
-      details.append(ficha); secao.append(details);
-    });
-  }
-
-  function analise() {
-    painel.append(el("h2", "Mínimo de artigos por docente"), el("p", criterioTexto(resumo.criterio)));
-    const label = el("label", "Mínimo proposto ", "filtro-agregado");
-    const select = el("select");
-    for (const n of resumo.criterio.minimos) select.add(new Option(n + " artigos", n));
-    select.value = "4"; label.append(select); painel.append(label);
-    const resultado = el("div"); resultado.setAttribute("aria-live", "polite"); painel.append(resultado);
-    function atualizar() {
-      resultado.replaceChildren();
-      balanco(resultado, resumo.grupos, resumo.cortes_por_grupo[select.value]);
-      const caminho = "producao/quadrienio/" + (select.value === "4" ? "" : "minimo-" + select.value + "/");
-      resultado.append(link("Consultar este critério", caminho + "index.html", "button quiet"));
-    }
-    select.addEventListener("change", atualizar); atualizar();
-    painel.append(el("p", "A cópia institucional permite editar períodos, faixas e critérios de orientação e consultar os artigos que compõem cada resultado."));
-  }
-
   if (rota === ".") inicio();
   else if (rota === "titulados") titulados();
   else if (rota === "producao") producao();
-  else if (rota.startsWith("producao/quadrienio")) quadrienio();
-  else if (!institucional && rota === "producao/analise-geral") analise();
   else if (!institucional && rota === "alertas") alertas();
   else if (!institucional && rota.startsWith("docentes")) docentes();
 })();

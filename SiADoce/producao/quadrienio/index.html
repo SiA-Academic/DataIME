@@ -1,102 +1,12 @@
-<!DOCTYPE html>
-<html data-theme="light" lang="pt-br">
+<!doctype html>
+<html lang="pt-BR">
 <head>
-<meta charset="utf-8"/>
-<link href="../../../assets/sia.css" rel="stylesheet"/>
-<meta content="width=device-width,initial-scale=1" name="viewport"/>
-<meta content="light dark" name="color-scheme"/>
-<meta content="#183644" name="theme-color"/>
-<meta content="Sistema institucional de apoio ao acompanhamento docente dos programas de pós-graduação da Universidade de São Paulo." name="description"/><title>Análise das publicações · SIA-Doce | Sistema de Informações Acadêmicas</title>
-<link href="../../css/controle.css" rel="stylesheet"/>
-<link href="../../css/producao.css" rel="stylesheet"/>
-<link href="../../css/sia-doce.css" rel="stylesheet"/>
-<script defer="" src="../../dados/dados.js"></script>
-<script defer="" src="../../js/paginas.js"></script></head>
-<body class="site-body" data-pagina="producao/quadrienio"><a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
-<div class="app-shell" id="appShell">
-<header class="site-header">
-<div class="institutional-bar">
-<div class="shell institutional-inner">
-<p>Universidade de São Paulo</p>
-<nav aria-label="Links institucionais"><a href="https://www.usp.br/" rel="external">USP</a>
-<a href="https://www.ime.usp.br/" rel="external">IME-USP</a>
-<a href="https://prpg.usp.br/" rel="external">PRPG</a></nav></div></div>
-<div class="shell brand-row"><a aria-label="SIA-Doce — Sistema de Informações Acadêmicas – Docentes" class="brand sidebar-brand" href="../../index.html"><span aria-hidden="true" class="brand-lockup"><span class="site-mark">SIA</span>
-<span class="brand-divider"></span>
-<span class="sidebar-brand-copy brand-name"><strong>SIA-Doce</strong>
-<small>Sistema de Informações Acadêmicas – Docentes</small></span></span></a>
-<div class="header-actions"><span class="instance-chip" title="Programa de Pós-Graduação em Ciência da Computação — IME-USP">PPGCC · IME-USP</span>
-<button aria-label="Alternar tema" class="sidebar-theme-button icon-button" id="themeToggle" type="button">
-<span aria-hidden="true" class="theme-indicator"></span>
-<span class="sidebar-theme-copy"><strong>Tema</strong>
-</span></button>
-<button aria-controls="siteSidebar" aria-expanded="false" aria-label="Abrir menu" class="menu-toggle" id="mobileMenuToggle" type="button">
-<span aria-hidden="true" class="menu-lines"></span>
-<span>Menu</span></button></div></div></header>
-<nav aria-label="Navegação principal" class="site-rail" id="siteSidebar"><a aria-label="SIA-Doce — início" class="rail-brand" href="../../index.html"><span aria-hidden="true" class="rail-mark">SIA</span>
-<span><strong>SIA-Doce</strong><small>Sistema de Informações Acadêmicas – Docentes</small></span>
-</a>
-<button class="rail-close" id="mobileMenuClose" type="button">Fechar menu</button>
-<div class="rail-links"><a class="voltar-portal" href="../../../index.html">← Portal SIA</a><a href="../../index.html">Visão geral</a>
-<a href="../../docentes/index.html">Docentes</a>
-<div class="rail-children somente-institucional"><a href="../../docentes/index.html#docentesTable">Lista de docentes</a>
-<a href="../../docentes/index.html#docenteMetrics">Indicadores</a></div><span class="rail-heading" id="rail-producao">Produção docente</span>
-<div aria-labelledby="rail-producao" class="rail-children" role="group"><a href="../../producao/index.html">Produção por ano</a>
-<a aria-current="location" href="../../producao/analise-geral/index.html">Análise das publicações</a></div><a href="../../titulados/index.html">Titulações</a>
-<div class="rail-children"><a href="../../titulados/index.html#por-orientador"><span class="somente-publico">Por ano</span><span class="somente-institucional">Por orientador e ano</span></a>
-<a href="../../titulados/index.html#evolucao-mensal">Evolução mensal</a></div><a href="../../alertas/index.html">Alertas</a><a href="../../credenciamento/index.html">Quadro e credenciamento</a><a href="../../configuracoes/index.html">Configurações</a></div></nav>
-<button aria-label="Fechar menu" class="sidebar-scrim" id="sidebarScrim" tabindex="-1" type="button"></button>
-<div class="content-shell">
-<main class="main" id="conteudo" tabindex="-1"><noscript>Ative o JavaScript para consultar os dados interativos.</noscript>
-<section class="page-heading production-heading">
-<div>
-<p class="eyebrow">Produção docente</p>
-<h1>Análise das publicações</h1>
-<p class="lead"></p></div>
-<div class="global-actions"><a class="button quiet" href="../../producao/index.html">Ver produção por ano</a></div></section>
-<div class="production-page" data-minimo="4">
-<nav aria-label="Mínimo proposto" class="quadrienio-escolha"><span>Mínimo proposto</span>
-<a class="button quiet" data-minimo="3" href="../../producao/quadrienio/minimo-3/index.html">3 artigos por docente</a>
-<a aria-current="page" class="button primary" data-minimo="4" href="../../producao/quadrienio/index.html">4 artigos por docente</a>
-<a class="button quiet" data-minimo="5" href="../../producao/quadrienio/minimo-5/index.html">5 artigos por docente</a>
-<a class="button quiet" href="../../producao/analise-geral/index.html">Análise das publicações</a></nav>
-<div aria-label="Docentes por situação" class="production-metrics quadrienio-metrics"></div>
-<section aria-labelledby="quadrienio-titulo" class="production-card somente-institucional">
-<div class="production-toolbar">
-<div>
-<h2 id="quadrienio-titulo">Contagem por docente</h2>
-<p></p></div></div>
-<p class="production-reading-note" id="quadrienio-criterios">Cada artigo conta uma vez para cada docente autor. As contagens consideram registros nos currículos e verificações complementares em fontes editoriais.</p>
-<div class="quadrienio-table-wrap"><table aria-describedby="quadrienio-leitura" class="quadrienio-table" id="quadrienio-rows" role="table"><caption class="sr-only">Artigos e situação por docente.</caption><thead role="rowgroup">
-<tr role="row">
-<th scope="col">Docente</th>
-<th scope="col">Periódicos</th>
-<th scope="col">Congressos</th>
-<th scope="col">Total confirmado</th>
-<th scope="col">Pendentes</th>
-<th scope="col">Situação</th></tr></thead>
-<tbody role="rowgroup"></tbody></table></div>
-<p class="production-table-footnote" id="quadrienio-leitura"></p></section>
-<section aria-labelledby="quadrienio-conferencia" class="production-card somente-institucional">
-<div class="production-toolbar">
-<div>
-<h2 id="quadrienio-conferencia">Conferência dos registros</h2>
-<p></p></div></div>
-<div class="quadrienio-details"></div></section></div></main>
-<footer class="site-footer footer">
-<div class="shell footer-grid">
-<div class="footer-brand"><span class="footer-lockup"><span aria-hidden="true" class="site-mark">SIA</span><strong>SIA-Doce</strong></span>
-<p>Sistema de Informações Acadêmicas – Docentes</p>
-<p class="footer-instance">Programa de Pós-Graduação em Ciência da Computação — IME-USP</p></div>
-<div>
-<h2>Instância institucional</h2>
-<p>Programa de Pós-Graduação em Ciência da Computação</p>
-<p>Instituto de Matemática e Estatística</p></div>
-<div>
-<h2>Links úteis</h2><ul>
-<li><a href="https://uspdigital.usp.br/janus/" rel="external">Sistema Janus</a></li>
-<li><a href="https://www.ime.usp.br/pos/" rel="external">Pós-Graduação do IME</a></li></ul></div></div>
-<div class="footer-bottom">
-<div class="shell">
-<p>Universidade de São Paulo · SIA-Doce</p></div></div></footer></div></div>
-<script defer="" src="../../js/controle.js"></script></body></html>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="0; url=../analise-geral/index.html">
+  <title>Análise geral · SIA-Doce</title>
+</head>
+<body>
+  <p><a href="../analise-geral/index.html">Abrir a Análise geral</a></p>
+</body>
+</html>
