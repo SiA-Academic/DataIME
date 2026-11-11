@@ -1,6 +1,4 @@
 /* Current faculty snapshot; academic time-series filters remain independent. */
-.sidebar-sections{grid-template-rows:auto repeat(2,minmax(0,1fr))}
-.sidebar-section-general{overflow:visible;padding-bottom:10px}
 .docentes-date{font-size:11px;color:var(--muted);white-space:nowrap}
 .docentes-date strong{color:var(--ink)}
 .docentes-table-wrap:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
@@ -79,6 +77,5 @@
 }
 @media print{.docentes-composition{break-inside:avoid}.docentes-composition-bar,.docentes-category-swatch{print-color-adjust:exact}}
 @media(pointer:coarse){.docentes-composition-row>summary{min-height:44px}}
-@media(max-width:900px){.sidebar-section-general{padding-bottom:4px}}
 @media(max-width:650px){.docentes-table-wrap th[scope="row"]{min-width:115px;max-width:130px}.docentes-department-name{display:block;margin-inline-start:0}.docentes-table-wrap th:first-child,.docentes-table-wrap td:first-child{position:sticky;left:0;z-index:1}.docentes-table-wrap thead th:first-child{background:var(--soft);z-index:2}.docentes-methods-body{padding-inline:12px}.docentes-date{font-size:10px}}
 @media print{.docentes-filters{display:none!important}.docentes-table-wrap{overflow:visible}.docentes-table-wrap th,.docentes-table-wrap td{font-size:10px!important;padding:8px!important;min-width:0!important}.docentes-table-wrap th:first-child,.docentes-table-wrap td:first-child{position:static}.docentes-reading-note{font-size:9px}.docentes-methods:not([open]){display:none}}

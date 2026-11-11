@@ -91,10 +91,6 @@
 
  const levels={ME:'Mestrado',DO:'Doutorado',DD:'Doutorado direto',DO_DD:'Doutorado (DO + DD)',total:'Total'};
 
- titles.graduation=['','Graduação no IME',''];
-
- titles.docentes=['QUADRO DOCENTE E PÓS-GRADUAÇÃO','Docentes','Lotação departamental e credenciamento vigente na pós-graduação.'];
-
  const disciplineLabels={courses:'Disciplinas oferecidas',sections:'Turmas',enrollments:'Matrículas em disciplinas',approvals:'Aprovações aproximadas',enrollments_per_section:'Matrículas médias por turma',approval_rate:'Taxa de aprovação aproximada'};
 
  const requestedLabels={sections:'Número de turmas',enrollments:'Matrículas em disciplinas',sections_lt5:'Turmas com menos de 5 matriculados',sections_5_to_30:'Turmas com 5 a 30 matriculados',sections_gt30:'Turmas com mais de 30 matriculados',degrees:'Diplomados',credits_offered:'Créditos ofertados',curricular_hours:'Carga horária curricular total'};
@@ -102,7 +98,7 @@
  const extendedDisciplineMetrics=['credits_offered','curricular_hours','sections_lt5','sections_5_to_30','sections_gt30'];
  const disciplineMetricLabels={...disciplineLabels,...Object.fromEntries(extendedDisciplineMetrics.map(metric=>[metric,requestedLabels[metric]]))};
 
- const state={view:'series',gradTab:'series',start:periodStart,end:periodEnd,selected:new Set(programOrder),seriesMode:'count',restrictedStart:restrictedYears[0]??periodStart,restrictedEnd:restrictedYears.at(-1)??periodEnd,restrictedSelected:new Set(restrictedPrograms.map(p=>p.id)),restrictedMetric:null};
+ const state={view:'series',start:periodStart,end:periodEnd,selected:new Set(programOrder),seriesMode:'count',restrictedStart:restrictedYears[0]??periodStart,restrictedEnd:restrictedYears.at(-1)??periodEnd,restrictedSelected:new Set(restrictedPrograms.map(p=>p.id)),restrictedMetric:null};
 
  let derived=new Map(),nextDerived=0,chartCount=0,exportRows=[],copyText='',toastTimer,postControls='';
 
@@ -538,47 +534,30 @@
   derived=new Map();nextDerived=0;chartCount=0;exportRows=[];postControls='';
   const active=document.activeElement,focusId=active?.id,focusData=[['restricted-program',active?.dataset?.restrictedProgram],['series-mode',active?.dataset?.seriesMode]].find(([,value])=>value);
 
-  const graduation=state.view==='graduation';
-
-  $('#main-nav').hidden=false;$('#graduation-nav').hidden=false;
-
-  const restrictedNavigation=$('#main-nav [data-view="restricted"]');if(restrictedNavigation)restrictedNavigation.hidden=!restrictedRecords.length;
-
-
-
-
-  $$('#main-nav a').forEach(a=>{const current=!graduation&&a.dataset.view===state.view;a.classList.toggle('active',current);if(current)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
-
-  $$('#general-nav a').forEach(a=>{const current=a.dataset.generalView===state.view;a.classList.toggle('active',current);if(current)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
-
-  const commonDepartments=window.SIAPOS_GRADUACAO?.hasCommonDepartments===true;
-
-  const extraMAC=$('#graduation-nav [data-grad-view="mac-adicional"]');if(extraMAC)extraMAC.hidden=!commonDepartments;
-
-  const departmentLink=$('#graduation-nav [data-grad-view="department"]');if(departmentLink){departmentLink.querySelector('strong').textContent=commonDepartments?(window.SIAPOS_GRADUACAO.departmentTitle||'Disciplinas'):'Disciplinas';departmentLink.querySelector('small').textContent=commonDepartments?(window.SIAPOS_GRADUACAO.departmentDatasetKind==='course_section_registry'?'Cadastro de turmas':'Relatórios do Júpiter'):'Cadastro de turmas';}
-
-  $$('#graduation-nav a').filter(a=>!a.hidden).forEach((a,i)=>{a.querySelector('.nav-number').textContent=String(i+1).padStart(2,'0');});
-
-  $$('#graduation-nav a').forEach(a=>{const current=graduation&&a.dataset.gradView===(state.gradTab==='coverage'?'sources':state.gradTab);a.classList.toggle('active',current);if(current)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+  const restrictedLink=$('#main-nav [data-view="restricted"]');
+  if(restrictedLink){
+    restrictedLink.hidden=!restrictedRecords.length;
+    restrictedLink.querySelector('small').textContent='Originais fornecidos'+(restrictedPrograms.length?' · '+restrictedPrograms.map(p=>p.id).join('/'):'');
+  }
+  $$('#main-nav a').forEach(link=>{
+    const current=link.dataset.view===state.view;
+    link.classList.toggle('active',current);
+    if(current)link.setAttribute('aria-current','page');
+    else link.removeAttribute('aria-current');
+  });
 
   const t=titles[state.view];$('#page-eyebrow').textContent=t[0];$('#page-eyebrow').hidden=!t[0];$('#page-title').textContent=t[1];$('#page-description').textContent=t[2];$('#page-description').hidden=!t[2];
 
-  if(!graduation){const brand=$('.brand small');if(brand&&D.site_subtitle)brand.textContent=D.site_subtitle;const restrictedLink=$('#main-nav [data-view="restricted"] small');if(restrictedLink)restrictedLink.textContent='Originais fornecidos'+(restrictedPrograms.length?' · '+restrictedPrograms.map(p=>p.id).join('/'):'');}
-
-  $('#filters').hidden=['sources','graduation','restricted','docentes'].includes(state.view);$('#year-controls').hidden=false;
+  $('#filters').hidden=['sources','restricted'].includes(state.view);$('#year-controls').hidden=false;
 
   $('#filter-caption').textContent=`${selectedYears().length} ano(s) · ${state.selected.size} programa(s)`;
 
-  if(state.view==='graduation'){$('#view-content').innerHTML='<div id="grad-root"></div>';window.SIAPOS_GRADUACAO?.setTab(state.gradTab);window.SIAPOS_GRADUACAO?.mount($('#grad-root'));}
-
-  else if(state.view==='docentes'){$('#view-content').innerHTML='<div id="docentes-root"></div>';window.SIAPOS_DOCENTES?.mount($('#docentes-root'));}
-
-  else $('#view-content').innerHTML=!['sources','restricted'].includes(state.view)&&!state.selected.size?empty():({series,disciplines,restricted,sources})[state.view]();
-
-  const footerPeriod=$('.page-footer span:last-child');if(footerPeriod)footerPeriod.textContent=state.view==='docentes'?'Credenciamento vigente · Fontes e cobertura acompanham as contagens':fullPeriod+' · Fontes e limites acompanham os indicadores';
+  $('#view-content').innerHTML=!['sources','restricted'].includes(state.view)&&!state.selected.size?empty():({series,disciplines,restricted,sources})[state.view]();
+  $('.page-footer span:last-child').textContent=fullPeriod+' · Fontes e limites acompanham os indicadores';
 
   $('#post-view-controls').innerHTML=postControls;$('#post-view-controls').hidden=!postControls;
-  if(!graduation){if(focusId)document.querySelector('#'+focusId)?.focus({preventScroll:true});else if(focusData)document.querySelector('[data-'+focusData[0]+'="'+esc(focusData[1])+'"]')?.focus({preventScroll:true});}
+  if(focusId)document.getElementById(focusId)?.focus({preventScroll:true});
+  else if(focusData)document.querySelector('[data-'+focusData[0]+'="'+esc(focusData[1])+'"]')?.focus({preventScroll:true});
   window.SIAPOS_FILTERS?.refresh();
   $('#chart-tooltip').hidden=true;
 
@@ -693,9 +672,7 @@
 
  $('#end-year').addEventListener('change',e=>{state.end=+e.target.value;if(state.end<state.start){state.start=state.end;$('#start-year').value=state.start;}render();});
 
- $('#reset-filters').addEventListener('click',reset);$('#theme-toggle').addEventListener('click',()=>{document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';});$('#print-view').addEventListener('click',()=>window.print());
-
- $('.skip-link').addEventListener('click',e=>{e.preventDefault();$('#content').focus();});
+ $('#reset-filters').addEventListener('click',reset);
 
  document.addEventListener('click',e=>{const a=e.target.closest('[data-source]');if(a){const key=a.dataset.source;showSource(key[0]==='d'?derived.get(key):records[+key]);return;}const svg=e.target.closest('[data-export-svg]');if(svg){exportSVG(svg.dataset.exportSvg);return;}const jump=e.target.closest('[data-post-jump]');if(jump){const heading=document.getElementById(jump.dataset.postJump),bar=$('#filters');if(heading){heading.style.scrollMarginTop=((bar?.getBoundingClientRect().height||0)+16)+'px';heading.scrollIntoView({block:'start'});heading.focus({preventScroll:true});}return;}const mode=e.target.closest('[data-series-mode]');if(mode){state.seriesMode=mode.dataset.seriesMode;render();return;}const action=e.target.closest('[data-action]')?.dataset.action;if(action==='restricted-reset'){state.restrictedStart=restrictedYears[0]??periodStart;state.restrictedEnd=restrictedYears.at(-1)??periodEnd;state.restrictedSelected=new Set(restrictedPrograms.map(p=>p.id));render();}if(action==='reset')reset();if(action==='csv')exportCSV();});
 
@@ -703,14 +680,26 @@
 
  document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('svg [data-source]')){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
 
- function tip(target,x,y){const el=$('#chart-tooltip'),parts=target.dataset.tip.split('|');el.innerHTML=`<strong>${esc(parts[0])}</strong>${esc(parts.slice(1).join(' · '))}`;el.hidden=false;el.style.left=Math.min(window.innerWidth-el.offsetWidth-12,Math.max(10,x+12))+'px';el.style.top=Math.max(10,y-el.offsetHeight-10)+'px';}
-
- document.addEventListener('pointerover',e=>{const t=e.target.closest('[data-tip]');if(t)tip(t,e.clientX,e.clientY);});document.addEventListener('pointerout',e=>{if(e.target.closest('[data-tip]'))$('#chart-tooltip').hidden=true;});document.addEventListener('focusin',e=>{const t=e.target.closest('[data-tip]');if(t){const b=t.getBoundingClientRect();tip(t,b.x,b.y);}});document.addEventListener('focusout',()=>$('#chart-tooltip').hidden=true);
-
  const close=()=>$('#source-dialog').close();$('#close-dialog').addEventListener('click',close);$('#done-dialog').addEventListener('click',close);$('#source-dialog').addEventListener('click',e=>{if(e.target===$('#source-dialog')){const b=e.target.getBoundingClientRect();if(e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom)close();}});
 
  $('#copy-source').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(copyText);notify('Referência copiada.');}catch{const t=document.createElement('textarea');t.value=copyText;$('#source-dialog').appendChild(t);t.select();const ok=document.execCommand('copy');t.remove();notify(ok?'Referência copiada.':'Selecione e copie a referência exibida.');}});
 
- function viewFromHash(){const value=location.hash.slice(1),parts=value.split('/');if(parts[0]==='graduation'){state.view='graduation';state.gradTab=parts[1]==='mac-adicional'&&!window.SIAPOS_GRADUACAO?.hasCommonDepartments?'department':['series','department','anuario','curricula','mac-adicional','additional','coverage','sources'].includes(parts[1])?parts[1]:'series';}else state.view=value==='requested'?'disciplines':value==='additional'?'restricted':titles[value]?value:'series';render();}window.addEventListener('hashchange',viewFromHash);viewFromHash();
+ function viewFromHash(){
+  const value=location.hash.slice(1);
+  const [area,tab]=value.split('/');
+  if(area==='graduation'){
+   location.replace('../SiAGrad/index.html#'+(tab||'series'));
+   return;
+  }
+  if(value==='docentes'){
+   location.replace('../SiADoce/credenciamento/index.html');
+   return;
+  }
+  const route=value==='requested'?'disciplines':value==='additional'?'restricted':value;
+  state.view=Object.hasOwn(titles,route)?route:'series';
+  render();
+ }
+ window.addEventListener('hashchange',viewFromHash);
+ viewFromHash();
 
 })();

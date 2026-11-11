@@ -1,0 +1,2 @@
+# A análise avulsa usa somente a biblioteca padrão do Python 3.10 ou superior.
+# PowerShell 7 e pdftotext são instalados separadamente, conforme o guia.

@@ -1,13 +1,21 @@
-# SiA
+# SIA · Sistema de Informações Acadêmicas
 
-Ferramentas de consulta e acompanhamento acadêmico.
+O [portal SIA do IME-USP](https://sia-academic.github.io/SiA/) dá acesso a três sistemas independentes.
 
-## SiAPos
+| Sistema | Consultas | Documentação |
+| --- | --- | --- |
+| [SIA-Doce · Docentes](https://sia-academic.github.io/SiA/SiADoce/) | Acompanhamento do PPGCC, produção docente, titulações e quadro de credenciamento por departamento e programa. | [Manutenção do SIA-Doce](manutencao/SiADoce/README.md) |
+| [SIA-Grad · Graduação](https://sia-academic.github.io/SiA/SiAGrad/) | Vagas, ingressantes, matrículas, concluintes, disciplinas e estatísticas do Anuário. | [Dados e critérios da graduação](SiAGrad/README.md) |
+| [SIA-Pos · Pós-graduação](https://sia-academic.github.io/SiA/SiAPos/) | Titulações, matrículas e disciplinas por programa, nível e período. | [Dados e critérios da pós-graduação](SiAPos/README.md) |
 
-O [SiAPos](https://sia-academic.github.io/SiA/SiAPos/) reúne indicadores agregados da graduação e da pós-graduação do IME-USP. Permite selecionar cursos, programas e anos, comparar gráficos e consultar a referência de cada indicador.
+## Uso local
 
-O site é estático. A pasta `SiAPos/` contém os arquivos necessários para execução; não exige servidor de aplicação, instalação ou serviços externos. Pode ser servida pelo GitHub Pages ou aberta localmente pelo arquivo `index.html`, mantendo os demais arquivos ao lado dele. O item Geral → Docentes apresenta o quadro departamental, sem seniores, e os credenciamentos vigentes na pós-graduação, com data de referência e fontes.
+Abra `index.html` na raiz de uma cópia completa do repositório. O navegador carrega as páginas, estilos, scripts e bases estáticas diretamente. Os arquivos em `assets/` são compartilhados pelos sistemas. Para servir o portal por HTTP, execute `python -m http.server 8000 --bind 127.0.0.1` na raiz e abra `http://127.0.0.1:8000/`. Ao abrir o portal no computador ou em localhost, o acesso a Docentes seleciona a edição institucional quando ela está instalada.
 
-Consulte a [documentação do painel](SiAPos/README.md) para cobertura, critérios e atualização dos dados.
+## Dados e manutenção
 
-Este repositório público contém apenas a interface, dados agregados e documentação. Fontes autenticadas, planilhas de trabalho, coletas, credenciais e dados nominais ficam fora dele.
+Este repositório reúne as interfaces e a manutenção do SIA-Doce, sem etapa de compilação com Hugo. A edição pública do SIA-Doce usa indicadores agregados. Com os insumos institucionais, a rotina local gera `SiADoce-institucional/index.html` com as fichas individuais e os relatórios do programa. Os insumos e a edição nominal ficam fora do Git e do GitHub Pages. O guia de manutenção descreve as entradas e os comandos.
+
+Graduação e pós-graduação carregam suas próprias bases. Os filtros, as referências das fontes e as exportações acompanham cada painel. O quadro departamental e de credenciamento do antigo painel está em [SIA-Doce](SiADoce/credenciamento/index.html). Os links anteriores de graduação e credenciamento em `SiAPos/#graduation/…` e `SiAPos/#docentes` encaminham para a página correspondente.
+
+O GitHub Pages serve a raiz da branch `main`. Uma atualização da interface ou dos indicadores pode ser conferida localmente antes de ser publicada.

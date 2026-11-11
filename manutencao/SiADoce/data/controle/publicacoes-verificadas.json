@@ -1,0 +1,250 @@
+{
+  "schema_version": 1,
+  "anos_confirmados": [
+    {
+      "titulo": "Factors in randomly perturbed hypergraphs",
+      "veiculo": "Random Structures & Algorithms",
+      "ano": 2022,
+      "doi": "10.1002/rsa.21035"
+    }
+  ],
+  "descricao": "Identificações individuais documentadas. A chave literal combina título, ano e veículo original; não depende do docente e não cria aliases globais.",
+  "titulos_com_homonimos": [
+    {
+      "titulo": "Information",
+      "motivo": "O catálogo distingue Information (ISSN 1343-4500/1344-8994) de Information (Switzerland), da MDPI (eISSN 2078-2489). O título curto no CV não determina qual revista publicou o artigo.",
+      "fontes": [
+        "https://www.scopus.com/sourceid/21100201065",
+        "https://www.scopus.com/sourceid/21100223111",
+        "https://www.mdpi.com/journal/information"
+      ]
+    },
+    {
+      "titulo": "Electronics",
+      "motivo": "Existem periódicos homônimos. O catálogo tem Electronics (Switzerland), MDPI/eISSN2079-9292; identificação do artigo é obrigatória para título genérico.",
+      "fontes": [
+        "https://www.mdpi.com/journal/Electronics/imprint",
+        "https://www.scopus.com/sourceid/21100829272"
+      ]
+    },
+    {
+      "titulo": "Healthcare",
+      "motivo": "Existem Healthcare da Elsevier e Healthcare (Switzerland) da MDPI; o título genérico exige identificação individual.",
+      "fontes": [
+        "https://www.scopus.com/sourceid/21100361200",
+        "https://www.scopus.com/sourceid/21101041844"
+      ]
+    },
+    {
+      "titulo": "Aging",
+      "motivo": "Existem títulos homônimos históricos. A publicação atual da Impact Journals usa eISSN1945-4589.",
+      "fontes": [
+        "https://www.scopus.com/sourceid/71628",
+        "https://www.scopus.com/sourceid/9500153911"
+      ]
+    }
+  ],
+  "publicacoes": [
+    {
+      "titulo": "Correction to: On the best achievable quality of limit points of augmented Lagrangian schemes",
+      "ano": 2022,
+      "veiculo_original": "NUMERICAL ALGORITHMS",
+      "doi": "10.1007/s11075-021-01241-3",
+      "source_id": "25708",
+      "titulo_catalogo_esperado": "Numerical Algorithms",
+      "issns_esperados": ["10171398", "15729265"],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://link.springer.com/article/10.1007/s11075-021-01241-3"
+      ],
+      "nota": "A Springer identifica o registro como Correction, volume 90, páginas 879–880 (2022), ligado ao artigo original DOI 10.1007/s11075-021-01212-8. O registro de correção fica pendente de comprovação de artigo completo admissível e não recebe pontos automaticamente pelo periódico. Não é retratação, não exclui o artigo original e não constitui juízo definitivo de inelegibilidade.",
+      "tipo_trabalho": "correcao_editorial"
+    },
+    {
+      "titulo": "Erratum to: New Constraint Qualifications and Optimality Conditions for Second Order Cone Programs",
+      "ano": 2022,
+      "veiculo_original": "Set-Valued and Variational Analysis",
+      "doi": "10.1007/s11228-021-00573-5",
+      "source_id": "18400156705",
+      "titulo_catalogo_esperado": "Set-Valued and Variational Analysis",
+      "issns_esperados": ["18770533", "18770541"],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://link.springer.com/article/10.1007/s11228-021-00573-5",
+        "https://repositorio.usp.br/directbitstream/79503561-be3a-44cb-b055-eb579ead719a/3031822.pdf"
+      ],
+      "nota": "Apesar de Erratum no título, trata-se de nota científica completa de cinco páginas com contraexemplo demonstrado a resultados de Zhang e Zhang, autores distintos, resumo, referências e datas de recebimento e aceite. Não é mera correção editorial do próprio artigo. Mantida a faixa bibliométrica inicial do periódico; a seleção e admissibilidade institucionais continuam sob avaliação do programa.",
+      "tipo_trabalho": "artigo_completo"
+    },
+    {
+      "titulo": "Advances in Application of Federated Machine Learning for Oncology and Cancer Diagnosis",
+      "ano": 2025,
+      "veiculo_original": "INFORMATION",
+      "doi": "10.3390/info16060487",
+      "source_id": "21100223111",
+      "titulo_catalogo_esperado": "Information (Switzerland)",
+      "issns_esperados": [
+        "20782489"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://www.mdpi.com/2078-2489/16/6/487",
+        "https://doi.org/10.3390/info16060487"
+      ],
+      "nota": "A página editorial identifica o artigo em Information 2025, 16(6), 487, DOI 10.3390/info16060487 e eISSN 2078-2489. O veículo original do Lattes é preservado. A identificação vale apenas para esta combinação exata de título, ano e veículo."
+    },
+    {
+      "titulo": "A Multi-Agent Approach Used to Predict Long-Term Glucose Oscillation in Individuals with Type 1 Diabetes",
+      "ano": 2022,
+      "veiculo_original": "Applied Sciences-Basel",
+      "doi": "10.3390/app12199641",
+      "source_id": "21100829268",
+      "titulo_catalogo_esperado": "Applied Sciences (Switzerland)",
+      "issns_esperados": [
+        "20763417"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://repositorio.usp.br/directbitstream/76d6037b-88d5-4f40-860b-c155ebd2191a/3110304.pdf"
+      ],
+      "nota": "O PDF depositado pelos autores na USP confirma Applied Sciences MDPI, 12,9641 (2022), eISSN2076-3417. Identificação individual distingue Applied Sciences (Switzerland) dos homônimos."
+    },
+    {
+      "titulo": "Privacy-Enhancing Technologies in Federated Learning for the Internet of Healthcare Things: A Survey",
+      "ano": 2023,
+      "veiculo_original": "Electronics",
+      "doi": "10.3390/electronics12122703",
+      "source_id": "21100829272",
+      "titulo_catalogo_esperado": "Electronics (Switzerland)",
+      "issns_esperados": [
+        "20799292"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://www.mdpi.com/2079-9292/12/12/2703"
+      ],
+      "nota": "O editor MDPI confirma Electronics2023,12(12),2703 e Daniel Macêdo Batista entre os autores; eISSN2079-9292 distingue Electronics (Switzerland) dos homônimos."
+    },
+    {
+      "titulo": "Federated Learning in Smart Healthcare: A Survey of Applications, Challenges, and Future Directions",
+      "ano": 2025,
+      "veiculo_original": "ELECTRONICS",
+      "doi": "10.3390/electronics14091750",
+      "source_id": "21100829272",
+      "titulo_catalogo_esperado": "Electronics (Switzerland)",
+      "issns_esperados": [
+        "20799292"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://www.mdpi.com/2079-9292/14/9/1750"
+      ],
+      "nota": "O editor MDPI confirma Electronics2025,14(9),1750 e Daniel Macêdo Batista entre os autores; eISSN2079-9292 distingue Electronics (Switzerland) dos homônimos."
+    },
+    {
+      "titulo": "Privacy-Preserving Federated Learning-Based Intrusion Detection System for IoHT Devices",
+      "ano": 2025,
+      "veiculo_original": "ELECTRONICS",
+      "doi": "10.3390/electronics14010067",
+      "source_id": "21100829272",
+      "titulo_catalogo_esperado": "Electronics (Switzerland)",
+      "issns_esperados": [
+        "20799292"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://www.mdpi.com/2079-9292/14/1/67",
+        "https://repositorio.usp.br/directbitstream/75e0c58a-6b68-445c-9b4b-4b0368b908dc/3248594_-_Privacy-preserving_federated_learning-based_intrusion_detection_system_for_IoHT_devices.pdf"
+      ],
+      "nota": "O editor confirma Electronics2025,14(1),67 e Daniel Macêdo Batista. Preservado2025da citação/volume, embora publicação online seja27/12/2024. eISSN2079-9292 distingue homônimos."
+    },
+    {
+      "titulo": "Timing to Intubation COVID-19 Patients: Can We Put It Off until Tomorrow?",
+      "ano": 2022,
+      "veiculo_original": "Healthcare",
+      "doi": "10.3390/healthcare10020206",
+      "source_id": "21101041844",
+      "titulo_catalogo_esperado": "Healthcare (Switzerland)",
+      "issns_esperados": [
+        "22279032"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC8871804/",
+        "https://repositorio.usp.br/directbitstream/5559cb1d-450a-4bf1-bb88-d0c467948ead/3123734.pdf"
+      ],
+      "nota": "Texto integral do artigo confirma Healthcare MDPI, volume10,206(2022), eISSN2227-9032. Não é Healthcare da Elsevier."
+    },
+    {
+      "titulo": "Acoustic Characteristics of Voice and Speech in Post-COVID-19",
+      "ano": 2025,
+      "veiculo_original": "Healthcare",
+      "doi": "10.3390/healthcare13010063",
+      "source_id": "21101041844",
+      "titulo_catalogo_esperado": "Healthcare (Switzerland)",
+      "issns_esperados": [
+        "22279032"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC11719735/",
+        "https://pubmed.ncbi.nlm.nih.gov/39791670/",
+        "https://www.mdpi.com/2227-9032/13/1/63/notes"
+      ],
+      "nota": "Texto integral e metadados NLM confirmam Healthcare(Basel), eISSN2227-9032,volume13,63(2025), MarceloQueiroz e MarceloFinger entre autores. A chave resolve os dois registros docentes."
+    },
+    {
+      "titulo": "A combination of differential expression and network connectivity analyses identifies a common set of RNA splicing and processing genes altered with age across human tissues",
+      "ano": 2025,
+      "veiculo_original": "Aging-US",
+      "doi": "10.18632/aging.206347",
+      "source_id": "71628",
+      "titulo_catalogo_esperado": "Aging",
+      "issns_esperados": [
+        "19454589"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://www.aging-us.com/article/206347/pdf"
+      ],
+      "nota": "O PDF publicado identifica Aging-US2025,volume17,12 e AndréFujita; trata-se de Aging da ImpactJournals(eISSN1945-4589), não do título histórico da EditriceKurtis."
+    },
+    {
+      "titulo": "Faster Constant-Time Decoder for MDPC Codes and Applications to BIKE KEM",
+      "ano": 2022,
+      "veiculo_original": "IACR Transactions on Cryptographic Hardware and Embedded Systems",
+      "doi": "10.46586/tches.v2022.i4.110-134",
+      "source_id": "21101064700",
+      "titulo_catalogo_esperado": "IACR Transactions on Cryptographic Hardware and Embedded Systems",
+      "issns_esperados": [
+        "25692925"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://repositorio.usp.br/item/003093860",
+        "https://app.poli.usp.br/lattes/docentes/5406900278440032",
+        "https://www.ime.usp.br/~tpaiva/"
+      ],
+      "nota": "O repositório institucional USP identifica expressamente Artigo de periódico, volume 2022(4), pp. 110–134, eISSN 2569-2925, DOI e autores Thales Paiva e Routo Terada. A apresentação no CHES não transforma o artigo TCHES em anais. Corrigir só esta publicação e evitar duplicação se já existir registro do mesmo DOI.",
+      "corrigir_tipo_origem": "anais_congressos"
+    },
+    {
+      "titulo": "Launch of the São Paulo Wellcome Trust-funded multidisciplinary research program on optimising antimicrobial use in highly populated urban environments",
+      "ano": 2023,
+      "veiculo_original": "Lancet Regional Health-Americas",
+      "doi": "10.1016/j.lana.2023.100574",
+      "source_id": "21101082055",
+      "titulo_catalogo_esperado": "The Lancet Regional Health - Americas",
+      "issns_esperados": [
+        "2667193X"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://pubmed.ncbi.nlm.nih.gov/37644993/",
+        "https://repositorio.usp.br/directbitstream/c4c1f90d-74b1-4ba7-9eff-ddf43022b8bd/HSA_23_2023.pdf"
+      ],
+      "nota": "PDF original do editor tem News no rodapé das duas páginas. É notícia de lançamento de projeto, não relato de resultados de pesquisa. Identificar o veículo sem atribuir automaticamente pontuação de artigo completo; preservar registro para análise qualitativa.",
+      "tipo_trabalho": "noticia"
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 # Public repository: interface and aggregate data only.
+/SiADoce-institucional/
 .env
 .env.*
 *.pem

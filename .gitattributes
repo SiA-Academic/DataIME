@@ -1,4 +1,8 @@
-SiAPos/*.html -text
-SiAPos/*.js -text
-SiAPos/*.css -text
+* whitespace=trailing-space,space-before-tab,cr-at-eol
+*.html -text
+*.js -text
+*.css -text
 *.md text eol=lf
+*.pdf binary
+*.zip binary
+*.webp binary

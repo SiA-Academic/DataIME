@@ -1,99 +1,47 @@
 <!doctype html>
-
 <html lang="pt-BR" data-theme="light">
-
 <head>
-
   <meta charset="utf-8">
-
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-
-  <meta name="description" content="SiAPos — docentes, graduação e pós-graduação do IME-USP. Quadro docente, credenciamentos, cursos, programas, titulações e matrículas, com fontes e cobertura explícitas.">
-
+  <meta name="description" content="Indicadores dos programas de pós-graduação do IME-USP.">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'self'">
-
-  <title>SiAPos · Graduação e pós-graduação do IME-USP</title>
-
-  <link rel="stylesheet" href="styles.css?v=tabelas-docentes-20261110-1">
-
-  <link rel="stylesheet" href="grad.css?v=tabelas-docentes-20261110-1">
-
-  <link rel="stylesheet" href="docentes.css?v=tabelas-docentes-20261110-1">
-
-  <script src="data.js?v=tabelas-docentes-20261110-1" defer></script>
-
-  <script src="model.js?v=tabelas-docentes-20261110-1" defer></script>
-
-  <script src="graduacao-data.js?v=tabelas-docentes-20261110-1" defer></script>
-
-  <script src="grad.js?v=tabelas-docentes-20261110-1" defer></script>
-
-  <script src="docentes-data.js?v=tabelas-docentes-20261110-1" defer></script>
-
-  <script src="docentes.js?v=tabelas-docentes-20261110-1" defer></script>
-
-  <script src="app.js?v=tabelas-docentes-20261110-1" defer></script>
-
+  <title>SIA-Pos · Pós-graduação · IME-USP</title>
+  <link rel="stylesheet" href="../assets/sia.css?v=sia-20261110-1">
+  <link rel="stylesheet" href="../assets/painel/styles.css?v=sia-20261110-1">
+  <script src="../assets/painel/model.js?v=sia-20261110-1" defer></script>
+  <script src="../assets/painel/painel.js?v=sia-20261110-1" defer></script>
+  <script src="../assets/instancia-local.js?v=sia-20261110-1" defer></script>
+  <script src="data.js?v=sia-20261110-1" defer></script>
+  <script src="app.js?v=sia-20261110-1" defer></script>
 </head>
-
 <body>
-
   <a class="skip-link" href="#content">Ir para o conteúdo</a>
-
   <aside class="sidebar">
-
-    <a href="#series" class="brand" aria-label="SiAPos — início"><span class="brand-mark">Si</span><span><strong>SiAPos</strong><small>Graduação e pós · IME-USP</small></span></a>
-
+    <a class="brand" href="../SiAPos/index.html" aria-label="SIA-Pos — início"><span class="brand-mark" aria-hidden="true">SIA</span><span><strong>SIA-Pos</strong><small>Pós-graduação · IME-USP</small></span></a>
     <div class="sidebar-sections">
-      <section class="sidebar-section sidebar-section-general" aria-labelledby="general-nav-label">
-        <h2 class="nav-label" id="general-nav-label">Geral</h2>
-        <nav aria-label="Visões gerais" id="general-nav">
-          <a href="#docentes" data-general-view="docentes"><span class="nav-number">01</span><span><strong>Docentes</strong><small>Quadro e credenciamento na pós</small></span></a>
+      <section class="sidebar-section" aria-labelledby="section-label">
+        <h2 class="nav-label" id="section-label">Pós-graduação</h2>
+        <nav aria-label="Visões de pós-graduação" id="main-nav">
+          <a href="#series" data-view="series"><span><strong>Titulações e matrículas</strong><small>Evolução e comparação</small></span></a>
+          <a href="#disciplines" data-view="disciplines"><span><strong>Disciplinas</strong><small>Turmas e participação</small></span></a>
+          <a href="#restricted" data-view="restricted" class="restricted-nav-link"><span><strong>Dados de acesso específico</strong><small>Relatórios de origem</small></span></a>
+          <a href="#sources" data-view="sources" class="sources-nav-link"><span><strong>Fontes e critérios</strong><small>Proveniência e cobertura</small></span></a>
         </nav>
       </section>
-      <section class="sidebar-section" aria-labelledby="graduation-nav-label">
-        <h2 class="nav-label" id="graduation-nav-label">Graduação</h2>
-    <nav aria-label="Visões da graduação" id="graduation-nav">
-
-      <a href="#graduation/series" data-grad-view="series"><span class="nav-number">01</span><span><strong>Titulações e matrículas</strong><small>Evolução e comparação</small></span></a>
-
-      <a href="#graduation/department" data-grad-view="department"><span class="nav-number">02</span><span><strong>Disciplinas</strong><small>Cadastro de turmas</small></span></a>
-
-      <a href="#graduation/anuario" data-grad-view="anuario"><span class="nav-number">03</span><span><strong>Estatísticas do Anuário</strong><small>Disciplinas e turmas por departamento</small></span></a>
-
-      <a href="#graduation/sources" data-grad-view="sources"><span class="nav-number">04</span><span><strong>Fontes e critérios</strong><small>Proveniência e cobertura</small></span></a>
-
-    </nav>
-      </section>
-      <section class="sidebar-section" aria-labelledby="postgraduate-nav-label">
-        <h2 class="nav-label" id="postgraduate-nav-label">Pós-graduação</h2>
-    <nav aria-label="Visões da pós-graduação" id="main-nav">
-
-      <a href="#series" data-view="series"><span class="nav-number">01</span><span><strong>Titulações e matrículas</strong><small>Evolução e comparação</small></span></a>
-
-      <a href="#disciplines" data-view="disciplines"><span class="nav-number">02</span><span><strong>Disciplinas</strong><small>Turmas e participação</small></span></a>
-
-
-      <a href="#restricted" data-view="restricted" class="restricted-nav-link"><span class="nav-number">03</span><span><strong>Dados de acesso específico</strong><small>Originais fornecidos · separados</small></span></a>
-
-      <a href="#sources" data-view="sources" class="sources-nav-link"><span class="nav-number">04</span><span><strong>Fontes e critérios</strong><small>Proveniência e cobertura</small></span></a>
-
-    </nav>
-      </section>
     </div>
-
-    <div class="sidebar-bottom"><span class="local-dot"></span> Graduação e pós-graduação<small>Dados agregados. Sem cadastro de alunos.</small></div>
-
+    <nav class="system-links" aria-label="Outros sistemas acadêmicos">
+      <a class="portal-link" href="../index.html">← Portal SIA</a>
+        <a href="../SiAGrad/index.html">SIA-Grad</a>
+        <a href="../SiADoce/index.html">SIA-Doce</a>
+    </nav>
   </aside>
-
   <div class="workspace">
-
     <main id="content" tabindex="-1">
-
-      <div class="page-heading"><div><p class="eyebrow" id="page-eyebrow">INDICADORES DA PÓS-GRADUAÇÃO</p><h1 id="page-title">Pós-graduação em números</h1><p class="page-description" id="page-description">Compare programas, acompanhe a evolução e consulte a origem de cada valor.</p></div><div class="page-actions"><button class="icon-button" id="theme-toggle" aria-label="Alternar tema claro e escuro" title="Alternar tema">◐</button><button class="button secondary print-button" id="print-view">Imprimir visão</button></div></div>
-
+      <header class="page-heading">
+        <div><p class="eyebrow" id="page-eyebrow">SIA-Pos · Pós-graduação</p><h1 id="page-title">Titulações e matrículas</h1><p class="page-description" id="page-description">Indicadores dos programas de pós-graduação do IME-USP.</p></div>
+        <div class="page-actions"><button class="icon-button" id="theme-toggle" type="button" aria-label="Alternar tema claro e escuro" title="Alternar tema">◐</button><button class="button secondary print-button" id="print-view" type="button">Imprimir visão</button></div>
+      </header>
       <section class="filters sticky-filters" aria-label="Filtros dos indicadores" id="filters">
         <div class="filter-control-row">
           <div class="filter-options" role="group" aria-label="Programas de pós-graduação"><span class="filter-label">Programas</span><div id="program-filters" class="filter-options"></div><button class="text-button" id="select-all">Todos</button></div>
@@ -101,21 +49,13 @@
         </div>
         <div id="post-view-controls" class="filter-control-row" hidden></div>
       </section>
-
-      <div id="view-content" aria-live="polite"><div class="empty-state"><h2>Carregando a base documental…</h2><p>Se esta mensagem permanecer, abra a pasta completa do painel, com data.js ao lado de index.html.</p></div></div>
-
-      <footer class="page-footer"><span>SiAPos · IME-USP</span><span>2012–2025 · Fontes e limites acompanham os indicadores</span></footer>
-
+      <div id="view-content" aria-live="polite"><p>Carregando os indicadores de pós-graduação…</p></div>
+      <footer class="page-footer"><span>SIA-Pos · IME-USP</span><span>2012–2025 · Fontes e limites acompanham os indicadores</span></footer>
     </main>
-
   </div>
-
   <div class="chart-tooltip" id="chart-tooltip" role="tooltip" hidden></div>
-
   <dialog id="source-dialog" aria-labelledby="source-title"><div class="dialog-header"><h2 id="source-title">Origem do indicador</h2><button class="icon-button" id="close-dialog" aria-label="Fechar detalhes">×</button></div><div id="source-content"></div><div class="dialog-actions"><button class="button secondary" id="copy-source">Copiar referência</button><button class="button" id="done-dialog">Fechar</button></div></dialog>
 
   <div class="toast" id="toast" role="status" hidden></div>
-
 </body>
-
 </html>

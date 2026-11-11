@@ -178,3 +178,54 @@ dialog .source-credit a{color:var(--accent);text-underline-offset:2px}
 .panel:has([data-trend-toggle]:checked) .chart-median-layer{display:inline}
 @media(min-width:901px) and (max-height:700px){.sidebar-section nav small,.sidebar .sidebar-bottom{display:none}.sidebar .brand{padding-block:14px}}
 @media(max-width:900px){.sidebar{overflow:visible}.sidebar .brand{padding:14px 18px}.sidebar-sections{display:block;flex:none}.sidebar-section{overflow:visible;padding:0 0 4px}.sidebar-section>.nav-label{padding:7px 14px 4px}.sidebar-section nav{padding:0 10px 6px}.sidebar-section nav a{flex:0 0 auto}.sidebar-section nav strong{font-size:11px}.sidebar .sidebar-bottom{display:none}}
+
+/* A mesma navegação nos painéis de dados do SIA. */
+:root:not([data-theme=dark]) {
+  --navy: var(--sia-ink, #183644);
+  --accent: var(--sia-teal, #12665f);
+  --page: var(--sia-paper, #f7f8f5);
+  --ink: #203b42;
+  --muted: #546b6d;
+  --line: #d6dfdc;
+  --soft: #f0f4f1;
+  --blue-bg: #e4f0ea;
+}
+:root[data-theme=dark] {
+  --navy: #c6e1da;
+  --accent: #86d5be;
+  --page: #142323;
+  --surface: #203032;
+  --ink: #e5eeeb;
+  --muted: #acc2bd;
+  --line: #3e5653;
+  --soft: #2b4140;
+  --blue-bg: #2b4840;
+}
+.sidebar-sections { display: flex; flex-direction: column; }
+.sidebar .brand { border-top-color: var(--sia-teal, #12665f); }
+.brand-mark {
+  width: 46px; height: 42px;
+  border-radius: 5px;
+  background: var(--sia-ink, #183644);
+  font-size: 20px; letter-spacing: -.04em;
+}
+.sidebar .system-links {
+  margin: auto 16px 16px; padding: 12px 0 0;
+  border-top: 1px solid var(--line);
+  display: flex; align-items: center; flex-wrap: wrap; gap: 2px 8px;
+}
+.sidebar .system-links a { padding: 5px 3px; font-size: 12px; color: var(--accent); }
+.sidebar .system-links .portal-link { flex-basis: 100%; font-weight: 700; }
+.button:not(.secondary), .chart-tooltip, .toast {
+  background: var(--sia-ink, #183644);
+  border-color: var(--sia-ink, #183644);
+}
+.sidebar #main-nav a.sources-nav-link.active { background: var(--soft); }
+@media (max-width: 900px) {
+  .sidebar .system-links { margin: 0; padding: 4px 14px; gap: 12px; }
+  .sidebar .system-links .portal-link { flex-basis: auto; }
+  .sidebar nav:not(.system-links) { flex-wrap: wrap; overflow: visible; }
+}
+@media (max-width: 650px) {
+  .chart-grid { width: 100%; }
+}

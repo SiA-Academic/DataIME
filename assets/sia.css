@@ -1,0 +1,10 @@
+/* Identidade comum do portal e dos sistemas do IME-USP. */
+:root {
+  --sia-ink: #183644;
+  --sia-teal: #12665f;
+  --sia-paper: #f7f8f5;
+  --sia-line: #d3dcd7;
+  --sia-muted: #4f646a;
+  --sia-gold: #dfb454;
+  --sia-sans: "Segoe UI", system-ui, sans-serif;
+}

@@ -3,10 +3,61 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="0; url=SiAPos/">
-  <title>SiA · SiAPos</title>
+  <meta name="description" content="Acesse os sistemas de informações acadêmicas do IME-USP para docentes, graduação e pós-graduação.">
+  <title>SIA · Sistema de Informações Acadêmicas do IME-USP</title>
+  <link rel="stylesheet" href="assets/sia.css">
+  <link rel="stylesheet" href="assets/inicio.css">
+  <script src="assets/instancia-local.js" defer></script>
 </head>
-<body>
-  <p><a href="SiAPos/">Abrir o SiAPos — indicadores da pós-graduação do IME-USP</a></p>
+<body class="portal">
+  <a class="portal-skip" href="#sistemas">Ir para os sistemas</a>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <a class="portal-brand" href="index.html" aria-label="SIA, página inicial">SIA</a>
+      <span class="institute">IME-USP</span>
+      <a class="usp-link" href="https://www.usp.br/" aria-label="Universidade de São Paulo">
+        <img src="assets/usp.svg" alt="USP" width="76" height="31">
+      </a>
+    </div>
+  </header>
+  <main class="portal-main">
+    <section class="hero" aria-labelledby="portal-title">
+      <div class="hero-copy">
+        <h1 id="portal-title">Sistema de <br>Informações <br><em>Acadêmicas</em></h1>
+        <p>Consulte os indicadores do IME-USP nos sistemas de docentes, graduação e pós-graduação.</p>
+      </div>
+      <figure class="campus">
+        <img src="assets/bloco-a.webp" alt="Fachada do Bloco A do IME-USP vista do jardim e da passarela coberta." width="1500" height="691">
+        <figcaption>Bloco A <span aria-hidden="true">/</span> IME-USP</figcaption>
+      </figure>
+    </section>
+    <nav id="sistemas" aria-labelledby="sistemas-titulo" tabindex="-1">
+      <h2 id="sistemas-titulo">Acesse um sistema</h2>
+      <div class="systems-grid">
+        <a class="system-card faculty" href="SiADoce/index.html" aria-labelledby="titulo-doce sigla-doce" aria-describedby="desc-doce">
+          <span class="system-code" id="sigla-doce">SIA-Doce</span>
+          <h3 id="titulo-doce">Docentes</h3>
+          <p id="desc-doce">Quadro docente, credenciamentos, orientações e produção acadêmica.</p>
+          <span class="card-action" aria-hidden="true">Acessar sistema <span>→</span></span>
+        </a>
+        <a class="system-card undergraduate" href="SiAGrad/index.html" aria-labelledby="titulo-grad sigla-grad" aria-describedby="desc-grad">
+          <span class="system-code" id="sigla-grad">SIA-Grad</span>
+          <h3 id="titulo-grad">Graduação</h3>
+          <p id="desc-grad">Vagas, ingressantes, matrículas, concluintes e disciplinas dos cursos de graduação.</p>
+          <span class="card-action" aria-hidden="true">Acessar sistema <span>→</span></span>
+        </a>
+        <a class="system-card postgraduate" href="SiAPos/index.html" aria-labelledby="titulo-pos sigla-pos" aria-describedby="desc-pos">
+          <span class="system-code" id="sigla-pos">SIA-Pos</span>
+          <h3 id="titulo-pos">Pós-graduação</h3>
+          <p id="desc-pos">Titulações, matrículas e disciplinas dos programas de mestrado e doutorado.</p>
+          <span class="card-action" aria-hidden="true">Acessar sistema <span>→</span></span>
+        </a>
+      </div>
+    </nav>
+  </main>
+  <footer class="portal-footer">
+    <a href="https://www.ime.usp.br/">IME-USP</a>
+    <span>Foto do IME por <a href="https://commons.wikimedia.org/wiki/File:Fachada_do_Bloco_A_do_IME-USP_-_12.09.2026_(1).jpg">VictorAyabe</a> · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> · Recorte da original</span>
+  </footer>
 </body>
 </html>

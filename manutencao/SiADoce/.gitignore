@@ -1,0 +1,31 @@
+# As entradas do Janus, os currículos, os cadastros e os resultados individuais
+# ficam no checkout de trabalho. O Git recebe os programas e seus guias.
+/*
+!/.gitignore
+!/README.md
+!/Analisar Lattes.cmd
+!/analisar-lattes.ps1
+!/analisar-lattes.sh
+!/Atualizar planilha.cmd
+!/atualizar-planilha.ps1
+!/build-public.ps1
+!/importar-catalogo-google.ps1
+!/importar-entradas.ps1
+!/programa.ps1
+!/requirements-lattes.txt
+!/scripts/
+!/scripts/*.ps1
+!/scripts/*.py
+!/docs/
+/docs/*
+!/docs/ANALISAR_LATTES_AVULSO.md
+!/docs/ATUALIZAR_PLANILHA.md
+!/docs/CRITERIOS.md
+!/data/
+/data/*
+!/data/controle/
+/data/controle/*
+!/data/controle/catalogo-periodicos-google.json
+!/data/controle/eventos-capes.json
+!/data/controle/periodicos-aliases.json
+!/data/controle/publicacoes-verificadas.json

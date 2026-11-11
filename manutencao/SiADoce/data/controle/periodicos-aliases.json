@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "descricao": "Correspondências de títulos verificadas em fontes primárias. Não contém aproximações automáticas.",
+  "aliases": [
+    {
+      "alias": "RAIRO-Operations Research",
+      "source_id": "12991",
+      "titulo_catalogo_esperado": "RAIRO Recherche Operationnelle",
+      "issns_esperados": [
+        "03990559",
+        "12903868"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://portal.issn.org/resource/ISSN/0399-0559",
+        "https://www.cambridge.org/core/journals/rairo-operations-research/information",
+        "https://www.rairo-ro.org/"
+      ],
+      "nota": "O portal ISSN registra a variante RAIRO. Operations research; Cambridge identifica ISSN 0399-0559 e eISSN 1290-3868. O site atual informa o título anterior Recherche opérationnelle e novo eISSN 2804-7303. O destino preserva o Source ID e os identificadores do catálogo consultado; a faixa continua sendo estimativa com métricas de 2025."
+    },
+    {
+      "alias": "CLEI ELECTRONIC JOURNAL",
+      "source_id": "21101073954",
+      "titulo_catalogo_esperado": "CLEI Eletronic Journal (CLEIej)",
+      "issns_esperados": [
+        "07175000"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://clei.org/clei-electronic-journal/",
+        "https://clei.org/cleiej/index.php/cleiej/about"
+      ],
+      "nota": "O editor CLEI identifica explicitamente o nome, a sigla CLEIej e o ISSN 0717-5000. O título Scopus contém a grafia Eletronic."
+    },
+    {
+      "alias": "COMPUTERS & GRAPHICS-UK",
+      "source_id": "25028",
+      "titulo_catalogo_esperado": "Computers and Graphics",
+      "issns_esperados": [
+        "00978493"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://www.sciencedirect.com/science/article/abs/pii/S0097849323000651",
+        "https://pure.rug.nl/ws/portalfiles/portal/247683938/1_s2.0_S0097849322001637_main.pdf",
+        "https://portal.issn.org/resource/ISSN/0097-8493"
+      ],
+      "nota": "As duas publicações pendentes foram confirmadas em Computers & Graphics: DOI 10.1016/j.cag.2023.05.009 e DOI 10.1016/j.cag.2022.09.002; identificador ISSN 0097-8493 corresponde ao catálogo. O qualificador UK não é outro periódico."
+    },
+    {
+      "alias": "The Art of Discrete and Applied Mathematics",
+      "source_id": "21101028344",
+      "titulo_catalogo_esperado": "Art of Discrete and Applied Mathematics",
+      "issns_esperados": [
+        "25909770"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://adam-journal.eu/index.php/ADAM/article/download/1363/1155"
+      ],
+      "nota": "O PDF publicado no próprio periódico apresenta The Art of Discrete and Applied Mathematics e ISSN 2590-9770. O catálogo omite o artigo inicial The."
+    },
+    {
+      "alias": "American Mathematical Society. Notices",
+      "source_id": "145509",
+      "titulo_catalogo_esperado": "Notices of the American Mathematical Society",
+      "issns_esperados": [
+        "00029920",
+        "10889477"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://www.ams.org/notices/201707/201707FullIssue.pdf",
+        "https://portal.issn.org/resource/ISSN/0002-9920"
+      ],
+      "nota": "A AMS identifica Notices of the American Mathematical Society, ISSN impresso 0002-9920 e eletrônico 1088-9477. A variante do CV inverte a sociedade e o nome."
+    },
+    {
+      "alias": "REVISTA DE INFORMÁTICA TEÓRICA E APLICADA: RITA",
+      "source_id": "21100913339",
+      "titulo_catalogo_esperado": "Revista de Informatica Teorica e Aplicada",
+      "issns_esperados": [
+        "01034308",
+        "21752745"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://seer.ufrgs.br/index.php/rita/index"
+      ],
+      "nota": "O editor UFRGS identifica RITA como sigla da Revista de Informática Teórica e Aplicada, eISSN 2175-2745."
+    },
+    {
+      "alias": "Kunstliche Intelligenz",
+      "source_id": "21101017166",
+      "titulo_catalogo_esperado": "KI - Kunstliche Intelligenz",
+      "issns_esperados": [
+        "09331875",
+        "16101987"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://link.springer.com/journal/13218",
+        "https://portal.issn.org/resource/ISSN/16101987"
+      ],
+      "nota": "A Springer informa ISSNs 0933-1875 e 1610-1987 e o portal ISSN registra Künstliche Intelligenz como variante do título KI - Künstliche Intelligenz."
+    },
+    {
+      "alias": "The European Journal on Artificial Intelligence",
+      "source_id": "21101334580",
+      "titulo_catalogo_esperado": "European Journal on Artificial Intelligence",
+      "issns_esperados": [
+        "30504554",
+        "30504546"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://journals.sagepub.com/doi/pdf/10.1177/30504554261434854?download=true"
+      ],
+      "nota": "O editor SAGE confirma o artigo Bridging Belief Change and Ontology Repair (2026) neste título; o título do catálogo apenas omite The. Identificação não cria métrica ausente."
+    },
+    {
+      "alias": "IEICE TRANSACTIONS ON FUNDAMENTALS OF ELECTRONICS, COMMUNICATIONS AND COMPUTER SCIENCE",
+      "source_id": "26076",
+      "titulo_catalogo_esperado": "IEICE Transactions on Fundamentals of Electronics, Communications and Computer Sciences",
+      "issns_esperados": [
+        "09168508",
+        "17451337"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://www.jstage.jst.go.jp/article/transfun/E105.A/6/E105.A_2021EAP1048/_article"
+      ],
+      "nota": "O editor J-STAGE confirma o artigo de Routo Terada e Reynaldo Caceres Villena de 2022, DOI 10.1587/transfun.2021EAP1048. Variante singular Science do CV corresponde ao título Sciences."
+    },
+    {
+      "alias": "JASSS-THE JOURNAL OF ARTIFICIAL SOCIETIES AND SOCIAL SIMULATION",
+      "source_id": "15591",
+      "titulo_catalogo_esperado": "JASSS",
+      "issns_esperados": [
+        "14607425"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://jasss.soc.surrey.ac.uk/26/4/3.html",
+        "https://www.jasss.org/26/4/3/3.pdf"
+      ],
+      "nota": "O editor confirma o artigo Equation-Based Versus Agent-Based Models (2023) como Journal of Artificial Societies and Social Simulation, sigla JASSS. O catálogo usa apenas a sigla."
+    },
+    {
+      "alias": "Journal Of Applied Logics-Ifcolog Journal Of Logics And Their Applications",
+      "source_id": "21100925611",
+      "titulo_catalogo_esperado": "Journal of Applied Logics",
+      "issns_esperados": [
+        "26319810",
+        "26319829"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://www.collegepublications.co.uk/downloads/ifcolog00062.pdf",
+        "https://portal.issn.org/resource/ISSN/2631-9829"
+      ],
+      "nota": "A própria publicação apresenta nome completo Journal of Applied Logics - IfCoLog Journal of Logics and their Applications, ISSNs 2631-9810 e 2631-9829; o catálogo usa título abreviado Journal of Applied Logics."
+    },
+    {
+      "alias": "Viruses-Basel",
+      "source_id": "19700188364",
+      "titulo_catalogo_esperado": "Viruses",
+      "issns_esperados": [
+        "19994915"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC8874612/",
+        "https://www.mdpi.com/1999-4915/14/2/175/pdf?version=1642507978"
+      ],
+      "nota": "O artigo de Denis Mauá de 2022, DOI 10.3390/v14020175, identifica Viruses MDPI, eISSN 1999-4915. Basel é o local de publicação, não outro periódico."
+    },
+    {
+      "alias": "Lancet Regional Health-Americas",
+      "source_id": "21101082055",
+      "titulo_catalogo_esperado": "The Lancet Regional Health - Americas",
+      "issns_esperados": [
+        "2667193X"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://pubmed.ncbi.nlm.nih.gov/37644993/",
+        "https://repositorio.usp.br/directbitstream/c4c1f90d-74b1-4ba7-9eff-ddf43022b8bd/HSA_23_2023.pdf"
+      ],
+      "nota": "O PDF do artigo DOI 10.1016/j.lana.2023.100574 identifica The Lancet Regional Health - Americas. Atenção: esse item é seção News e sua elegibilidade na fórmula requer avaliação individual; o alias só identifica o veículo."
+    },
+    {
+      "alias": "Jove-Journal of Visualized Experiments",
+      "source_id": "19900191993",
+      "titulo_catalogo_esperado": "Journal of Visualized Experiments",
+      "issns_esperados": [
+        "1940087X"
+      ],
+      "verificado_em": "2026-10-20",
+      "fontes": [
+        "https://info.jove.com/issn-research",
+        "https://www.jove.com/v/64857/amebas-automatic-midline-extraction-and-background-subtraction-of-ratiometric-fluorescence-time-lapses-of-polarized-single-cells",
+        "https://pubmed.ncbi.nlm.nih.gov/37427934/"
+      ],
+      "nota": "Catálogo oficial JoVE confirma ISSN 1940-087X. O artigo AMEBaS está na página do editor e no registro PubMed. JoVE é a forma abreviada de Journal of Visualized Experiments."
+    }
+  ]
+}
