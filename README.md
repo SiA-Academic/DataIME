@@ -4,7 +4,7 @@ O painel reúne indicadores da graduação e da pós-graduação do Instituto de
 
 | Menu | Consultas |
 | --- | --- |
-| Graduação | Vagas, ingressantes, matrículas, concluintes, disciplinas e estatísticas do Anuário. [Guia da graduação](docs/graduacao.md) |
+| Graduação | Vagas, ingressantes, matrículas, concluintes, disciplinas e turmas. [Guia da graduação](docs/graduacao.md) |
 | Pós-graduação | Titulações, matrículas e disciplinas por programa, nível e período, com suas fontes e critérios de cobertura. [Guia da pós-graduação](docs/pos-graduacao.md) |
 
 Use os dois menus à esquerda para alternar entre as consultas. Os filtros e as opções de exportação acompanham a seção selecionada. Links como `#graduation/series` e `#series` abrem diretamente a consulta desejada.

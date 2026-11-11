@@ -713,7 +713,10 @@
   const route=value==='requested'?'disciplines':value==='additional'?'restricted':value;
   if(area==='graduation'){
    state.view='graduation';
-   state.gradTab=tab==='mac-adicional'&&!graduationPanel.hasCommonDepartments?'department':tab||'series';
+   if(tab==='anuario'){
+    state.gradTab='department';
+    history.replaceState(history.state,'','#graduation/department');
+   }else state.gradTab=tab==='mac-adicional'&&!graduationPanel.hasCommonDepartments?'department':tab||'series';
   }else{
    state.view=Object.hasOwn(titles,route)?route:'series';
   }
