@@ -198,9 +198,11 @@
 
  function legend(ps=selected()){return `<div class="legend">${ps.map(p=>`<span title="${esc(p.name)}"><i class="legend-dot" style="background:${p.color}"></i>${p.id}</span>`).join('')}</div>`;}
 
- function chart(section,metric,level,title){
+ function chart(section,metric,level,title,groupId,jumpId){
 
-  const id='chart-'+(++chartCount), ps=selected(), ys=selectedYears(),chartDescription=label(section,metric,level)+' · '+rangeLabel()+(shareMode()?' · % do total dos programas':'');
+  const id='chart-'+(++chartCount), ps=selected(), ys=selectedYears();
+  const period=rangeLabel()+(shareMode()?' · % do total dos programas':'');
+  const chartDescription=title+' · '+period;
 
   const records=ps.flatMap(p=>ys.map(year=>viewMetric(section,metric,year,p.id,level)));
   const values=records.filter(M.numeric).map(record=>isRatio(record)?record.value*100:record.value);
@@ -254,7 +256,9 @@
 
   }else inner=`<text x="${W/2}" y="${H/2}" text-anchor="middle" class="chart-text">Sem valores documentados para esta seleção.</text>`;
 
-  return `<article class="panel" data-post-section="${esc(section)}" data-post-metric="${esc(metric)}" data-post-level="${esc(level)}"><div class="panel-heading"><h3>${esc(title)}</h3><div class="chart-actions">${trendControl}<button class="chart-action" data-export-svg="${id}" aria-label="Baixar SVG: ${esc(chartDescription)}">SVG ↓</button></div></div><div class="chart-container"><svg id="${id}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(chartDescription)}" xmlns="http://www.w3.org/2000/svg"><title>${esc(chartDescription)}</title>${inner}</svg></div>${legend(ps)}</article>`;
+  const groupAttribute=section==='disciplines'?'data-post-discipline':'data-post-series';
+  const headingTarget=jumpId?` id="${esc(jumpId)}" tabindex="-1"`:'';
+  return `<article class="panel" data-post-section="${esc(section)}" data-post-metric="${esc(metric)}" data-post-level="${esc(level)}" ${groupAttribute}="${esc(groupId)}"><div class="panel-heading"><div><h2${headingTarget}>${esc(title)}</h2><p>${esc(period)}</p></div><div class="chart-actions">${trendControl}<button class="chart-action" data-export-svg="${id}" aria-label="Baixar SVG: ${esc(chartDescription)}">SVG ↓</button></div></div><div class="chart-container"><svg id="${id}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(chartDescription)}" xmlns="http://www.w3.org/2000/svg"><title>${esc(chartDescription)}</title>${inner}</svg></div>${legend(ps)}</article>`;
 
  }
 
@@ -322,10 +326,6 @@
  function indicatorIndex(items,extra=''){
   return `<nav class="indicator-index" aria-label="Indicadores nesta página">${items.map(item=>`<button data-post-jump="${esc(item.id)}" title="Ir para ${esc(item.title)}">${esc(item.short||item.title)}</button>`).join('')}</nav>${extra}`;
  }
- function annualChart(section,metric,level){
-  const period=(level?(levels[level]||level)+' · ':'')+rangeLabel();
-  return chart(section,metric,level,period);
- }
  function enrollmentsPerSectionTable(ps,ys,getRecord){
   const headings=ps.map(p=>`<th scope="col" title="${esc(p.name)}">${esc(p.id)}</th>`).join('');
   const rows=ys.map(year=>{
@@ -334,30 +334,36 @@
   }).join('');
   return `<div class="table-wrap"><table class="data-table" data-post-mean-table="enrollments_per_section" aria-label="Matrículas médias por turma por ano e programa"><thead><tr><th scope="col">Ano</th>${headings}</tr></thead><tbody>${rows}</tbody></table></div>`;
  }
- function indicatorsDownload(){
-  return `<section class="panel indicators-download"><div><h2>Tabelas para download</h2><p>Todos os dados dos indicadores em um único arquivo · ${selected().length} programa(s) · ${esc(rangeLabel())}.</p></div>${tableDownloadButton()}</section>`;
+ function indicatorsDownload(note=''){
+  return `<section class="panel indicators-download"><div><h2>Tabelas para download</h2><p>Todos os dados dos indicadores em um único arquivo · ${selected().length} programa(s) · ${esc(rangeLabel())}.</p>${note?`<p>${esc(note)}</p>`:''}</div>${tableDownloadButton()}</section>`;
  }
  function series(){
   const groups=seriesGroups.map(group=>({...group,levels:group.levels.filter(level=>group.always||hasMetricData(group.section,group.metric,level))})).filter(group=>group.levels.length);
   const mode=`<div class="segmented" aria-label="Unidade de comparação"><button data-series-mode="count" class="${!shareMode()?'active':''}">Contagem</button><button data-series-mode="share" class="${shareMode()?'active':''}" title="Participação no total dos programas configurados">% do total</button></div>`;
-  postControls=groups.length?indicatorIndex(groups.map(group=>({id:'post-series-'+group.id,title:group.title,short:group.short})),mode):'';
+  const chartGroups=groups.map(group=>({...group,levels:group.levels.filter(level=>level&&level!=='total')})).filter(group=>group.levels.length);
+  postControls=chartGroups.length?indicatorIndex(chartGroups.map(group=>({id:'post-series-'+group.id,title:group.title,short:group.short})),mode):'';
   startTableExport();
-  const html=groups.map(group=>{
-   const charts=group.levels.map(level=>{appendAnnualExport(group.section,group.metric,level);return annualChart(group.section,group.metric,level);}).join('');
-   return `<section class="post-indicator-section" data-post-series="${group.id}" aria-labelledby="post-series-${group.id}"><div class="section-heading"><h2 id="post-series-${group.id}" tabindex="-1">${esc(group.title)}</h2></div><div class="chart-grid">${charts}</div></section>`;
-  }).join('');
-  return html?html+indicatorsDownload():empty('Não há indicadores documentados nesta área.');
+  if(!groups.length)return empty('Não há indicadores documentados nesta área.');
+  for(const group of groups)for(const level of group.levels)appendAnnualExport(group.section,group.metric,level);
+  const charts=chartGroups.flatMap(group=>group.levels.map((level,i)=>
+   chart(group.section,group.metric,level,group.title+' · '+levels[level],group.id,i===0?'post-series-'+group.id:null)
+  )).join('');
+  const totalsOnly=groups.filter(group=>group.levels.every(level=>!level||level==='total'));
+  const note=totalsOnly.length?'O CSV traz apenas o total para '+totalsOnly.map(group=>group.title.toLocaleLowerCase('pt-BR')).join(', ')+'.':'';
+  return (charts?`<div class="chart-grid charts-first-grid">${charts}</div>`:'')+indicatorsDownload(note);
  }
  function disciplines(){
   const metrics=Object.keys(disciplineMetricLabels).filter(metric=>extendedDisciplineMetrics.includes(metric)||hasMetricData('disciplines',metric,null));
   postControls=metrics.length?indicatorIndex(metrics.map(metric=>({id:'post-disciplines-'+metric,title:disciplineMetricLabels[metric],short:disciplineShortLabels[metric]}))):'';
   startTableExport();
-  const html=metrics.map(metric=>{
-   appendAnnualExport('disciplines',metric,null);
-   const view=metric==='enrollments_per_section'?enrollmentsPerSectionTable(selected(),selectedYears(),viewMetric):`<div class="chart-grid">${annualChart('disciplines',metric,null)}</div>`;
-   return `<section class="post-indicator-section" data-post-discipline="${metric}" aria-labelledby="post-disciplines-${metric}"><div class="section-heading"><h2 id="post-disciplines-${metric}" tabindex="-1">${esc(disciplineMetricLabels[metric])}</h2></div>${view}</section>`;
-  }).join('');
-  return html?html+indicatorsDownload():empty('Não há indicadores documentados nesta área.');
+  if(!metrics.length)return empty('Não há indicadores documentados nesta área.');
+  for(const metric of metrics)appendAnnualExport('disciplines',metric,null);
+  const tableMetric='enrollments_per_section';
+  const charts=metrics.filter(metric=>metric!==tableMetric).map(metric=>
+   chart('disciplines',metric,null,disciplineMetricLabels[metric],metric,'post-disciplines-'+metric)
+  ).join('');
+  const table=metrics.includes(tableMetric)?`<section class="post-indicator-section" data-post-discipline="${tableMetric}" aria-labelledby="post-disciplines-${tableMetric}"><div class="section-heading"><h2 id="post-disciplines-${tableMetric}" tabindex="-1">${esc(disciplineMetricLabels[tableMetric])}</h2></div>${enrollmentsPerSectionTable(selected(),selectedYears(),viewMetric)}</section>`:'';
+  return (charts?`<div class="chart-grid charts-first-grid">${charts}</div>`:'')+table+indicatorsDownload();
  }
 
  function yearList(ys){const runs=[];ys.forEach(y=>{const last=runs.at(-1);if(last&&last[1]===y-1)last[1]=y;else runs.push([y,y]);});return runs.map(([a,b])=>a===b?String(a):a+'–'+b).join(', ')||'nenhum';}
@@ -477,7 +483,7 @@
 
   const controls=`<div class="toolbar"><span class="note">${restrictedRecords.length} registros agregados · ${esc(restrictedPrograms.map(p=>p.id).join(', '))}</span>${tableDownloadButton(!ps.length||!ys.length)}</div>`;
 
-  if(!ps.length||!ys.length)return filters+controls+'<div class="empty-state"><h2>Selecione programas e anos deste conjunto</h2><button class="button" data-action="restricted-reset">Restaurar esta área</button></div>';
+  if(!ps.length||!ys.length)return filters+'<div class="empty-state"><h2>Selecione programas e anos deste conjunto</h2><button class="button" data-action="restricted-reset">Restaurar esta área</button></div>'+controls;
 
   startTableExport();
 
@@ -488,9 +494,9 @@
   }
 
   const charts=[{metric:'enrollments',family:'participation',label:'Matrículas em disciplinas'},{metric:'approvals',family:'participation',label:'Aprovações em disciplinas'},{metric:'sections',family:'occupation',label:'Turmas oferecidas'}],participationMax=Math.max(0,...ps.flatMap(p=>restrictedParticipationMetrics.flatMap(metric=>ys.map(year=>restrictedGet('disciplines',metric,year,p.id)))).filter(M.numeric).map(r=>r.value)),panels=charts.map(chart=>restrictedCombinedChart({section:'disciplines',level:null,...chart,metrics:[chart.metric]},ps,ys,chart.family==='participation'?participationMax:null)).join('');
-  const means=`<article class="panel"><div class="panel-heading"><h3>Matrículas médias por turma</h3></div>${enrollmentsPerSectionTable(ps,ys,restrictedGet)}</article>`;
+  const means=`<section class="post-indicator-section" aria-labelledby="restricted-class-size"><div class="section-heading"><h2 id="restricted-class-size">Matrículas médias por turma</h2></div>${enrollmentsPerSectionTable(ps,ys,restrictedGet)}</section>`;
 
-  return filters+controls+`<div class="chart-grid" data-restricted-dashboard>${panels}${means}</div>`;
+  return filters+`<div class="chart-grid charts-first-grid" data-restricted-dashboard>${panels}</div>`+means+controls;
 
  }
 

@@ -155,9 +155,11 @@
   }
   return `<g data-grad-estimate-point ${attributes} style="cursor:pointer">${svgTitle}${interval}<path d="M${x},${y-5}l5,5 -5,5 -5,-5Z" stroke="${entity.color}" stroke-width="2" fill="white"/></g>`;
  }
- function graph(section,metric,semester,entities){
+ function graph(section,metric,semester,entities,firstPeriod){
   const ys=selectedYears(),ps=entities.map(p=>({...p,records:ys.map(year=>get(section,metric,year,semester,p.id))}));
-  const title=metricLabel(metric,section),periodTitle=semLabel(semester)+' · '+range(),isCourseSeries=section==='cursos',displayTitle=isCourseSeries?periodTitle:title;
+  const title=metricLabel(metric,section),periodTitle=semLabel(semester)+' · '+range();
+  const courseMetric=section==='cursos'?` data-grad-series-metric="${esc(metric)}"`:'';
+  const anchor=courseMetric&&firstPeriod?` id="grad-series-${esc(metric)}" tabindex="-1"`:'';
   const points=ps.flatMap(p=>p.records.map(r=>({p,r})));
   const vals=points.filter(x=>numeric(x.r)).map(x=>ratio(x.r)?x.r.value*100:x.r.value),id='grad-chart-'+(++chartId),W=480,H=210,L=55,R=20,T=32,B=45,iw=W-L-R,ih=H-T-B;
   let svg='',trendControl='';
@@ -190,21 +192,26 @@
   }else svg=`<text x="${W/2}" y="${H/2}" text-anchor="middle" class="chart-text">${state.tab==='department'&&section==='departamento_jupiter'&&creditMetricIds.includes(metric)?'Sem recortes com cobertura comum nesta seleção.':'Sem valores documentados nesta seleção.'}</text>`;
   const containsEstimates=points.some(({r})=>estimated(r));
   const chartLegend=legend(ps,containsEstimates,points.some(({r})=>reportedIntake(r)));
-  return `<article class="panel"><div class="panel-heading"><div><h3>${esc(displayTitle)}</h3>${isCourseSeries?'':`<p>${esc(periodTitle)}</p>`}</div><div class="chart-actions">${trendControl}<button class="chart-action" data-grad-svg="${id}">SVG ↓</button></div></div><div class="chart-container"><svg id="${id}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(title+' · '+semLabel(semester))}"><title>${esc(title+' · '+semLabel(semester)+' · '+range())}</title>${containsEstimates?`<desc>${esc(points.filter(({r})=>estimated(r)).map(({r})=>r.course+' · '+r.year+' · '+estimateDescription(r)).join(' '))}</desc>`:''}${svg}</svg></div>${chartLegend}</article>`;
+  return `<article class="panel"${courseMetric}><div class="panel-heading"><div><h2${anchor}>${esc(title)}</h2><p>${esc(periodTitle)}</p></div><div class="chart-actions">${trendControl}<button class="chart-action" data-grad-svg="${id}">SVG ↓</button></div></div><div class="chart-container"><svg id="${id}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(title+' · '+semLabel(semester))}"><title>${esc(title+' · '+semLabel(semester)+' · '+range())}</title>${containsEstimates?`<desc>${esc(points.filter(({r})=>estimated(r)).map(({r})=>r.course+' · '+r.year+' · '+estimateDescription(r)).join(' '))}</desc>`:''}${svg}</svg></div>${chartLegend}</article>`;
  }
- function periodPanels(section,metric,semesters,entities){
-  const different=semesters.filter(semester=>differentCoverage(section,metric,semester,entities));
-  const warning=different.length?`<div class="callout warning">Os anos com dados variam entre as séries selecionadas (${different.map(semLabel).join(', ')}).</div>`:'';
-  if(meanMetricIds.has(metric)){
-   const label=esc(metricLabel(metric,section));
-   const columns=entities.map(entity=>`<th scope="col" title="${esc(entity.name)}">${esc(entity.id)}</th>`).join('');
-   const rows=selectedYears().flatMap(year=>semesters.map(semester=>{
-    const values=entities.map(entity=>`<td>${cell(get(section,metric,year,semester,entity.id))}</td>`).join('');
-    return `<tr><th scope="row">${year} · ${semLabel(semester)}</th>${values}</tr>`;
-   })).join('');
-   return warning+`<article class="panel grad-data-panel" data-grad-mean-table><div class="panel-heading"><h3>${label}</h3></div><div class="table-wrap"><table class="data-table" aria-label="${label}"><thead><tr><th scope="col">Período</th>${columns}</tr></thead><tbody>${rows}</tbody></table></div></article>`;
+ function meanTable(section,metric,semesters,entities){
+  const label=esc(metricLabel(metric,section));
+  const columns=entities.map(entity=>`<th scope="col" title="${esc(entity.name)}">${esc(entity.id)}</th>`).join('');
+  const rows=selectedYears().flatMap(year=>semesters.map(semester=>{
+   const values=entities.map(entity=>`<td>${cell(get(section,metric,year,semester,entity.id))}</td>`).join('');
+   return `<tr><th scope="row">${year} · ${semLabel(semester)}</th>${values}</tr>`;
+  })).join('');
+  return `<article class="panel grad-data-panel" data-grad-mean-table><div class="panel-heading"><h2>${label}</h2></div><div class="table-wrap"><table class="data-table" aria-label="${label}"><thead><tr><th scope="col">Período</th>${columns}</tr></thead><tbody>${rows}</tbody></table></div></article>`;
+ }
+ function periodPanels(section,items,entities,details=''){
+  const charts=[];
+  for(const {metric,sems} of items){
+   const different=sems.filter(semester=>differentCoverage(section,metric,semester,entities));
+   if(different.length)details+=`<div class="callout warning"><strong>${esc(metricLabel(metric,section))}.</strong> Os anos com dados variam entre as séries selecionadas (${different.map(semLabel).join(', ')}).</div>`;
+   if(meanMetricIds.has(metric))details+=meanTable(section,metric,sems,entities);
+   else charts.push(...sems.map((semester,i)=>graph(section,metric,semester,entities,i===0)));
   }
-  return warning+`<div class="chart-grid">${semesters.map(semester=>graph(section,metric,semester,entities)).join('')}</div>`;
+  return (charts.length?`<div class="chart-grid charts-first-grid">${charts.join('')}</div>`:'')+details;
  }
  const estimateColumns=['Estimativa por possível sobreposição','Limite inferior','Limite superior'];
  const estimateCells=r=>estimated(r)?['Sim',estimateBound(r,'lower_bound')??'',estimateBound(r,'upper_bound')??'']:['','',''];
@@ -221,7 +228,8 @@
  function series(){
   const entities=chosen(),items=courseMetricIds.map(metric=>({metric,sems:metric==='matriculados'?[1,2]:[null]}));
   csvRecords(items.flatMap(({metric,sems})=>metricExportRecords('cursos',metric,sems,entities)));
-  return items.map(({metric,sems})=>`<section class="grad-series-section" data-grad-series-metric="${metric}" aria-labelledby="grad-series-${metric}"><div class="section-heading"><h2 id="grad-series-${metric}" tabindex="-1">${esc(metricLabel(metric))}</h2></div>${metric==='ingressantes'&&entities.some(c=>c.id==='BMAC + BMA')&&selectedYears().some(y=>!reportedIntake(get('cursos',metric,y,null,'BMAC + BMA')))?`<p class="note" data-grad-inep-scope>Inep · ${esc(inepScopeNote)}</p>`:''}${periodPanels('cursos',metric,sems,entities)}</section>`).join('');
+  const scopeNote=entities.some(c=>c.id==='BMAC + BMA')&&selectedYears().some(y=>!reportedIntake(get('cursos','ingressantes',y,null,'BMAC + BMA')))?`<p class="note" data-grad-inep-scope>Ingressantes · Inep · ${esc(inepScopeNote)}</p>`:'';
+  return periodPanels('cursos',items,entities,scopeNote);
  }
  const departmentNames={MAC:'Ciência da Computação',MAT:'Matemática',MAP:'Matemática Aplicada',MAE:'Estatística','450':'Disciplinas interdepartamentais'};
  const departmentColors={MAC:colors[0],MAT:colors[1],MAP:colors[2],MAE:colors[3],'450':colors[4]};
@@ -239,10 +247,10 @@
   viewControls=`<div class="filter-control-group"><label>Indicador <select id="grad-jupiter-metric" class="select-control">${available.map(m=>`<option value="${esc(m)}" ${m===metric?'selected':''}>${esc(metricLabel(m,section))}</option>`).join('')}</select></label><label>Período <select id="grad-jupiter-semester" class="select-control">${periods.map(([id,label])=>`<option value="${id}" ${id===state.jupiterSemester?'selected':''}>${label}</option>`).join('')}</select></label></div>`;
   viewOptions=selectionOptions(departments.map(d=>({...d,color:departmentColors[d.id]||colors[5]})),state.jupiterDepartments,'grad-jupiter-department',isSectionRegistry?'Prefixos':'Departamentos',isSectionRegistry?'Prefixos de disciplinas no Júpiter':'Departamentos dos relatórios Júpiter');
   csvRecords(metricExportRecords(section,metric,sems,entities));
-  const heading=`<div class="section-heading" data-grad-common-comparison><div><h2>${esc(commonDepartmentTitle)}</h2></div><a class="text-button" href="#graduation/coverage">Cobertura e lacunas →</a></div>`;
-  if(!entities.length)return heading+`<div class="empty-state"><h2>Selecione pelo menos um ${isSectionRegistry?'prefixo de disciplina':'departamento'}</h2><p>A seleção de cursos é independente desta visão.</p></div>`;
+  const coverageLink='<p class="note" data-grad-common-comparison><a class="text-button" href="#graduation/coverage">Cobertura e lacunas →</a></p>';
+  if(!entities.length)return coverageLink+`<div class="empty-state"><h2>Selecione pelo menos um ${isSectionRegistry?'prefixo de disciplina':'departamento'}</h2><p>A seleção de cursos é independente desta visão.</p></div>`;
   const nominal=(!isSectionRegistry||subset.some(numeric))&&creditMetricIds.includes(metric)?`<p class="note" data-grad-credit-comparison>${commonCreditPeriods.size} recortes com cobertura comum · NC: fora da comparação · <a href="#graduation/additional">Ver valores complementares</a></p>`:'';
-  return heading+nominal+periodPanels(section,metric,sems,entities);
+  return periodPanels(section,[{metric,sems}],entities,coverageLink+nominal);
  }
  function creditComplementRecords(){return jupiterRecords.filter(r=>comparisonDepartments.includes(r.department)&&years.includes(r.year)&&creditMetricIds.includes(r.metric)&&numeric(r)&&!commonCreditPeriods.has(creditPeriodKey(r.year,r.semester)));}
  function coverageSummary(){
@@ -310,22 +318,23 @@ function sourcesExport(visibleSources,collection){
   csvRecords(rs);const rows=rs.filter(r=>r.metric===creditMetricIds[0]);
   return rows.length?`<p class="note" data-grad-credit-additional>${rows.length} recortes departamentais · ${rs.length} valores complementares nesta seleção.</p>`:'<div class="empty-state"><h3>Não há valores complementares neste intervalo</h3><p>Os valores comuns estão na comparação; provas ainda ausentes estão em Cobertura e lacunas.</p></div>';
  }
- function interdepartmental(){
+ function interdepartmental(context){
   const section='departamento_jupiter',rs=jupiterRecords.filter(r=>r.department==='450'),available=[...new Set(rs.filter(numeric).map(r=>r.metric))];
-  if(!available.length){csvRecords([]);return '<div class="empty-state"><h3>Nenhum indicador com dados para o prefixo 450</h3></div>';}
+  if(!available.length){csvRecords([]);return context+'<div class="empty-state"><h2>Nenhum indicador com dados para o prefixo 450</h2></div>';}
   if(!available.includes(state.interdepartmentalMetric))state.interdepartmentalMetric=available[0];
   const metric=state.interdepartmentalMetric,sems=state.interdepartmentalSemester==='annual'?[null]:state.interdepartmentalSemester==='both'?[1,2]:[+state.interdepartmentalSemester],entities=[{id:'450',name:departmentNames['450'],color:departmentColors['450']}];
   csvRecords(metricExportRecords(section,metric,sems,entities));
   viewControls+=`<div class="filter-control-group"><label>Indicador <select id="grad-interdepartmental-metric" class="select-control">${available.map(m=>`<option value="${esc(m)}" ${m===metric?'selected':''}>${esc(metricLabel(m,section))}</option>`).join('')}</select></label><label>Período <select id="grad-interdepartmental-semester" class="select-control">${[['annual','Anual'],['both','Semestres separados'],['1','1º semestre'],['2','2º semestre']].map(([id,label])=>`<option value="${id}" ${state.interdepartmentalSemester===id?'selected':''}>${label}</option>`).join('')}</select></label></div>`;
-  return `<p class="note" data-grad-interdepartmental>Prefixo interdepartamental 450 · cobertura do cadastro: 2017–2025, 2º semestre.</p>${periodPanels(section,metric,sems,entities)}`;
+  const note='<p class="note" data-grad-interdepartmental>Prefixo interdepartamental 450 · cobertura do cadastro: 2017–2025, 2º semestre.</p>';
+  return periodPanels(section,[{metric,sems}],entities,context+note);
  }
  function additional(){
   if(!hasCommonDepartments)return department();
   const views=[['credits','Créditos/carga adicionais por departamento'],['interdepartmental','Prefixo interdepartamental 450']];
   if(!views.some(([id])=>id===state.additionalView))state.additionalView='credits';
-  const header=`<div class="section-heading" data-grad-additional><div><h2>Dados complementares</h2><p>Créditos, cargas e ofertas interdepartamentais.</p></div><a class="text-button" href="#graduation/coverage">Cobertura e lacunas →</a></div>`;
+  const context='<p class="note" data-grad-additional>Créditos, cargas e ofertas interdepartamentais. <a class="text-button" href="#graduation/coverage">Cobertura e lacunas →</a></p>';
   viewControls=`<div class="filter-control-group"><label>Dados <select id="grad-additional-view" class="select-control">${views.map(([id,label])=>`<option value="${id}" ${id===state.additionalView?'selected':''}>${label}</option>`).join('')}</select></label></div>`;
-  return header+(state.additionalView==='interdepartmental'?interdepartmental():creditComplements());
+  return state.additionalView==='interdepartmental'?interdepartmental(context):context+creditComplements();
  }
  const anuarioFallbackDepartments=[{id:'MAC',name:'Ciência da Computação'},{id:'MAT',name:'Matemática'},{id:'MAP',name:'Matemática Aplicada'},{id:'MAE',name:'Estatística'},{id:'450',name:'Disciplinas interdepartamentais'}];
  function anuarioEntities(){return (D.anuario_departments||anuarioFallbackDepartments).map((d,i)=>({...d,color:colors[i%colors.length]})).filter(d=>state.anuarioDepartments.has(d.id));}
@@ -339,7 +348,7 @@ function sourcesExport(visibleSources,collection){
   viewOptions=selectionOptions(departments.map((d,i)=>({...d,color:colors[i%colors.length]})),state.anuarioDepartments,'grad-anuario-department','Departamentos','Departamentos do Anuário');
   csvRecords(metricExportRecords(section,metric,sems,entities));
   if(!entities.length)return '<div class="empty-state"><h2>Selecione pelo menos um departamento</h2><p>Os filtros de cursos não se aplicam a esta visão.</p></div>';
-  return `<div class="section-heading"><div><h2>Estatísticas públicas do Anuário</h2></div></div>${periodPanels(section,metric,sems,entities)}`;
+  return periodPanels(section,[{metric,sems}],entities);
  }
  const curriculumFields=[['class_hours','Horas de aula'],['class_credits','Créditos aula'],['work_hours','Horas de trabalho'],['work_credits','Créditos trabalho'],['printed_table_subtotal_hours','Subtotal impresso (h)'],['printed_credits_total','Total impresso (créditos)']];
  const issueLabels={printed_credit_components_do_not_sum_to_printed_total:'Os componentes de créditos não somam o total impresso.',printed_hour_components_do_not_sum_to_printed_total:'Os componentes de horas não somam o total impresso.'};

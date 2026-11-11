@@ -12,7 +12,8 @@ Nos gráficos de evolução, **Mediana móvel · 3 anos** começa desligada. Ao 
 
 ## Pós-graduação: cobertura e leitura
 
-- Titulações e matrículas reúne Titulações, Matrículas regulares e Alunos especiais na mesma página, com Total, Mestrado e Doutorado apresentados em blocos quando disponíveis. A opção Contagem/% do total se aplica a todos os blocos. Disciplinas apresenta juntos os indicadores de oferta, participação, créditos, carga curricular e tamanho de turma. Os atalhos da barra fixa apenas navegam entre os blocos; o download único de cada visão inclui todos eles com os filtros aplicados.
+- Em Titulações e matrículas, cada linha compara mestrado e doutorado. A primeira mostra titulações e a segunda, matrículas regulares. O filtro permite alternar entre contagem e participação percentual. O CSV também inclui os totais e as matrículas de alunos especiais.
+- Em Disciplinas, os gráficos aparecem aos pares após os filtros. A tabela de matrículas médias por turma e o download do CSV ficam abaixo. Em telas estreitas, os gráficos ficam em uma coluna.
 - Titulações e matrículas anuais: fontes públicas, 2012–2025 nos cinco programas atualmente configurados.
 - Oferta e participação em disciplinas, créditos, carga curricular, tamanho das turmas: 2012–2025, com fontes independentes e as situações NA documentadas. A coleção original de CC/MAT não define quais turmas entram na base principal.
 - Dados de acesso específico: 168 valores anuais dos seis indicadores mantidos dos relatórios originais de CC/MAT em 2012–2025, isolados de todos os cálculos principais. O destaque identifica a permissão necessária para obter as fontes; não representa uma proteção de acesso aos agregados exibidos no site.
