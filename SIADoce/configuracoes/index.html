@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="pt-br">
+<head>
+<meta charset="utf-8"/>
+<link href="../../assets/sia.css" rel="stylesheet"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="light dark" name="color-scheme"/>
+<meta content="#142d69" name="theme-color"/>
+<meta content="Sistema institucional de apoio ao acompanhamento docente dos programas de pós-graduação da Universidade de São Paulo." name="description"/><title>Configurações do SIADoce · SIADoce | Sistema de Informações Acadêmicas</title>
+<link href="../css/controle.css" rel="stylesheet"/>
+<link href="../css/sia-doce.css" rel="stylesheet"/>
+<script defer="" src="../dados/dados.js"></script>
+<script defer="" src="../js/paginas.js"></script></head>
+<body class="site-body" data-pagina="configuracoes"><a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+<div class="app-shell" id="appShell">
+<header class="site-header">
+<div class="institutional-bar">
+<div class="shell institutional-inner">
+<p>Universidade de São Paulo</p>
+<nav aria-label="Links institucionais"><a href="https://www.usp.br/" rel="external">USP</a>
+<a href="https://www.ime.usp.br/" rel="external">IME-USP</a>
+<a href="https://prpg.usp.br/" rel="external">PRPG</a></nav></div></div>
+<div class="shell brand-row"><a aria-label="SIADoce — Sistema de Informações Acadêmicas – Docentes" class="brand sidebar-brand" href="../index.html"><span aria-hidden="true" class="brand-lockup"><span class="site-mark">SIA</span>
+<span class="brand-divider"></span>
+<span class="sidebar-brand-copy brand-name"><strong>SIADoce</strong>
+<small>Sistema de Informações Acadêmicas – Docentes</small></span></span></a>
+<div class="header-actions"><span class="instance-chip" title="Programa de Pós-Graduação em Ciência da Computação — IME-USP">PPGCC · IME-USP</span>
+<button aria-label="Alternar tema" class="sidebar-theme-button icon-button" id="themeToggle" type="button">
+<span aria-hidden="true" class="theme-indicator"></span>
+<span class="sidebar-theme-copy"><strong>Tema</strong>
+</span></button>
+<button aria-controls="siteSidebar" aria-expanded="false" aria-label="Abrir menu" class="menu-toggle" id="mobileMenuToggle" type="button">
+<span aria-hidden="true" class="menu-lines"></span>
+<span>Menu</span></button></div></div></header>
+<nav aria-label="Navegação principal" class="site-rail" id="siteSidebar"><a aria-label="SIADoce — início" class="rail-brand" href="../index.html"><span aria-hidden="true" class="rail-mark">SIA</span>
+<span><strong>SIADoce</strong><small>Sistema de Informações Acadêmicas – Docentes</small></span>
+</a>
+<button class="rail-close" id="mobileMenuClose" type="button">Fechar menu</button>
+<div class="rail-links"><a href="../index.html">Visão geral</a>
+<a href="../docentes/index.html">Docentes</a>
+<div class="rail-children"><a href="../docentes/index.html#docentesTable" data-ancora-publica="lista-publica-titulo">Lista de docentes</a>
+<a href="../docentes/index.html#docenteMetrics" data-ancora-publica="consulta-agregada">Indicadores</a></div><span class="rail-heading" id="rail-producao">Produção docente</span>
+<div aria-labelledby="rail-producao" class="rail-children" role="group"><a href="../producao/index.html">Produção por ano</a>
+<a href="../producao/analise-geral/index.html">Análise geral</a></div><a href="../titulados/index.html">Titulações</a>
+<div class="rail-children"><a href="../titulados/index.html#por-orientador"><span class="somente-publico">Por ano</span><span class="somente-institucional">Por orientador e ano</span></a>
+<a href="../titulados/index.html#evolucao-mensal">Evolução mensal</a></div><a href="../alertas/index.html">Alertas</a><a href="../credenciamento/index.html">Quadro e credenciamento</a><a aria-current="page" href="../configuracoes/index.html">Configurações</a></div></nav>
+<button aria-label="Fechar menu" class="sidebar-scrim" id="sidebarScrim" tabindex="-1" type="button"></button>
+<div class="content-shell">
+<main class="main" id="conteudo" tabindex="-1"><noscript>Ative o JavaScript para consultar os dados interativos.</noscript>
+<section class="page-heading config-heading" id="resumo">
+<div>
+<p class="eyebrow">SIADoce</p>
+<h1>Configurações do SIADoce</h1>
+<p class="lead">Configuração da instância, das áreas e dos critérios de acompanhamento docente.</p></div>
+<div aria-label="Ações de configuração" class="global-actions"><a class="button quiet" href="../docentes/index.html">Docentes</a>
+<button class="button quiet" id="configDownload" type="button">Baixar configuracoes.md</button></div></section>
+<section aria-labelledby="configTitle" class="panel active config-panel" id="configPanel">
+<div class="section-title">
+<div>
+<h2 id="configTitle"><span class="somente-institucional">Configuração ativa</span><span class="somente-publico">Modelo de configuração</span></h2>
+<p>Ajuste os campos e baixe configuracoes.md para usar na atualização do sistema.</p></div>
+<p aria-live="polite" class="save-status" id="configStatus" role="status"></p></div>
+<div class="metric-grid config-summary" id="configSummary"></div>
+<p class="somente-publico">Esta edição oferece um modelo sem vínculos individuais. A configuração em uso e a atribuição de áreas aos docentes ficam na cópia institucional.</p>
+<div class="config-layout"><aside aria-label="Seções de configuração" class="config-nav"><a href="#config-geral">Geral</a>
+<a href="#config-indicadores">Alertas</a>
+<a href="#config-areas">Áreas</a>
+<a class="somente-institucional" href="#config-docentes">Docentes</a>
+<a href="#config-arquivo">Arquivo</a></aside>
+<div class="config-sections">
+<section class="config-section" id="config-geral">
+<div class="section-title compact-title">
+<div>
+<h3>Identidade</h3>
+<p>Textos institucionais e cabeçalho dos PDFs.</p></div></div>
+<div class="config-form-grid" id="configGeneralForm"></div></section>
+<section class="config-section" id="config-indicadores">
+<div class="section-title compact-title">
+<div>
+<h3>Alertas</h3>
+<p>Ajuste de limites para docentes, áreas e resumos exibidos pelo SIADoce.</p></div></div>
+<div class="config-rules" id="configScoreRules"></div></section>
+<section class="config-section" id="config-areas">
+<div class="section-title compact-title">
+<div>
+<h3>Áreas</h3>
+<p>Nomes completos e siglas exibidas no SIADoce.</p></div>
+<button class="button quiet" id="configAddArea" type="button">Adicionar área</button></div>
+<div class="config-areas-list" id="configAreasList"></div></section>
+<section class="config-section somente-institucional" id="config-docentes">
+<div class="section-title compact-title">
+<div>
+<h3>Docentes por área</h3>
+<p>Associação local usada para agrupar os dados Janus e Lattes.</p></div>
+<label class="config-search"><span>Busca</span>
+<input id="configAreaSearch" placeholder="Nome do docente" type="search"/></label></div>
+<div class="table-scroll"><table class="data-table config-docentes-table"><thead>
+<tr>
+<th>Docente</th>
+<th>Área</th></tr></thead>
+<tbody id="configDocenteAreas"></tbody></table></div></section>
+<section class="config-section" id="config-arquivo">
+<div class="section-title compact-title">
+<div>
+<h3>Arquivo gerado</h3>
+<p>Prévia do Markdown de configuração.</p></div>
+<div class="inline-actions">
+<button class="button quiet" id="configCopy" type="button">Copiar</button>
+<button class="button quiet" id="configReset" type="button">Restaurar</button></div></div><textarea class="config-preview" id="configMarkdownPreview" readonly="" rows="12"></textarea></section></div></div></section>
+<script defer="" src="modelo.js"></script>
+<script defer="" src="../js/configuracoes.js"></script></main>
+<footer class="site-footer footer">
+<div class="shell footer-grid">
+<div class="footer-brand"><span class="footer-lockup"><span aria-hidden="true" class="site-mark">SIA</span><strong>SIADoce</strong></span>
+<p>Sistema de Informações Acadêmicas – Docentes</p>
+<p class="footer-instance">Programa de Pós-Graduação em Ciência da Computação — IME-USP</p></div>
+<div>
+<h2>Instância institucional</h2>
+<p>Programa de Pós-Graduação em Ciência da Computação</p>
+<p>Instituto de Matemática e Estatística</p></div>
+<div>
+<h2>Links úteis</h2><ul>
+<li><a href="https://uspdigital.usp.br/janus/" rel="external">Sistema Janus</a></li>
+<li><a href="https://www.ime.usp.br/pos/" rel="external">Pós-Graduação do IME</a></li></ul></div></div>
+<div class="footer-bottom">
+<div class="shell">
+<p>Universidade de São Paulo · SIADoce</p></div></div></footer></div></div>
+<script defer="" src="../js/controle.js"></script></body></html>

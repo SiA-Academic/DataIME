@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="pt-br">
+<head>
+<meta charset="utf-8"/>
+<link href="../../../assets/sia.css" rel="stylesheet"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="light dark" name="color-scheme"/>
+<meta content="#142d69" name="theme-color"/>
+<meta content="Sistema institucional de apoio ao acompanhamento docente dos programas de pós-graduação da Universidade de São Paulo." name="description"/><title>Análise das publicações · SIADoce | Sistema de Informações Acadêmicas</title>
+<link href="../../css/controle.css" rel="stylesheet"/>
+<link href="../../css/producao.css" rel="stylesheet"/>
+<link href="../../css/analise-geral.css" rel="stylesheet"/>
+<script defer="" src="../../dados/dados.js"></script>
+<script defer="" src="../../dados/publicacoes.js"></script>
+<script defer="" src="../../js/paginas.js"></script></head>
+<body class="site-body" data-pagina="producao/analise-geral"><a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+<div class="app-shell" id="appShell">
+<header class="site-header">
+<div class="institutional-bar">
+<div class="shell institutional-inner">
+<p>Universidade de São Paulo</p>
+<nav aria-label="Links institucionais"><a href="https://www.usp.br/" rel="external">USP</a>
+<a href="https://www.ime.usp.br/" rel="external">IME-USP</a>
+<a href="https://prpg.usp.br/" rel="external">PRPG</a></nav></div></div>
+<div class="shell brand-row"><a aria-label="SIADoce — Sistema de Informações Acadêmicas – Docentes" class="brand sidebar-brand" href="../../index.html">
+<span aria-hidden="true" class="brand-lockup">
+<span class="site-mark">SIA</span>
+<span class="brand-divider"></span>
+<span class="sidebar-brand-copy brand-name"><strong>SIADoce</strong>
+<small>Sistema de Informações Acadêmicas – Docentes</small></span></span></a>
+<div class="header-actions">
+<span class="instance-chip" title="Programa de Pós-Graduação em Ciência da Computação — IME-USP">PPGCC · IME-USP</span>
+<button aria-label="Alternar tema" class="sidebar-theme-button icon-button" id="themeToggle" type="button">
+<span aria-hidden="true" class="theme-indicator"></span>
+<span class="sidebar-theme-copy"><strong>Tema</strong>
+</span></button>
+<button aria-controls="siteSidebar" aria-expanded="false" aria-label="Abrir menu" class="menu-toggle" id="mobileMenuToggle" type="button">
+<span aria-hidden="true" class="menu-lines"></span>
+<span>Menu</span></button></div></div></header>
+<nav aria-label="Navegação principal" class="site-rail" id="siteSidebar"><a aria-label="SIADoce — início" class="rail-brand" href="../../index.html">
+<span aria-hidden="true" class="rail-mark">SIA</span>
+<span><strong>SIADoce</strong><small>Sistema de Informações Acadêmicas – Docentes</small></span>
+</a>
+<button class="rail-close" id="mobileMenuClose" type="button">Fechar menu</button>
+<div class="rail-links"><a href="../../index.html">Visão geral</a>
+<a href="../../docentes/index.html">Docentes</a>
+<div class="rail-children"><a href="../../docentes/index.html#docentesTable" data-ancora-publica="lista-publica-titulo">Lista de docentes</a>
+<a href="../../docentes/index.html#docenteMetrics" data-ancora-publica="consulta-agregada">Indicadores</a></div>
+<span class="rail-heading" id="rail-producao">Produção docente</span>
+<div aria-labelledby="rail-producao" class="rail-children" role="group"><a href="../../producao/index.html">Produção por ano</a>
+<a aria-current="page" href="../../producao/analise-geral/index.html">Análise geral</a></div><a href="../../titulados/index.html">Titulações</a>
+<div class="rail-children"><a href="../../titulados/index.html#por-orientador">
+<span class="somente-publico">Por ano</span>
+<span class="somente-institucional">Por orientador e ano</span></a>
+<a href="../../titulados/index.html#evolucao-mensal">Evolução mensal</a></div><a href="../../alertas/index.html">Alertas</a><a href="../../credenciamento/index.html">Quadro e credenciamento</a><a href="../../configuracoes/index.html">Configurações</a></div></nav>
+<button aria-label="Fechar menu" class="sidebar-scrim" id="sidebarScrim" tabindex="-1" type="button"></button>
+<div class="content-shell">
+<main class="main" id="conteudo" tabindex="-1"><noscript>Ative o JavaScript para consultar os dados interativos.</noscript>
+<div class="production-page sim-page" id="simulador">
+<header class="sim-title">
+<h1>Análise das publicações</h1></header>
+<p class="sim-error" id="sim-sem-base" role="alert" hidden>Não foi possível carregar os dados da análise das publicações.</p>
+<form class="production-card sim-criteria" hidden="" id="sim-regras">
+<header class="sim-heading">
+<h2>Critérios</h2>
+<button class="button quiet" type="reset">Restaurar proposta</button></header>
+<div class="sim-main">
+<label>Mínimo de artigos <input id="sim-min-total" min="0" name="minTotal" required="" step="1" type="number"/></label>
+<label>De <select aria-label="Ano inicial das publicações" name="inicio"></select></label>
+<label>Até <select aria-label="Ano final das publicações" name="fim"></select></label></div><p class="sim-note" id="sim-resumo-regras"></p><details class="sim-advanced"><summary>Mais critérios</summary>
+<div class="sim-advanced-content">
+<h3>Publicações</h3>
+<div class="sim-publication-fields"><fieldset><legend>Periódicos</legend>
+<div class="sim-bands">
+<label><input name="faixasPeriodicos" type="checkbox" value="A1"/>
+<span>A1</span></label>
+<label><input name="faixasPeriodicos" type="checkbox" value="A2"/>
+<span>A2</span></label>
+<label><input name="faixasPeriodicos" type="checkbox" value="A3"/>
+<span>A3</span></label>
+<label><input name="faixasPeriodicos" type="checkbox" value="A4"/>
+<span>A4</span></label>
+</div>
+<label class="sim-type-min">Mínimo em periódicos <input min="0" name="minPeriodicos" required="" step="1" type="number"/></label></fieldset><fieldset><legend>Congressos</legend>
+<div class="sim-bands">
+<label><input name="faixasCongressos" type="checkbox" value="A1"/>
+<span>A1</span></label>
+<label><input name="faixasCongressos" type="checkbox" value="A2"/>
+<span>A2</span></label>
+<label><input name="faixasCongressos" type="checkbox" value="A3"/>
+<span>A3</span></label>
+<label><input name="faixasCongressos" type="checkbox" value="A4"/>
+<span>A4</span></label>
+</div>
+<label class="sim-type-min">Mínimo em congressos <input min="0" name="minCongressos" required="" step="1" type="number"/></label></fieldset></div>
+<label class="sim-external"><input name="incluirExternos" type="checkbox"/> Incluir artigos confirmados em fontes externas e ausentes do Lattes importado</label>
+<div id="sim-orientacoes">
+<h3>Orientações no Janus</h3>
+<p class="sim-note" id="sim-periodo-janus"></p><div class="sim-janus-fields">
+<label>Evasão máxima (%) <input max="100" min="0" name="maxEvasao" placeholder="Sem limite" step="any" type="number"/></label>
+<label>Titulações mínimas <input min="0" name="minTitulados" required="" step="1" type="number"/></label>
+<label>Orientandos ativos mínimos <input min="0" name="minAtivos" required="" step="1" type="number"/></label>
+<label>Orientações encerradas mínimas <input min="0" name="minEncerrados" required="" step="1" type="number"/></label></div><p class="sim-note">Evasão é o percentual de desligamentos entre as orientações encerradas. O critério se aplica a partir de 3 alunos distintos, incluindo os ativos. A passagem para outro curso com o mesmo orientador é continuidade.</p></div></div></details><p class="sim-error" hidden="" id="sim-erro" role="alert"></p>
+<div aria-atomic="true" aria-live="polite" class="sim-balance" id="sim-balanco">
+<table aria-label="Resultados por grupo da análise" class="sim-totals">
+<thead>
+<tr><th scope="col">Grupo da análise</th><th scope="col">Atingiram</th><th scope="col">Em aberto</th><th scope="col">Abaixo</th></tr></thead><tbody></tbody></table></div></form>
+<section aria-labelledby="sim-titulo-resultados" class="production-card sim-results" hidden="" id="sim-resultados">
+<header class="sim-heading">
+<h2 id="sim-titulo-resultados">Docentes</h2>
+<span aria-atomic="true" aria-live="polite" class="sim-note" id="sim-exibidos" role="status"></span></header>
+<div class="sim-search"><input aria-label="Buscar docente por nome" id="sim-busca" placeholder="Buscar por nome" type="search"/>
+<button aria-controls="sim-filtros" aria-expanded="false" class="button quiet" id="sim-abrir-filtros" type="button">Filtros</button></div>
+<div class="sim-filters" hidden="" id="sim-filtros">
+<label id="sim-filtro-credenciamento">Credenciamento Janus <select id="sim-categoria"><option value="">Todos</option></select></label>
+<label>Situação <select id="sim-situacao"><option value="">Todas</option><option value="atingiu">Atingiu</option><option value="em_aberto">Em aberto</option><option value="abaixo">Abaixo</option></select></label></div>
+<div id="sim-lista"></div></section></div>
+<script defer="" src="../../js/simular-criterios.js"></script>
+<script defer="" src="../../js/analise-geral.js"></script></main>
+<footer class="site-footer footer">
+<div class="shell footer-grid">
+<div class="footer-brand">
+<span class="footer-lockup">
+<span aria-hidden="true" class="site-mark">SIA</span><strong>SIADoce</strong></span>
+<p>Sistema de Informações Acadêmicas – Docentes</p>
+<p class="footer-instance">Programa de Pós-Graduação em Ciência da Computação — IME-USP</p></div>
+<div>
+<h2>Instância institucional</h2>
+<p>Programa de Pós-Graduação em Ciência da Computação</p>
+<p>Instituto de Matemática e Estatística</p></div>
+<div>
+<h2>Links úteis</h2><ul>
+<li><a href="https://uspdigital.usp.br/janus/" rel="external">Sistema Janus</a></li>
+<li><a href="https://www.ime.usp.br/pos/" rel="external">Pós-Graduação do IME</a></li></ul></div></div>
+<div class="footer-bottom">
+<div class="shell">
+<p>Universidade de São Paulo · SIADoce</p></div></div></footer></div></div>
+<script defer="" src="../../js/controle.js"></script></body></html>
