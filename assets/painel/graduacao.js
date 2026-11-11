@@ -67,7 +67,7 @@
  const comparisonDepartments=['MAC','MAT','MAP','MAE'];
  const creditMetricIds=['creditos_aula_historicos','carga_horaria_aula_historica'];
  const jupiterExportOnlyMetrics=new Set([
-  'matriculas_extras','matriculas_especiais',
+  'matriculas_obrigatorias','matriculas_eletivas','matriculas_livres','matriculas_extras','matriculas_especiais','matriculas_por_turma',
   'vagas_obrigatorias','vagas_eletivas','vagas_livres','vagas_extras','vagas_especiais','vagas_total',
   'carga_teorica_cadastrada_h','carga_pratica_cadastrada_h','carga_total_cadastrada_h',...creditMetricIds
  ]);
@@ -223,7 +223,16 @@
    const different=sems.filter(semester=>differentCoverage(section,metric,semester,entities));
    if(different.length)details+=`<div class="callout warning"><strong>${esc(metricLabel(metric,section))}.</strong> Os anos com dados variam entre as séries selecionadas (${different.map(semLabel).join(', ')}).</div>`;
    if(meanMetricIds.has(metric))details+=meanTable(section,metric,sems,entities);
-   else charts.push(...sems.map((semester,i)=>graph(section,metric,semester,entities,i===0)));
+   else {
+    let chartPeriods=sems;
+    if(state.tab==='department' && sems.includes(null)){
+     const years=selectedYears();
+     const hasSemesterData=semester=>sems.includes(semester) && entities.some(entity=>
+      years.some(year=>numeric(get(section,metric,year,semester,entity.id))));
+     if(hasSemesterData(1) && hasSemesterData(2))chartPeriods=[1,2];
+    }
+    charts.push(...chartPeriods.map((semester,i)=>graph(section,metric,semester,entities,i===0)));
+   }
   }
   return (charts.length?`<div class="chart-grid charts-first-grid">${window.SIAPOS_CHARTS.rows(charts)}</div>`:'')+details;
  }
