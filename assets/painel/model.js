@@ -32,6 +32,24 @@
 
 (function(root){
   'use strict';
+  function rows(cards, sectionBreak){
+    return cards.map((card, index) => {
+      if (index === 0) return card;
+      let modifier = '';
+      if (sectionBreak !== undefined) {
+        if (index !== sectionBreak) return card;
+        modifier = ' chart-section-divider';
+      } else if (index % 2 === 1) {
+        modifier = ' chart-divider-single-column';
+      }
+      return '<span class="chart-row-divider' + modifier + '" aria-hidden="true"></span>' + card;
+    }).join('');
+  }
+  root.SIAPOS_CHARTS = {rows};
+})(typeof window==='undefined'?globalThis:window);
+
+(function(root){
+  'use strict';
   const choices=new Map();
   const medianOpacity=0.4;
   const esc=text=>String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

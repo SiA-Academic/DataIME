@@ -94,8 +94,6 @@
  const graduationTitles=Object.fromEntries(graduationLinks.map(link=>[link.dataset.gradView,link.querySelector('strong').textContent]));
  graduationTitles.additional='Dados complementares';
  graduationTitles.curricula='Currículos';
- const departmentNote=$('#graduation-nav [data-grad-view="department"] small');
- departmentNote.textContent=graduationPanel.hasCommonDepartments&&graduationPanel.departmentDatasetKind!=='course_section_registry'?'Relatórios do Júpiter':'Cadastro de turmas';
 
  const levels={ME:'Mestrado',DO:'Doutorado',DD:'Doutorado direto',DO_DD:'Doutorado (DO + DD)',total:'Total'};
 
@@ -103,7 +101,8 @@
 
  const requestedLabels={sections:'Número de turmas',enrollments:'Matrículas em disciplinas',sections_lt5:'Turmas com menos de 5 matriculados',sections_5_to_30:'Turmas com 5 a 30 matriculados',sections_gt30:'Turmas com mais de 30 matriculados',degrees:'Diplomados',credits_offered:'Créditos ofertados',curricular_hours:'Carga horária curricular total'};
 
- const extendedDisciplineMetrics=['credits_offered','curricular_hours','sections_lt5','sections_5_to_30','sections_gt30'];
+ const sectionSizeMetrics=['sections_lt5','sections_5_to_30','sections_gt30'];
+ const extendedDisciplineMetrics=['credits_offered','curricular_hours',...sectionSizeMetrics];
  const disciplineMetricLabels={...disciplineLabels,...Object.fromEntries(extendedDisciplineMetrics.map(metric=>[metric,requestedLabels[metric]]))};
 
  const state={view:'series',gradTab:'series',start:periodStart,end:periodEnd,selected:new Set(programOrder),seriesMode:'count',restrictedStart:restrictedYears[0]??periodStart,restrictedEnd:restrictedYears.at(-1)??periodEnd,restrictedSelected:new Set(restrictedPrograms.map(p=>p.id)),restrictedMetric:null};
@@ -321,7 +320,7 @@
   {id:'regular',title:'Matrículas regulares',short:'Regulares',section:'enrollment',metric:'regular_enrollment',levels:['total','ME','DO']},
   {id:'special',title:'Matrículas de alunos especiais',short:'Especiais',section:'enrollment',metric:'special_enrollment',levels:[null]}
  ];
- const disciplineShortLabels={courses:'Disciplinas',sections:'Turmas',enrollments:'Matrículas',approvals:'Aprovações',enrollments_per_section:'Matrículas/turma',approval_rate:'Taxa de aprovação',credits_offered:'Créditos',curricular_hours:'Carga curricular',sections_lt5:'Turmas < 5',sections_5_to_30:'Turmas 5–30',sections_gt30:'Turmas > 30'};
+ const disciplineShortLabels={courses:'Disciplinas',sections:'Turmas',enrollments:'Matrículas',approvals:'Aprovações',approval_rate:'Taxa de aprovação',credits_offered:'Créditos',curricular_hours:'Carga curricular',sections_lt5:'Turmas < 5',sections_5_to_30:'Turmas 5–30',sections_gt30:'Turmas > 30'};
  const hasMetricData=(section,metric,level)=>records.some(r=>r.section===section&&r.metric===metric&&r.level===(level??null)&&M.numeric(r));
  function indicatorIndex(items,extra=''){
   return `<nav class="indicator-index" aria-label="Indicadores nesta página">${items.map(item=>`<button data-post-jump="${esc(item.id)}" title="Ir para ${esc(item.title)}">${esc(item.short||item.title)}</button>`).join('')}</nav>${extra}`;
@@ -347,23 +346,23 @@
   for(const group of groups)for(const level of group.levels)appendAnnualExport(group.section,group.metric,level);
   const charts=chartGroups.flatMap(group=>group.levels.map((level,i)=>
    chart(group.section,group.metric,level,group.title+' · '+levels[level],group.id,i===0?'post-series-'+group.id:null)
-  )).join('');
+  ));
   const totalsOnly=groups.filter(group=>group.levels.every(level=>!level||level==='total'));
   const note=totalsOnly.length?'O CSV traz apenas o total para '+totalsOnly.map(group=>group.title.toLocaleLowerCase('pt-BR')).join(', ')+'.':'';
-  return (charts?`<div class="chart-grid charts-first-grid">${charts}</div>`:'')+indicatorsDownload(note);
+  return (charts.length?`<div class="chart-grid charts-first-grid">${window.SIAPOS_CHARTS.rows(charts)}</div>`:'')+indicatorsDownload(note);
  }
  function disciplines(){
   const metrics=Object.keys(disciplineMetricLabels).filter(metric=>extendedDisciplineMetrics.includes(metric)||hasMetricData('disciplines',metric,null));
-  postControls=metrics.length?indicatorIndex(metrics.map(metric=>({id:'post-disciplines-'+metric,title:disciplineMetricLabels[metric],short:disciplineShortLabels[metric]}))):'';
+  const chartMetrics=metrics.filter(metric=>metric!=='enrollments_per_section');
+  postControls=chartMetrics.length?indicatorIndex(chartMetrics.map(metric=>({id:'post-disciplines-'+metric,title:disciplineMetricLabels[metric],short:disciplineShortLabels[metric]}))):'';
   startTableExport();
   if(!metrics.length)return empty('Não há indicadores documentados nesta área.');
   for(const metric of metrics)appendAnnualExport('disciplines',metric,null);
-  const tableMetric='enrollments_per_section';
-  const charts=metrics.filter(metric=>metric!==tableMetric).map(metric=>
+  const charts=chartMetrics.map(metric=>
    chart('disciplines',metric,null,disciplineMetricLabels[metric],metric,'post-disciplines-'+metric)
-  ).join('');
-  const table=metrics.includes(tableMetric)?`<section class="post-indicator-section" data-post-discipline="${tableMetric}" aria-labelledby="post-disciplines-${tableMetric}"><div class="section-heading"><h2 id="post-disciplines-${tableMetric}" tabindex="-1">${esc(disciplineMetricLabels[tableMetric])}</h2></div>${enrollmentsPerSectionTable(selected(),selectedYears(),viewMetric)}</section>`:'';
-  return (charts?`<div class="chart-grid charts-first-grid">${charts}</div>`:'')+table+indicatorsDownload();
+  );
+  const sectionBreak=chartMetrics.findIndex(metric=>sectionSizeMetrics.includes(metric));
+  return (charts.length?`<div class="chart-grid charts-first-grid">${window.SIAPOS_CHARTS.rows(charts,sectionBreak)}</div>`:'')+indicatorsDownload();
  }
 
  function yearList(ys){const runs=[];ys.forEach(y=>{const last=runs.at(-1);if(last&&last[1]===y-1)last[1]=y;else runs.push([y,y]);});return runs.map(([a,b])=>a===b?String(a):a+'–'+b).join(', ')||'nenhum';}
@@ -493,10 +492,10 @@
 
   }
 
-  const charts=[{metric:'enrollments',family:'participation',label:'Matrículas em disciplinas'},{metric:'approvals',family:'participation',label:'Aprovações em disciplinas'},{metric:'sections',family:'occupation',label:'Turmas oferecidas'}],participationMax=Math.max(0,...ps.flatMap(p=>restrictedParticipationMetrics.flatMap(metric=>ys.map(year=>restrictedGet('disciplines',metric,year,p.id)))).filter(M.numeric).map(r=>r.value)),panels=charts.map(chart=>restrictedCombinedChart({section:'disciplines',level:null,...chart,metrics:[chart.metric]},ps,ys,chart.family==='participation'?participationMax:null)).join('');
+  const charts=[{metric:'enrollments',family:'participation',label:'Matrículas em disciplinas'},{metric:'approvals',family:'participation',label:'Aprovações em disciplinas'},{metric:'sections',family:'occupation',label:'Turmas oferecidas'}],participationMax=Math.max(0,...ps.flatMap(p=>restrictedParticipationMetrics.flatMap(metric=>ys.map(year=>restrictedGet('disciplines',metric,year,p.id)))).filter(M.numeric).map(r=>r.value)),panels=charts.map(chart=>restrictedCombinedChart({section:'disciplines',level:null,...chart,metrics:[chart.metric]},ps,ys,chart.family==='participation'?participationMax:null));
   const means=`<section class="post-indicator-section" aria-labelledby="restricted-class-size"><div class="section-heading"><h2 id="restricted-class-size">Matrículas médias por turma</h2></div>${enrollmentsPerSectionTable(ps,ys,restrictedGet)}</section>`;
 
-  return filters+`<div class="chart-grid charts-first-grid" data-restricted-dashboard>${panels}</div>`+means+controls;
+  return filters+`<div class="chart-grid charts-first-grid" data-restricted-dashboard>${window.SIAPOS_CHARTS.rows(panels)}</div>`+means+controls;
 
  }
 
@@ -551,10 +550,7 @@
   const active=document.activeElement,focusId=active?.id,focusData=[['restricted-program',active?.dataset?.restrictedProgram],['series-mode',active?.dataset?.seriesMode]].find(([,value])=>value);
 
   const restrictedLink=$('#main-nav [data-view="restricted"]');
-  if(restrictedLink){
-    restrictedLink.hidden=!restrictedRecords.length;
-    restrictedLink.querySelector('small').textContent='Originais fornecidos'+(restrictedPrograms.length?' · '+restrictedPrograms.map(p=>p.id).join('/'):'');
-  }
+  if(restrictedLink)restrictedLink.hidden=!restrictedRecords.length;
   const graduation=state.view==='graduation';
   const activeTab=graduation?graduationPanel.setTab(state.gradTab):null;
   for(const link of [...$$('#main-nav a'),...graduationLinks]){

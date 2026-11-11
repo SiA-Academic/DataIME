@@ -118,6 +118,15 @@
 /* Shared sizing for the undergraduate and postgraduate chart panels. */
 .chart-grid{width:80%;column-gap:12.8px}
 .charts-first-grid{width:100%;margin-bottom:22px}
+.chart-row-divider{
+  grid-column:1 / -1;
+  justify-self:center;
+  width:clamp(64px,14%,144px);
+  border-top:1px solid var(--muted);
+  opacity:.45;
+}
+.chart-divider-single-column{display:none}
+@media screen and (max-width:650px){.chart-divider-single-column{display:block}}
 .chart-grid .panel-heading{min-height:49px;padding:9px 12px 5px;gap:6px}
 .chart-grid .chart-container{min-height:168px;padding-inline:9.5px}
 .chart-grid .legend{gap:5px 10px;padding:0 8px 5px}

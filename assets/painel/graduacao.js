@@ -3,7 +3,11 @@
  const D=window.GRADUACAO_DATA||{},M=window.PAINEL_MATH;
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const base=v=>String(v??'').split(/[\\/]/).pop();
- const number=(v,d=0)=>new Intl.NumberFormat('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}).format(v);
+ const numberFormats=new Map();
+ function number(v,d=0){
+  if(!numberFormats.has(d))numberFormats.set(d,new Intl.NumberFormat('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}));
+  return numberFormats.get(d).format(v);
+ }
  const colors=['#245da8','#a65c69','#21877e','#7962a6','#ce792b','#a18a22'];
  const courses=(D.courses||[]).map((c,i)=>({...c,color:colors[i%colors.length]}));
  const metricDefs=D.definitions?.metrics||{};
@@ -21,13 +25,15 @@
  const key=(section,metric,year,semester,entity,group='',scope='')=>[section,metric,year,semester??'',entity??'',group,scope].join('|');
  const index=new Map(records.map(r=>[key(r.section,r.metric,r.year,r.semester,r.course||r.department,r.group||'',r.scope||''),r]));
  const years=Array.from({length:14},(_,i)=>2012+i);
- const state={tab:'series',selected:new Set(courses.map(c=>c.id)),start:2012,end:2025,jupiterMetric:'matriculas',jupiterSemester:'both',jupiterDepartments:new Set(['MAC','MAT','MAP','MAE']),additionalView:'credits',interdepartmentalMetric:'matriculas',interdepartmentalSemester:'both',anuarioMetric:null,anuarioSemester:'both',anuarioDepartments:new Set(['MAC','MAT','MAP','MAE']),sourceAccess:'public',coverageOpen:false};
+ const state={tab:'series',selected:new Set(courses.map(c=>c.id)),start:2012,end:2025,additionalView:'credits',interdepartmentalMetric:'matriculas',interdepartmentalSemester:'both',anuarioMetric:null,anuarioSemester:'both',anuarioDepartments:new Set(['MAC','MAT','MAP','MAE']),sourceAccess:'public',coverageOpen:false};
  const tabs=[['series','Titulações e matrículas'],['department',commonDepartmentTitle],['anuario','Estatísticas do Anuário'],['sources','Fontes e critérios']];
  let root=null,refs=new Map(),refId=0,chartId=0,csvRows=[],copyText='',viewControls='',viewOptions='';
  const numeric=r=>!!r&&typeof r.value==='number'&&Number.isFinite(r.value)&&!['ND','NA'].includes(r.status);
- const chosen=()=>courses.filter(c=>state.selected.has(c.id));
- const selectedYears=()=>years.filter(y=>y>=state.start&&y<=state.end);
- const range=()=>state.start===state.end?String(state.start):state.start+'–'+state.end;
+ const selectedYears=()=>state.tab==='series'||state.tab==='department'?years:years.filter(y=>y>=state.start&&y<=state.end);
+ const range=()=>{
+  const visibleYears=selectedYears(),first=visibleYears[0],last=visibleYears.at(-1);
+  return first===last?String(first):first+'–'+last;
+ };
  const semLabel=s=>s==null?'Anual':s+'º semestre';
  const definition=(metric,section='cursos')=>section==='departamento_jupiter'?(commonMetricDefs[metric]||metricDefs[metric]||metricDefs[section+'.'+metric]||{}):(metricDefs[metric]||metricDefs[section+'.'+metric]||{});
  const metricLabel=(metric,section='cursos')=>metric==='media_notas_ponderada'?'Média das médias de notas':definition(metric,section).label||metric;
@@ -157,7 +163,8 @@
  }
  function graph(section,metric,semester,entities,firstPeriod){
   const ys=selectedYears(),ps=entities.map(p=>({...p,records:ys.map(year=>get(section,metric,year,semester,p.id))}));
-  const title=metricLabel(metric,section),periodTitle=semLabel(semester)+' · '+range();
+  const sourceLabel=state.tab==='department'?(section==='anuario_departamento'?'Anuário USP':'Júpiter'):'';
+  const title=[metricLabel(metric,section),sourceLabel].filter(Boolean).join(' · '),periodTitle=semLabel(semester)+' · '+range();
   const courseMetric=section==='cursos'?` data-grad-series-metric="${esc(metric)}"`:'';
   const anchor=courseMetric&&firstPeriod?` id="grad-series-${esc(metric)}" tabindex="-1"`:'';
   const points=ps.flatMap(p=>p.records.map(r=>({p,r})));
@@ -192,7 +199,7 @@
   }else svg=`<text x="${W/2}" y="${H/2}" text-anchor="middle" class="chart-text">${state.tab==='department'&&section==='departamento_jupiter'&&creditMetricIds.includes(metric)?'Sem recortes com cobertura comum nesta seleção.':'Sem valores documentados nesta seleção.'}</text>`;
   const containsEstimates=points.some(({r})=>estimated(r));
   const chartLegend=legend(ps,containsEstimates,points.some(({r})=>reportedIntake(r)));
-  return `<article class="panel"${courseMetric}><div class="panel-heading"><div><h2${anchor}>${esc(title)}</h2><p>${esc(periodTitle)}</p></div><div class="chart-actions">${trendControl}<button class="chart-action" data-grad-svg="${id}">SVG ↓</button></div></div><div class="chart-container"><svg id="${id}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(title+' · '+semLabel(semester))}"><title>${esc(title+' · '+semLabel(semester)+' · '+range())}</title>${containsEstimates?`<desc>${esc(points.filter(({r})=>estimated(r)).map(({r})=>r.course+' · '+r.year+' · '+estimateDescription(r)).join(' '))}</desc>`:''}${svg}</svg></div>${chartLegend}</article>`;
+  return `<article class="panel"${courseMetric} data-grad-chart-section="${esc(section)}" data-grad-chart-metric="${esc(metric)}" data-grad-semester="${semester??'annual'}"><div class="panel-heading"><div><h2${anchor}>${esc(title)}</h2><p>${esc(periodTitle)}</p></div><div class="chart-actions">${trendControl}<button class="chart-action" data-grad-svg="${id}">SVG ↓</button></div></div><div class="chart-container"><svg id="${id}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(title+' · '+semLabel(semester))}"><title>${esc(title+' · '+semLabel(semester)+' · '+range())}</title>${containsEstimates?`<desc>${esc(points.filter(({r})=>estimated(r)).map(({r})=>r.course+' · '+r.year+' · '+estimateDescription(r)).join(' '))}</desc>`:''}${svg}</svg></div>${chartLegend}</article>`;
  }
  function meanTable(section,metric,semesters,entities){
   const label=esc(metricLabel(metric,section));
@@ -201,17 +208,17 @@
    const values=entities.map(entity=>`<td>${cell(get(section,metric,year,semester,entity.id))}</td>`).join('');
    return `<tr><th scope="row">${year} · ${semLabel(semester)}</th>${values}</tr>`;
   })).join('');
-  return `<article class="panel grad-data-panel" data-grad-mean-table><div class="panel-heading"><h2>${label}</h2></div><div class="table-wrap"><table class="data-table" aria-label="${label}"><thead><tr><th scope="col">Período</th>${columns}</tr></thead><tbody>${rows}</tbody></table></div></article>`;
+  return `<article class="panel grad-data-panel" data-grad-mean-table="${esc(metric)}"><div class="panel-heading"><h2>${label}</h2></div><div class="table-wrap"><table class="data-table" aria-label="${label}"><thead><tr><th scope="col">Período</th>${columns}</tr></thead><tbody>${rows}</tbody></table></div></article>`;
  }
- function periodPanels(section,items,entities,details=''){
+ function periodPanels(items,details=''){
   const charts=[];
-  for(const {metric,sems} of items){
+  for(const {section,metric,sems,entities} of items){
    const different=sems.filter(semester=>differentCoverage(section,metric,semester,entities));
    if(different.length)details+=`<div class="callout warning"><strong>${esc(metricLabel(metric,section))}.</strong> Os anos com dados variam entre as séries selecionadas (${different.map(semLabel).join(', ')}).</div>`;
    if(meanMetricIds.has(metric))details+=meanTable(section,metric,sems,entities);
    else charts.push(...sems.map((semester,i)=>graph(section,metric,semester,entities,i===0)));
   }
-  return (charts.length?`<div class="chart-grid charts-first-grid">${charts.join('')}</div>`:'')+details;
+  return (charts.length?`<div class="chart-grid charts-first-grid">${window.SIAPOS_CHARTS.rows(charts)}</div>`:'')+details;
  }
  const estimateColumns=['Estimativa por possível sobreposição','Limite inferior','Limite superior'];
  const estimateCells=r=>estimated(r)?['Sim',estimateBound(r,'lower_bound')??'',estimateBound(r,'upper_bound')??'']:['','',''];
@@ -222,35 +229,43 @@
  function metricExportRecords(section,metric,sems,entities){return [...sems.flatMap(s=>selectedYears().flatMap(y=>entities.map(e=>get(section,metric,y,s,e.id)))),...sems.flatMap(s=>entities.map(e=>average(section,metric,s,e.id)))];}
  function tableDownload(){
   if(csvRows.length<2)return '';
-  const description=state.tab==='series'?`Todos os dados dos indicadores em um único arquivo · ${chosen().length} curso(s) · ${range()}.`:'Todos os dados das tabelas em um único arquivo.';
+  const description=state.tab==='series'?`Todos os dados dos indicadores em um único arquivo · ${courses.length} cursos · ${range()}.`:'Todos os dados das tabelas em um único arquivo.';
   return `<section class="panel grad-series-download"><div><h2>Tabelas para download</h2><p>${esc(description)}</p></div><button class="button" data-grad-action="csv">Baixar todas as tabelas (CSV)</button></section>`;
  }
  function series(){
-  const entities=chosen(),items=courseMetricIds.map(metric=>({metric,sems:metric==='matriculados'?[1,2]:[null]}));
+  const entities=courses,items=courseMetricIds.map(metric=>({section:'cursos',metric,entities,sems:metric==='matriculados'?[1,2]:[null]}));
   csvRecords(items.flatMap(({metric,sems})=>metricExportRecords('cursos',metric,sems,entities)));
   const scopeNote=entities.some(c=>c.id==='BMAC + BMA')&&selectedYears().some(y=>!reportedIntake(get('cursos','ingressantes',y,null,'BMAC + BMA')))?`<p class="note" data-grad-inep-scope>Ingressantes · Inep · ${esc(inepScopeNote)}</p>`:'';
-  return periodPanels('cursos',items,entities,scopeNote);
+  return periodPanels(items,scopeNote);
  }
  const departmentNames={MAC:'Ciência da Computação',MAT:'Matemática',MAP:'Matemática Aplicada',MAE:'Estatística','450':'Disciplinas interdepartamentais'};
  const departmentColors={MAC:colors[0],MAT:colors[1],MAP:colors[2],MAE:colors[3],'450':colors[4]};
- function jupiterEntities(){return (D.jupiter_departments||[]).map(d=>({...d,id:String(d.id),name:departmentNames[String(d.id)]||d.name||d.label||String(d.id),color:departmentColors[String(d.id)]||colors[5]})).filter(d=>(!isSectionRegistry||comparisonDepartments.includes(d.id))&&state.jupiterDepartments.has(d.id));}
- function department(){return hasCommonDepartments?departmentCommon():'<div class="empty-state"><h2>Cadastro do Júpiter ainda não incorporado</h2><p>Esta visão depende de uma coleta autenticada documentada. As séries públicas permanecem em Estatísticas do Anuário.</p></div>';}
- function departmentCommon(){
-  const section='departamento_jupiter',eligible=jupiterRecords.filter(r=>!isSectionRegistry||comparisonDepartments.includes(r.department)),available=[...new Set(eligible.filter(r=>numeric(comparisonCreditRecord(r))).map(r=>r.metric))];
-  if(!available.length){csvRecords([]);return '<div class="empty-state"><h2>Nenhum indicador com dados neste conjunto</h2></div>';}
-  if(!available.includes(state.jupiterMetric))state.jupiterMetric=available[0];
-  const metric=state.jupiterMetric,entities=jupiterEntities(),subset=eligible.filter(r=>r.metric===metric),hasAnnual=subset.some(r=>r.semester==null),hasSemesters=subset.some(r=>r.semester!=null);
-  if(state.jupiterSemester==='annual'&&!hasAnnual)state.jupiterSemester=hasSemesters?'both':'annual';
-  if(state.jupiterSemester!=='annual'&&!hasSemesters)state.jupiterSemester='annual';
-  const periods=[...(hasAnnual?[['annual','Anual']]:[]),...(hasSemesters?[['both','Semestres separados'],['1','1º semestre'],['2','2º semestre']]:[])],sems=state.jupiterSemester==='annual'?[null]:state.jupiterSemester==='both'?[1,2]:[+state.jupiterSemester];
-  const departments=(D.jupiter_departments||[]).map(d=>({...d,id:String(d.id),name:departmentNames[String(d.id)]||d.name||d.label||String(d.id)})).filter(d=>!isSectionRegistry||comparisonDepartments.includes(d.id));
-  viewControls=`<div class="filter-control-group"><label>Indicador <select id="grad-jupiter-metric" class="select-control">${available.map(m=>`<option value="${esc(m)}" ${m===metric?'selected':''}>${esc(metricLabel(m,section))}</option>`).join('')}</select></label><label>Período <select id="grad-jupiter-semester" class="select-control">${periods.map(([id,label])=>`<option value="${id}" ${id===state.jupiterSemester?'selected':''}>${label}</option>`).join('')}</select></label></div>`;
-  viewOptions=selectionOptions(departments.map(d=>({...d,color:departmentColors[d.id]||colors[5]})),state.jupiterDepartments,'grad-jupiter-department',isSectionRegistry?'Prefixos':'Departamentos',isSectionRegistry?'Prefixos de disciplinas no Júpiter':'Departamentos dos relatórios Júpiter');
-  csvRecords(metricExportRecords(section,metric,sems,entities));
+ function jupiterEntities(){
+  return (D.jupiter_departments||[]).map(d=>({...d,id:String(d.id),name:departmentNames[String(d.id)]||d.name||d.label||String(d.id),color:departmentColors[String(d.id)]||colors[5]})).filter(d=>!isSectionRegistry||comparisonDepartments.includes(d.id));
+ }
+ function department(){
+  const items=[],entities=jupiterEntities(),entityIds=new Set(entities.map(d=>d.id));
+  const periodsByMetric=new Map(),available=new Set();
+  for(const record of jupiterRecords){
+   if(!entityIds.has(record.department))continue;
+   if(!periodsByMetric.has(record.metric))periodsByMetric.set(record.metric,new Set());
+   periodsByMetric.get(record.metric).add(record.semester);
+   if(numeric(comparisonCreditRecord(record)))available.add(record.metric);
+  }
+  for(const [metric,periods] of periodsByMetric){
+   if(available.has(metric))items.push({section:'departamento_jupiter',metric,entities,sems:[null,1,2].filter(semester=>periods.has(semester))});
+  }
+  const yearbook=records.filter(r=>r.section==='anuario_departamento'&&r.metric==='disciplinas_ministradas');
+  if(yearbook.some(numeric)){
+   const departments=new Set(yearbook.map(r=>r.department));
+   const periods=new Set(yearbook.map(r=>r.semester));
+   items.push({section:'anuario_departamento',metric:'disciplinas_ministradas',entities:allAnuarioEntities().filter(d=>departments.has(d.id)),sems:[1,2].filter(semester=>periods.has(semester))});
+  }
+  if(!items.length){csvRecords([]);return '<div class="empty-state"><h2>Nenhum indicador com dados neste conjunto</h2></div>';}
+  csvRecords(items.flatMap(({section,metric,sems,entities})=>metricExportRecords(section,metric,sems,entities)));
   const coverageLink='<p class="note" data-grad-common-comparison><a class="text-button" href="#graduation/coverage">Cobertura e lacunas →</a></p>';
-  if(!entities.length)return coverageLink+`<div class="empty-state"><h2>Selecione pelo menos um ${isSectionRegistry?'prefixo de disciplina':'departamento'}</h2><p>A seleção de cursos é independente desta visão.</p></div>`;
-  const nominal=(!isSectionRegistry||subset.some(numeric))&&creditMetricIds.includes(metric)?`<p class="note" data-grad-credit-comparison>${commonCreditPeriods.size} recortes com cobertura comum · NC: fora da comparação · <a href="#graduation/additional">Ver valores complementares</a></p>`:'';
-  return periodPanels(section,[{metric,sems}],entities,coverageLink+nominal);
+  const nominal=creditMetricIds.some(metric=>available.has(metric))?`<p class="note" data-grad-credit-comparison>${commonCreditPeriods.size} recortes com cobertura comum de créditos e carga nominal · NC: fora da comparação · <a href="#graduation/additional">Ver valores complementares</a></p>`:'';
+  return periodPanels(items,coverageLink+nominal);
  }
  function creditComplementRecords(){return jupiterRecords.filter(r=>comparisonDepartments.includes(r.department)&&years.includes(r.year)&&creditMetricIds.includes(r.metric)&&numeric(r)&&!commonCreditPeriods.has(creditPeriodKey(r.year,r.semester)));}
  function coverageSummary(){
@@ -326,10 +341,10 @@ function sourcesExport(visibleSources,collection){
   csvRecords(metricExportRecords(section,metric,sems,entities));
   viewControls+=`<div class="filter-control-group"><label>Indicador <select id="grad-interdepartmental-metric" class="select-control">${available.map(m=>`<option value="${esc(m)}" ${m===metric?'selected':''}>${esc(metricLabel(m,section))}</option>`).join('')}</select></label><label>Período <select id="grad-interdepartmental-semester" class="select-control">${[['annual','Anual'],['both','Semestres separados'],['1','1º semestre'],['2','2º semestre']].map(([id,label])=>`<option value="${id}" ${state.interdepartmentalSemester===id?'selected':''}>${label}</option>`).join('')}</select></label></div>`;
   const note='<p class="note" data-grad-interdepartmental>Prefixo interdepartamental 450 · cobertura do cadastro: 2017–2025, 2º semestre.</p>';
-  return periodPanels(section,[{metric,sems}],entities,context+note);
+  return periodPanels([{section,metric,sems,entities}],context+note);
  }
  function additional(){
-  if(!hasCommonDepartments)return department();
+  if(!hasCommonDepartments)return '<div class="empty-state"><h2>Cadastro do Júpiter ainda não incorporado</h2></div>';
   const views=[['credits','Créditos/carga adicionais por departamento'],['interdepartmental','Prefixo interdepartamental 450']];
   if(!views.some(([id])=>id===state.additionalView))state.additionalView='credits';
   const context='<p class="note" data-grad-additional>Créditos, cargas e ofertas interdepartamentais. <a class="text-button" href="#graduation/coverage">Cobertura e lacunas →</a></p>';
@@ -337,10 +352,11 @@ function sourcesExport(visibleSources,collection){
   return state.additionalView==='interdepartmental'?interdepartmental(context):context+creditComplements();
  }
  const anuarioFallbackDepartments=[{id:'MAC',name:'Ciência da Computação'},{id:'MAT',name:'Matemática'},{id:'MAP',name:'Matemática Aplicada'},{id:'MAE',name:'Estatística'},{id:'450',name:'Disciplinas interdepartamentais'}];
- function anuarioEntities(){return (D.anuario_departments||anuarioFallbackDepartments).map((d,i)=>({...d,color:colors[i%colors.length]})).filter(d=>state.anuarioDepartments.has(d.id));}
+ function allAnuarioEntities(){return (D.anuario_departments||anuarioFallbackDepartments).map((d,i)=>({...d,color:colors[i%colors.length]}));}
+ function anuarioEntities(){return allAnuarioEntities().filter(d=>state.anuarioDepartments.has(d.id));}
  function anuario(){
-  const section='anuario_departamento',subset=records.filter(r=>r.section===section),available=[...new Set(subset.map(r=>r.metric))];
-  if(!subset.length)return '<div class="empty-state"><h2>Estatísticas do Anuário ainda não incorporadas</h2><p>A série pública será exibida conforme a cobertura documentada em cada indicador.</p></div>';
+  const section='anuario_departamento',subset=records.filter(r=>r.section===section&&r.metric!=='disciplinas_ministradas'),available=[...new Set(subset.map(r=>r.metric))];
+  if(!subset.length)return '<div class="empty-state"><h2>Nenhum indicador disponível nesta consulta</h2><a class="text-button" href="#graduation/department">Consultar disciplinas →</a></div>';
   if(!available.includes(state.anuarioMetric))state.anuarioMetric=available[0];
   const metric=state.anuarioMetric,entities=anuarioEntities(),sems=state.anuarioSemester==='both'?[1,2]:[+state.anuarioSemester];
   const departments=D.anuario_departments||anuarioFallbackDepartments;
@@ -348,7 +364,7 @@ function sourcesExport(visibleSources,collection){
   viewOptions=selectionOptions(departments.map((d,i)=>({...d,color:colors[i%colors.length]})),state.anuarioDepartments,'grad-anuario-department','Departamentos','Departamentos do Anuário');
   csvRecords(metricExportRecords(section,metric,sems,entities));
   if(!entities.length)return '<div class="empty-state"><h2>Selecione pelo menos um departamento</h2><p>Os filtros de cursos não se aplicam a esta visão.</p></div>';
-  return periodPanels(section,[{metric,sems}],entities);
+  return periodPanels([{section,metric,sems,entities}]);
  }
  const curriculumFields=[['class_hours','Horas de aula'],['class_credits','Créditos aula'],['work_hours','Horas de trabalho'],['work_credits','Créditos trabalho'],['printed_table_subtotal_hours','Subtotal impresso (h)'],['printed_credits_total','Total impresso (créditos)']];
  const issueLabels={printed_credit_components_do_not_sum_to_printed_total:'Os componentes de créditos não somam o total impresso.',printed_hour_components_do_not_sum_to_printed_total:'Os componentes de horas não somam o total impresso.'};
@@ -379,20 +395,18 @@ function sourcesExport(visibleSources,collection){
   return `<div class="filter-options" role="group" aria-label="${esc(accessibleLabel)}"><span class="filter-label">${esc(label)}</span>${entities.map(e=>`<label class="program-chip" title="${esc(e.name)}"><input type="checkbox" data-${attribute}="${esc(e.id)}" aria-label="${esc(e.name)}" ${selected.has(e.id)?'checked':''}><i class="program-dot" style="background:${e.color||colors[0]}"></i><strong>${esc(e.short_name||e.id)}</strong></label>`).join('')}</div>`;
  }
  function filters(){
-  if(state.tab==='coverage')return '';
+  if(state.tab==='series'||state.tab==='department'||state.tab==='coverage')return '';
   if(state.tab==='sources')return `<section class="filters sticky-filters grad-filters" aria-label="Filtros das fontes"><div class="filter-control-row">${viewControls}</div></section>`;
-  const isSeries=state.tab==='series',courseView=isSeries||state.tab==='curricula';
-  const options=viewOptions||(courseView?selectionOptions(courses,state.selected,'grad-course','Cursos','Cursos de graduação'):`<span class="filter-label">${state.tab==='additional'?'Dados complementares':'Graduação'}</span>`);
+  const options=viewOptions||(state.tab==='curricula'?selectionOptions(courses,state.selected,'grad-course','Cursos','Cursos de graduação'):`<span class="filter-label">${state.tab==='additional'?'Dados complementares':'Graduação'}</span>`);
   const yearsRow=`<div class="year-controls filter-control-group"><label>De <select id="grad-start">${years.map(y=>`<option ${y===state.start?'selected':''}>${y}</option>`).join('')}</select></label><span>—</span><label>Até <select id="grad-end">${years.map(y=>`<option ${y===state.end?'selected':''}>${y}</option>`).join('')}</select></label><button class="text-button reset-button" data-grad-action="reset">Restaurar</button></div>`;
-  const labels={matriculados:'Matriculados',concluintes:'Concluintes',vagas_oferecidas:'Vagas',ingressantes:'Ingressantes'};
-  const second=isSeries?(state.selected.size?`<nav class="filter-control-row grad-series-index" aria-label="Indicadores nesta página">${courseMetricIds.map(metric=>`<button data-grad-jump="grad-series-${metric}" title="Ir para ${esc(metricLabel(metric))}">${labels[metric]}</button>`).join('')}</nav>`:''):(viewControls?`<div class="filter-control-row">${viewControls}</div>`:'');
-  return `<section class="filters sticky-filters grad-filters${isSeries?' grad-series-filters':''}" aria-label="Filtros de graduação"><div class="filter-control-row">${options}${yearsRow}</div>${second}</section>`;
+  const controls=viewControls?`<div class="filter-control-row">${viewControls}</div>`:'';
+  return `<section class="filters sticky-filters grad-filters" aria-label="Filtros de graduação"><div class="filter-control-row">${options}${yearsRow}</div>${controls}</section>`;
  }
  function render(){
   if(!root)return;refs=new Map();refId=0;chartId=0;csvRows=[];viewControls='';viewOptions='';
-  const active=document.activeElement,focusId=active?.id,focusData=[['grad-course',active?.dataset?.gradCourse],['grad-jupiter-department',active?.dataset?.gradJupiterDepartment],['grad-anuario-department',active?.dataset?.gradAnuarioDepartment]].find(([,value])=>value);
+  const active=document.activeElement,focusId=active?.id,focusData=[['grad-course',active?.dataset?.gradCourse],['grad-anuario-department',active?.dataset?.gradAnuarioDepartment]].find(([,value])=>value);
   if(!courses.length){root.innerHTML='<div class="empty-state"><h2>Base de graduação ainda não incorporada</h2><p>A seção permanece separada dos dados da pós-graduação.</p></div>';return;}
-  const content=!state.selected.size&&!['department','additional','coverage','anuario','sources'].includes(state.tab)?'<div class="empty-state"><h2>Selecione pelo menos um curso</h2><button class="button" data-grad-action="all">Selecionar todos</button></div>':({series,department,additional,coverage:coverageView,anuario,curricula,sources:sourcesView})[state.tab]();
+  const content=state.tab==='curricula'&&!state.selected.size?'<div class="empty-state"><h2>Selecione pelo menos um curso</h2><button class="button" data-grad-action="all">Selecionar todos</button></div>':({series,department,additional,coverage:coverageView,anuario,curricula,sources:sourcesView})[state.tab]();
   root.innerHTML=`${filters()}${state.tab==='sources'?ingressoNote(true):''}${content}${tableDownload()}`;
   if(focusData)root.querySelector('[data-'+focusData[0]+'="'+esc(focusData[1])+'"]')?.focus({preventScroll:true});else if(focusId?.startsWith('grad-'))document.getElementById(focusId)?.focus({preventScroll:true});
   window.SIAPOS_FILTERS?.refresh();
@@ -451,12 +465,11 @@ function sourcesExport(visibleSources,collection){
  const dialog=document.createElement('dialog');dialog.id='grad-source-dialog';dialog.setAttribute('aria-labelledby','grad-source-title');dialog.innerHTML='<div class="dialog-header"><h2 id="grad-source-title">Origem do indicador</h2><button class="icon-button" data-grad-close aria-label="Fechar origem">×</button></div><div id="grad-source-content"></div><div class="dialog-actions"><button class="button secondary" data-grad-copy>Copiar referência</button><button class="button" data-grad-close>Fechar</button></div>';document.body.appendChild(dialog);
  document.addEventListener('click',async e=>{
   const a=e.target.closest('[data-grad-source]');if(a){modal(refs.get(a.dataset.gradSource));return;}const svg=e.target.closest('[data-grad-svg]');if(svg){exportSVG(svg.dataset.gradSvg);return;}
-  const jump=e.target.closest('[data-grad-jump]');if(jump){const heading=document.getElementById(jump.dataset.gradJump);if(heading){const bar=root?.querySelector('.grad-series-filters');heading.style.scrollMarginTop=((bar?.getBoundingClientRect().height||0)+16)+'px';heading.scrollIntoView({block:'start'});heading.focus({preventScroll:true});}return;}
   const period=e.target.closest('[data-grad-period]');if(period){[state.start,state.end]=period.dataset.gradPeriod.split(':').map(Number);render();return;}
   if(e.target.closest('[data-grad-close]')){dialog.close();return;}if(e.target.closest('[data-grad-copy]')){try{await navigator.clipboard.writeText(copyText);}catch{const t=document.createElement('textarea');t.value=copyText;dialog.appendChild(t);t.select();document.execCommand('copy');t.remove();}return;}
-  const action=e.target.closest('[data-grad-action]')?.dataset.gradAction;if(action==='all'){state.selected=new Set(courses.map(c=>c.id));render();}if(action==='reset'){state.start=2012;state.end=2025;state.selected=new Set(courses.map(c=>c.id));state.anuarioSemester='both';state.anuarioDepartments=new Set(['MAC','MAT','MAP','MAE']);state.jupiterDepartments=new Set(['MAC','MAT','MAP','MAE']);state.jupiterSemester='both';render();}if(action==='csv')exportCSV();
+  const action=e.target.closest('[data-grad-action]')?.dataset.gradAction;if(action==='all'){state.selected=new Set(courses.map(c=>c.id));render();}if(action==='reset'){state.start=2012;state.end=2025;state.selected=new Set(courses.map(c=>c.id));state.anuarioSemester='both';state.anuarioDepartments=new Set(['MAC','MAT','MAP','MAE']);render();}if(action==='csv')exportCSV();
  });
- document.addEventListener('change',e=>{const t=e.target;if(t.id==='grad-additional-view'){state.additionalView=t.value;render();}if(t.id==='grad-interdepartmental-metric'){state.interdepartmentalMetric=t.value;render();}if(t.id==='grad-interdepartmental-semester'){state.interdepartmentalSemester=t.value;render();}if(t.dataset.gradCourse){if(t.checked)state.selected.add(t.dataset.gradCourse);else state.selected.delete(t.dataset.gradCourse);render();}if(t.id==='grad-start'){state.start=+t.value;if(state.start>state.end)state.end=state.start;render();}if(t.id==='grad-end'){state.end=+t.value;if(state.end<state.start)state.start=state.end;render();}if(t.id==='grad-anuario-metric'){state.anuarioMetric=t.value;render();}if(t.id==='grad-anuario-semester'){state.anuarioSemester=t.value;render();}if(t.dataset.gradAnuarioDepartment){if(t.checked)state.anuarioDepartments.add(t.dataset.gradAnuarioDepartment);else state.anuarioDepartments.delete(t.dataset.gradAnuarioDepartment);render();}if(t.id==='grad-source-access'){state.sourceAccess=t.value;render();}if(t.id==='grad-jupiter-metric'){state.jupiterMetric=t.value;render();}if(t.id==='grad-jupiter-semester'){state.jupiterSemester=t.value;render();}if(t.dataset.gradJupiterDepartment){if(t.checked)state.jupiterDepartments.add(t.dataset.gradJupiterDepartment);else state.jupiterDepartments.delete(t.dataset.gradJupiterDepartment);render();}});
+ document.addEventListener('change',e=>{const t=e.target;if(t.id==='grad-additional-view'){state.additionalView=t.value;render();}if(t.id==='grad-interdepartmental-metric'){state.interdepartmentalMetric=t.value;render();}if(t.id==='grad-interdepartmental-semester'){state.interdepartmentalSemester=t.value;render();}if(t.dataset.gradCourse){if(t.checked)state.selected.add(t.dataset.gradCourse);else state.selected.delete(t.dataset.gradCourse);render();}if(t.id==='grad-start'){state.start=+t.value;if(state.start>state.end)state.end=state.start;render();}if(t.id==='grad-end'){state.end=+t.value;if(state.end<state.start)state.start=state.end;render();}if(t.id==='grad-anuario-metric'){state.anuarioMetric=t.value;render();}if(t.id==='grad-anuario-semester'){state.anuarioSemester=t.value;render();}if(t.dataset.gradAnuarioDepartment){if(t.checked)state.anuarioDepartments.add(t.dataset.gradAnuarioDepartment);else state.anuarioDepartments.delete(t.dataset.gradAnuarioDepartment);render();}if(t.id==='grad-source-access'){state.sourceAccess=t.value;render();}});
  document.addEventListener('toggle',e=>{if(e.target.matches?.('[data-grad-coverage-details]'))state.coverageOpen=e.target.open;},true);
  document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('svg [data-grad-source]')){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
  dialog.addEventListener('click',e=>{if(e.target===dialog){const b=dialog.getBoundingClientRect();if(e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom)dialog.close();}});

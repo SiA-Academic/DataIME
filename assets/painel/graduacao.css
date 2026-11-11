@@ -2,9 +2,6 @@
 .grad-tabs button{border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12px;font-weight:600;padding:9px 13px}
 .grad-tabs button.active{background:var(--navy);color:var(--surface);border-color:var(--navy)}
 .grad-course-filter[hidden]{display:none}
-.grad-series-index{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:7px 10px;border-top:1px solid var(--line)}
-.grad-series-index button{padding:8px 6px;font-size:12px;font-weight:600;text-align:center;border:1px solid transparent;background:var(--soft);color:var(--navy)}
-.grad-series-index button:hover,.grad-series-index button:focus-visible{background:var(--blue-bg);border-color:var(--line)}
 .grad-data-panel{margin-top:18px;margin-bottom:25px}
 .grad-series-download{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:18px;padding:22px;margin-top:10px}
 .grad-series-download h2{font-size:17px;margin:0 0 7px}
@@ -49,5 +46,5 @@
 .grad-coverage-common{background:#eaf3ee;color:#22563b;border-color:#b9d2c3}
 .grad-coverage-additional{background:#edf1fa;color:#315682;border-color:#c7d3e6}
 .grad-coverage-missing{background:var(--amber-bg);color:var(--amber)}
-@media(max-width:650px){.grad-tabs{gap:5px}.grad-tabs button{font-size:11px;padding:8px 10px}.grad-filters .program-chip{align-items:flex-start}.grad-filters .program-dot{margin-top:4px}.grad-filters .full-name{white-space:normal}.grad-filters .year-controls{flex-wrap:wrap}.grad-series-index{grid-template-columns:repeat(2,minmax(0,1fr));padding:6px 10px}}
+@media(max-width:650px){.grad-tabs{gap:5px}.grad-tabs button{font-size:11px;padding:8px 10px}.grad-filters .program-chip{align-items:flex-start}.grad-filters .program-dot{margin-top:4px}.grad-filters .full-name{white-space:normal}.grad-filters .year-controls{flex-wrap:wrap}}
 @media print{.grad-series-download,.grad-tabs,.grad-filters,[data-grad-svg],[data-grad-action=csv]{display:none!important}#grad-root .chart-grid{grid-template-columns:1fr 1fr}.grad-data-panel{break-inside:avoid}}
