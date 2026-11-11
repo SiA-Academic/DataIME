@@ -8,14 +8,14 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'self'">
   <title>Dados do IME · IME-USP</title>
   <link rel="stylesheet" href="assets/sia.css?v=dados-ime-20261111-1">
-  <link rel="stylesheet" href="assets/painel/styles.css?v=dados-ime-20261111-4">
+  <link rel="stylesheet" href="assets/painel/styles.css?v=dados-ime-20261111-6">
   <link rel="stylesheet" href="assets/painel/graduacao.css?v=dados-ime-20261111-4">
   <script src="assets/painel/model.js?v=dados-ime-20261111-4" defer></script>
   <script src="assets/painel/painel.js?v=dados-ime-20261111-1" defer></script>
-  <script src="dados/pos-graduacao.js?v=dados-ime-20261111-1" defer></script>
+  <script src="dados/pos-graduacao.js?v=dados-ime-20261111-6" defer></script>
   <script src="dados/graduacao.js?v=dados-ime-20261111-5" defer></script>
-  <script src="assets/painel/graduacao.js?v=dados-ime-20261111-5" defer></script>
-  <script src="assets/painel/pos-graduacao.js?v=dados-ime-20261111-5" defer></script>
+  <script src="assets/painel/graduacao.js?v=dados-ime-20261111-6" defer></script>
+  <script src="assets/painel/pos-graduacao.js?v=dados-ime-20261111-6" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#content">Ir para o conteúdo</a>
@@ -35,7 +35,6 @@
         <nav aria-label="Visões de pós-graduação" id="main-nav">
           <a href="#series" data-view="series"><strong>Titulações e matrículas</strong></a>
           <a href="#disciplines" data-view="disciplines"><strong>Disciplinas</strong></a>
-          <a href="#restricted" data-view="restricted" class="restricted-nav-link"><strong>Dados de acesso específico</strong></a>
           <a href="#sources" data-view="sources" class="sources-nav-link"><strong>Fontes e critérios</strong></a>
         </nav>
       </section>
@@ -47,13 +46,6 @@
         <div><p class="eyebrow" id="page-eyebrow">Dados do IME · Pós-graduação</p><h1 id="page-title">Titulações e matrículas</h1><p class="page-description" id="page-description">Indicadores dos programas de pós-graduação do IME-USP.</p></div>
         <div class="page-actions"><button class="icon-button" id="theme-toggle" type="button" aria-label="Alternar tema claro e escuro" title="Alternar tema">◐</button><button class="button secondary print-button" id="print-view" type="button">Imprimir visão</button></div>
       </header>
-      <section class="filters sticky-filters" aria-label="Filtros dos indicadores" id="filters">
-        <div class="filter-control-row">
-          <div class="filter-options" role="group" aria-label="Programas de pós-graduação"><span class="filter-label">Programas</span><div id="program-filters" class="filter-options"></div><button class="text-button" id="select-all">Todos</button></div>
-          <div class="year-controls filter-control-group" id="year-controls"><label>De <select id="start-year" aria-label="Ano inicial"></select></label><span class="year-connector">—</span><label>Até <select id="end-year" aria-label="Ano final"></select></label><span class="filter-caption" id="filter-caption" hidden></span><button class="text-button reset-button" id="reset-filters">Restaurar</button></div>
-        </div>
-        <div id="post-view-controls" class="filter-control-row" hidden></div>
-      </section>
       <div id="view-content" aria-live="polite"><p>Carregando os indicadores de pós-graduação…</p></div>
       <footer class="page-footer"><span>Dados do IME · IME-USP</span><span>2012–2025 · Fontes e limites acompanham os indicadores</span></footer>
     </main>

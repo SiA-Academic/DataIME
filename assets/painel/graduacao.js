@@ -67,6 +67,7 @@
  const comparisonDepartments=['MAC','MAT','MAP','MAE'];
  const creditMetricIds=['creditos_aula_historicos','carga_horaria_aula_historica'];
  const jupiterExportOnlyMetrics=new Set([
+  'matriculas_extras','matriculas_especiais',
   'vagas_obrigatorias','vagas_eletivas','vagas_livres','vagas_extras','vagas_especiais','vagas_total',
   'carga_teorica_cadastrada_h','carga_pratica_cadastrada_h','carga_total_cadastrada_h',...creditMetricIds
  ]);
