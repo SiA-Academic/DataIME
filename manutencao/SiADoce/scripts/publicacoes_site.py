@@ -1,6 +1,4 @@
-"""Perfis coletivos do simulador e arquivo local de consulta institucional."""
-from collections import Counter
-from datetime import date
+"""Publicações por docente e suplemento local de orientação do Janus."""
 import hashlib
 import json
 import re
@@ -39,54 +37,14 @@ def json_canonico(data):
     return json.dumps(data, ensure_ascii=False, separators=(',', ':'), sort_keys=True)
 
 
-def perfil_coletivo(docente, inicio, fim, ultimo_fechado):
-    atualizacao = date.fromisoformat(docente['dataCV']) if docente['dataCV'] else None
-    ultimo_ano = None
-    ano_corrente = None
-    if atualizacao:
-        completo = atualizacao.year if (atualizacao.month, atualizacao.day) == (12, 31) else atualizacao.year - 1
-        if completo >= inicio and ultimo_fechado >= inicio:
-            ultimo_ano = min(completo, ultimo_fechado, fim)
-        # A data de janeiro só é consultada para janelas inteiramente posteriores
-        # aos anos fechados. Fora dessa janela, basta indicar falta de cobertura.
-        if fim > ultimo_fechado and atualizacao.year >= max(inicio, ultimo_fechado + 1):
-            ano_corrente = min(atualizacao.year, fim)
-    contagens = Counter()
-    for artigo in docente['artigos']:
-        # A análise aceita apenas A1–A4. Uma pendência sem faixa pode contribuir
-        # para o máximo possível sempre que o usuário seleciona faixas do tipo.
-        faixa = artigo['faixa']
-        if faixa not in ('A1', 'A2', 'A3', 'A4') and (faixa or not artigo['pendente']):
-            continue
-        chave = (artigo['ano'], artigo['tipo'], faixa or None, artigo['pendente'], artigo['externo'])
-        contagens[chave] += 1
-    registros = sorted(([*chave, total] for chave, total in contagens.items()), key=json_canonico)
-    return {'grupoAnalise': docente['grupoAnalise'], 'anos': sorted(docente['anos']),
-            'anoCV': ano_corrente,
-            'ultimoAnoCompleto': ultimo_ano, 'contagens': registros}
-
-
-def dados_coletivos(simulador):
-    # A ordem é canônica e perfis iguais ocupam uma única entrada. A chave
-    # temporária representa somente contagens públicas; não usa o cadastro.
-    inicio, fim = min(simulador['anos']), max(simulador['anos'])
-    iguais = Counter(json_canonico(perfil_coletivo(d, inicio, fim, simulador['fimAnosCompletos']))
-                     for d in simulador['docentes'])
-    perfis = [dict(json.loads(perfil), quantidade=iguais[perfil]) for perfil in sorted(iguais)]
-    dados = {**{k: simulador[k] for k in ('anos', 'fimAnosCompletos', 'gruposCredenciamento')}, 'perfis': perfis}
-    dados['snapshot'] = hashlib.sha256(json_canonico(dados).encode('utf-8')).hexdigest()
-    return dados
-
-
-def consulta_institucional(producao, simulador, snapshot):
+def bibliografia_publica(producao, simulador):
     curriculos = {d['id']: perfil_lattes(d['lattes_url']) for d in producao['docentes']
                   if d['lattes_status'] == 'disponivel'}
     docentes = []
     for docente in simulador['docentes']:
         cv = curriculos[docente['id']]
-        dados = {k: docente[k] for k in ('id', 'nome', 'anos', 'dataCV', 'categoria', 'grupoAnalise')}
+        dados = {k: docente[k] for k in ('id', 'nome', 'anos', 'dataCV', 'grupoAnalise')}
         dados['lattes'] = cv
-        dados['janus'] = {k: docente['janus'][k] for k in ('alunosDistintos', 'ativos', 'titulados', 'desligados')}
         artigos = []
         for registro in docente['artigos']:
             artigo = {k: registro[k] for k in ('titulo', 'veiculo', 'ano', 'tipo', 'faixa', 'pendente', 'externo', 'motivo')}
@@ -94,15 +52,30 @@ def consulta_institucional(producao, simulador, snapshot):
             artigos.append(artigo)
         dados['artigos'] = artigos
         docentes.append(dados)
+    resultado = {k: simulador[k] for k in ('anos', 'fimAnosCompletos')}
+    resultado['gruposCredenciamento'] = [{k: grupo[k] for k in ('id', 'nome')}
+                                         for grupo in simulador['gruposCredenciamento']]
+    resultado['docentes'] = docentes
+    resultado['snapshot'] = hashlib.sha256(json_canonico(resultado).encode('utf-8')).hexdigest()
+    return resultado
+
+
+def consulta_institucional(bibliografia, simulador):
+    cadastro = {docente['id']: docente for docente in simulador['docentes']}
+    docentes = []
+    for ficha in bibliografia['docentes']:
+        docente = cadastro[ficha['id']]
+        janus = {k: docente['janus'][k] for k in ('alunosDistintos', 'ativos', 'titulados', 'desligados')}
+        docentes.append({**ficha, 'categoria': docente['categoria'], 'janus': janus})
     parametros = {k: simulador[k] for k in ('anos', 'fimAnosCompletos', 'periodoJanus', 'gruposCredenciamento')}
-    return {'schema_version': 1, 'snapshot': snapshot, 'simulador': {**parametros, 'docentes': docentes}}
+    return {'schema_version': 1, 'snapshot': bibliografia['snapshot'], 'simulador': {**parametros, 'docentes': docentes}}
 
 
 def exportar_analise(directory, data):
     simulador = data['simulador']
-    coletivo = dados_coletivos(simulador)
+    bibliografia = bibliografia_publica(data['producao'], simulador)
     (directory / 'publicacoes.js').write_text(
-        'window.SIADOCE_PUBLICACOES = ' + json_canonico(coletivo) + ';\n', encoding='utf-8')
-    individual = consulta_institucional(data['producao'], simulador, coletivo['snapshot'])
+        'window.SIADOCE_PUBLICACOES = ' + json_canonico(bibliografia) + ';\n', encoding='utf-8')
+    individual = consulta_institucional(bibliografia, simulador)
     (directory / 'analise-publicacoes.json').write_text(
         json.dumps(individual, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')

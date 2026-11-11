@@ -1,6 +1,6 @@
 # Manutenção do SIA-Doce
 
-A interface em `SiADoce/` usa HTML, CSS e JavaScript. O portal distribui os totais do programa e as contagens usadas na análise geral das publicações. A instância institucional usa as mesmas páginas com o cadastro docente, as orientações, os currículos e os relatórios de conferência. As duas abrem diretamente em um navegador.
+A interface em `SiADoce/` usa HTML, CSS e JavaScript. O portal distribui os totais do programa e as referências bibliográficas por docente para a análise das publicações. A instância institucional usa as mesmas páginas com o cadastro docente, as orientações, os currículos e os relatórios de conferência. As duas abrem diretamente em um navegador.
 
 ## Atualização neste checkout
 
@@ -12,7 +12,7 @@ Abra o PowerShell na pasta que contém este guia. Coloque os novos relatórios e
 
 O comando lê os PDFs, recalcula os indicadores, gera a instância institucional em `../../SiADoce-institucional/` e atualiza os resumos e o analisador em `../../SiADoce/`. Confira os resultados antes de enviar as alterações ao Git. Para atualizar somente a instância institucional, execute `.\build-public.ps1`. Para repor apenas o HTML e os dados do navegador após alterar a interface, use `-UsarDadosPreparados`.
 
-A análise geral começa com o mínimo de quatro artigos. A atualização grava as contagens para o simulador público em `../../SiADoce/dados/publicacoes.js`. O arquivo `../../SiADoce-institucional/dados/analise-publicacoes.json` permite carregar as fichas e as orientações na página pública, em **Mais critérios**, sem enviá-las ao servidor.
+A análise geral começa com o mínimo de quatro artigos. A atualização grava os nomes, as referências, as classificações e os links bibliográficos em `../../SiADoce/dados/publicacoes.js`. O navegador usa esses dados para calcular o placar e mostrar as fichas por docente. O arquivo local `../../SiADoce-institucional/dados/analise-publicacoes.json` acrescenta os filtros de credenciamento e os critérios de orientação em **Mais critérios**.
 
 Para gerar a instância em outro diretório de acesso institucional, informe uma pasta dedicada à instalação.
 
@@ -48,7 +48,7 @@ A importação inicial lê o acervo na estrutura abaixo. Ela preserva as corresp
 | `static/NORMAS/` e `static/DIRETRIZES/` | Documentos que acompanham a consulta institucional. |
 | `static/modelos-maycon/` | Protótipos do painel preservados no acervo de referência local. |
 
-O cadastro, PDFs de origem, listas nominais, relatórios individuais e históricos de execução permanecem no acervo local. O `.gitignore` diferencia essas entradas dos programas e dos catálogos que já acompanham a distribuição do analisador. Mantenha o acervo institucional na rotina de backup do programa.
+O cadastro institucional, PDFs de origem, listas de alunos e orientadores do Janus, relatórios individuais do programa e históricos de execução permanecem no acervo local. O `.gitignore` diferencia essas entradas dos programas e dos catálogos que já acompanham a distribuição do analisador. Mantenha o acervo institucional na rotina de backup do programa.
 
 ## Critérios e ferramentas
 
