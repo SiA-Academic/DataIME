@@ -1,5 +1,5 @@
-/* Current faculty snapshot; academic time-series filters remain independent. */
-.docentes-date{font-size:11px;color:var(--muted);white-space:nowrap}
+/* Current faculty snapshot, showing all departments. */
+.docentes-date{margin:0 0 20px;font-size:11px;color:var(--muted);white-space:nowrap}
 .docentes-date strong{color:var(--ink)}
 .docentes-table-wrap:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .docentes-table-wrap table{width:100%}
@@ -69,8 +69,6 @@
 .docentes-composition-details dt{font-size:11px;color:var(--muted)}
 .docentes-composition-details dd{margin:3px 0 0;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
 @media(max-width:650px){
-  .docentes-filters .filter-control-row{flex-wrap:wrap}
-  .docentes-filters .filter-options{flex:1 1 100%;max-width:100%;min-width:0;flex-wrap:wrap;overflow:visible;white-space:normal}
   .docentes-composition-row>summary{min-height:44px;grid-template-columns:6.5px minmax(0,1fr) 64px;column-gap:5px}
   .docentes-composition-total{grid-column:3;grid-row:1}
   .docentes-composition-bar,.docentes-composition-message{grid-row:2;grid-column:2/-1;margin-top:4px}
@@ -80,4 +78,4 @@
 @media print{.docentes-composition{break-inside:avoid}.docentes-composition-bar,.docentes-category-swatch{print-color-adjust:exact}}
 @media(pointer:coarse){.docentes-composition-row>summary{min-height:44px}}
 @media(max-width:650px){.docentes-table-wrap th[scope="row"]{min-width:115px;max-width:130px}.docentes-department-name{display:block;margin-inline-start:0}.docentes-table-wrap th:first-child,.docentes-table-wrap td:first-child{position:sticky;left:0;z-index:1}.docentes-table-wrap thead th:first-child{background:var(--soft);z-index:2}.docentes-methods-body{padding-inline:12px}.docentes-date{font-size:10px}}
-@media print{.docentes-filters{display:none!important}.docentes-table-wrap{overflow:visible}.docentes-table-wrap th,.docentes-table-wrap td{font-size:10px!important;padding:8px!important;min-width:0!important}.docentes-table-wrap th:first-child,.docentes-table-wrap td:first-child{position:static}.docentes-reading-note{font-size:9px}.docentes-methods:not([open]){display:none}}
+@media print{.docentes-table-wrap{overflow:visible}.docentes-table-wrap th,.docentes-table-wrap td{font-size:10px!important;padding:8px!important;min-width:0!important}.docentes-table-wrap th:first-child,.docentes-table-wrap td:first-child{position:static}.docentes-reading-note{font-size:9px}.docentes-methods:not([open]){display:none}}
