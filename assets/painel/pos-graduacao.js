@@ -198,15 +198,12 @@
 
  function legend(ps=selected()){return `<div class="legend">${ps.map(p=>`<span title="${esc(p.name)}"><i class="legend-dot" style="background:${p.color}"></i>${p.id}</span>`).join('')}</div>`;}
 
- function chart(section,metric,level,kind,title,subtitle){
+ function chart(section,metric,level,title){
 
   const id='chart-'+(++chartCount), ps=selected(), ys=selectedYears(),chartDescription=label(section,metric,level)+' · '+rangeLabel()+(shareMode()?' · % do total dos programas':'');
 
-  if(kind==='bar')ps.sort((a,b)=>{const av=average(section,metric,a.id,level),bv=average(section,metric,b.id,level),an=M.numeric(av),bn=M.numeric(bv);return an&&bn?bv.value-av.value:an?-1:bn?1:0;});
-
-  const points=kind==='bar'?ps.map(p=>({p,record:average(section,metric,p.id,level)})):ps.flatMap(p=>ys.map(y=>({p,y,record:viewMetric(section,metric,y,p.id,level)})));
-
-  const values=points.filter(x=>M.numeric(x.record)).map(x=>isRatio(x.record)?x.record.value*100:x.record.value);
+  const records=ps.flatMap(p=>ys.map(year=>viewMetric(section,metric,year,p.id,level)));
+  const values=records.filter(M.numeric).map(record=>isRatio(record)?record.value*100:record.value);
 
   const W=464,H=203;
   const L=51,R=18,T=29,B=43,iw=W-L-R,ih=H-T-B;
@@ -224,8 +221,6 @@
    for(let v=0;v<=top+nice/10;v+=nice){inner+=`<line x1="${L}" y1="${y(v)}" x2="${W-R}" y2="${y(v)}" class="chart-gridline"/><text x="${L-9}" y="${y(v)+4}" text-anchor="end" class="chart-text">${number(v,tickDecimals)}${metric==='approval_rate'||shareMode()?'%':''}</text>`;}
 
    inner+=`<line x1="${L}" y1="${T+ih}" x2="${W-R}" y2="${T+ih}" class="chart-axis"/>`;
-
-   if(kind==='line'){
 
     const x=i=>ys.length===1?L+iw/2:L+i*iw/(ys.length-1);
 
@@ -257,15 +252,9 @@
     }
     inner+=observedLines+pointMarks;
 
-   }else{
-
-    ps.forEach((p,i)=>{const r=points[i].record,xx=L+iw*(i+.5)/ps.length,bw=Math.min(55,iw/ps.length*.55);inner+=`<text x="${xx}" y="${H-18}" text-anchor="middle" class="chart-text">${p.id}</text>`;if(!M.numeric(r)){inner+=`<text x="${xx}" y="${T+ih-9}" text-anchor="middle" class="chart-text">${r.status}</text>`;return;}const yy=y(isRatio(r)?r.value*100:r.value);let rid='d'+nextDerived++;derived.set(rid,r);inner+=`<rect x="${xx-bw/2}" y="${yy}" width="${bw}" height="${T+ih-yy}" rx="3" fill="${p.color}" tabindex="0" role="button" data-source="${rid}" data-tip="${esc(p.id+' · média '+rangeLabel()+'|'+format(r,{mean:true})+' ('+r.n+'/'+r.expected_n+' anos)')}" aria-label="${esc(p.name+': '+format(r,{mean:true}))}"/><text x="${xx}" y="${Math.max(15,yy-8)}" text-anchor="middle" class="chart-text" style="fill:var(--ink);font-weight:600">${esc(format(r,{mean:true}))}</text>`;});
-
-   }
-
   }else inner=`<text x="${W/2}" y="${H/2}" text-anchor="middle" class="chart-text">Sem valores documentados para esta seleção.</text>`;
 
-  return `<article class="panel"><div class="panel-heading"><div><h3>${esc(title)}</h3>${subtitle?`<p>${esc(subtitle)}</p>`:''}</div><div class="chart-actions">${trendControl}<button class="chart-action" data-export-svg="${id}" aria-label="Baixar SVG: ${esc(chartDescription)}">SVG ↓</button></div></div><div class="chart-container"><svg id="${id}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(chartDescription)}" xmlns="http://www.w3.org/2000/svg"><title>${esc(chartDescription)}</title>${inner}</svg></div>${kind==='bar'?'':legend(ps)}</article>`;
+  return `<article class="panel" data-post-section="${esc(section)}" data-post-metric="${esc(metric)}" data-post-level="${esc(level)}"><div class="panel-heading"><h3>${esc(title)}</h3><div class="chart-actions">${trendControl}<button class="chart-action" data-export-svg="${id}" aria-label="Baixar SVG: ${esc(chartDescription)}">SVG ↓</button></div></div><div class="chart-container"><svg id="${id}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(chartDescription)}" xmlns="http://www.w3.org/2000/svg"><title>${esc(chartDescription)}</title>${inner}</svg></div>${legend(ps)}</article>`;
 
  }
 
@@ -333,9 +322,17 @@
  function indicatorIndex(items,extra=''){
   return `<nav class="indicator-index" aria-label="Indicadores nesta página">${items.map(item=>`<button data-post-jump="${esc(item.id)}" title="Ir para ${esc(item.title)}">${esc(item.short||item.title)}</button>`).join('')}</nav>${extra}`;
  }
- function indicatorCharts(section,metric,level){
+ function annualChart(section,metric,level){
   const period=(level?(levels[level]||level)+' · ':'')+rangeLabel();
-  return `<div class="post-indicator-period" data-post-section="${section}" data-post-metric="${metric}" data-post-level="${level??''}"><div class="chart-grid">${chart(section,metric,level,'line',period,'')}${chart(section,metric,level,'bar','Média no período',period)}</div></div>`;
+  return chart(section,metric,level,period);
+ }
+ function enrollmentsPerSectionTable(ps,ys,getRecord){
+  const headings=ps.map(p=>`<th scope="col" title="${esc(p.name)}">${esc(p.id)}</th>`).join('');
+  const rows=ys.map(year=>{
+   const cells=ps.map(p=>`<td>${cell(getRecord('disciplines','enrollments_per_section',year,p.id))}</td>`).join('');
+   return `<tr><th scope="row">${esc(year)}</th>${cells}</tr>`;
+  }).join('');
+  return `<div class="table-wrap"><table class="data-table" data-post-mean-table="enrollments_per_section" aria-label="Matrículas médias por turma por ano e programa"><thead><tr><th scope="col">Ano</th>${headings}</tr></thead><tbody>${rows}</tbody></table></div>`;
  }
  function indicatorsDownload(){
   return `<section class="panel indicators-download"><div><h2>Tabelas para download</h2><p>Todos os dados dos indicadores em um único arquivo · ${selected().length} programa(s) · ${esc(rangeLabel())}.</p></div>${tableDownloadButton()}</section>`;
@@ -346,8 +343,8 @@
   postControls=groups.length?indicatorIndex(groups.map(group=>({id:'post-series-'+group.id,title:group.title,short:group.short})),mode):'';
   startTableExport();
   const html=groups.map(group=>{
-   const charts=group.levels.map(level=>{appendAnnualExport(group.section,group.metric,level);return indicatorCharts(group.section,group.metric,level);}).join('');
-   return `<section class="post-indicator-section" data-post-series="${group.id}" aria-labelledby="post-series-${group.id}"><div class="section-heading"><h2 id="post-series-${group.id}" tabindex="-1">${esc(group.title)}</h2></div>${charts}</section>`;
+   const charts=group.levels.map(level=>{appendAnnualExport(group.section,group.metric,level);return annualChart(group.section,group.metric,level);}).join('');
+   return `<section class="post-indicator-section" data-post-series="${group.id}" aria-labelledby="post-series-${group.id}"><div class="section-heading"><h2 id="post-series-${group.id}" tabindex="-1">${esc(group.title)}</h2></div><div class="chart-grid">${charts}</div></section>`;
   }).join('');
   return html?html+indicatorsDownload():empty('Não há indicadores documentados nesta área.');
  }
@@ -357,7 +354,8 @@
   startTableExport();
   const html=metrics.map(metric=>{
    appendAnnualExport('disciplines',metric,null);
-   return `<section class="post-indicator-section" data-post-discipline="${metric}" aria-labelledby="post-disciplines-${metric}"><div class="section-heading"><h2 id="post-disciplines-${metric}" tabindex="-1">${esc(disciplineMetricLabels[metric])}</h2></div>${indicatorCharts('disciplines',metric,null)}</section>`;
+   const view=metric==='enrollments_per_section'?enrollmentsPerSectionTable(selected(),selectedYears(),viewMetric):`<div class="chart-grid">${annualChart('disciplines',metric,null)}</div>`;
+   return `<section class="post-indicator-section" data-post-discipline="${metric}" aria-labelledby="post-disciplines-${metric}"><div class="section-heading"><h2 id="post-disciplines-${metric}" tabindex="-1">${esc(disciplineMetricLabels[metric])}</h2></div>${view}</section>`;
   }).join('');
   return html?html+indicatorsDownload():empty('Não há indicadores documentados nesta área.');
  }
@@ -416,7 +414,10 @@
 
  function restrictedCombinedChart(choice,ps,ys,sharedMax=null){
 
-  const metrics=choice.metrics||restrictedParticipationMetrics,family=choice.family||'participation',chartLabel=choice.label||restrictedParticipationLabel,styles={enrollments:{dash:'',name:'Matrículas'},approvals:{dash:'7 4',name:'Aprovações',hollow:true},sections:{dash:'',name:'Turmas oferecidas (turmas)'},enrollments_per_section:{dash:'7 4',name:'Matriculados por turma (média)',lighter:true,hollow:true}},tone=(color)=>/^#[a-f0-9]{6}$/i.test(color)?'#'+[1,3,5].map(i=>Math.round(parseInt(color.slice(i,i+2),16)*.78+255*.22).toString(16).padStart(2,'0')).join(''):color,series=ps.flatMap(p=>metrics.map(metric=>{const style=styles[metric]||{dash:'',name:label(choice.section,metric,choice.level)};return {p,metric,style,color:style.lighter?tone(p.color):p.color};})),values=series.flatMap(s=>ys.map(year=>restrictedGet(choice.section,s.metric,year,s.p.id,choice.level))).filter(M.numeric).map(r=>r.value);
+  const metrics=choice.metrics||restrictedParticipationMetrics,family=choice.family||'participation',chartLabel=choice.label||restrictedParticipationLabel;
+  const styles={enrollments:{dash:'',name:'Matrículas'},approvals:{dash:'7 4',name:'Aprovações',hollow:true},sections:{dash:'',name:'Turmas oferecidas (turmas)'}};
+  const series=ps.flatMap(p=>metrics.map(metric=>({p,metric,style:styles[metric]||{dash:'',name:label(choice.section,metric,choice.level)},color:p.color})));
+  const values=series.flatMap(s=>ys.map(year=>restrictedGet(choice.section,s.metric,year,s.p.id,choice.level))).filter(M.numeric).map(r=>r.value);
 
   const W=480,L=54,R=18,T=26,B=35,plotH=157,legendStep=16;
   const legendColumns=Math.min(2,Math.max(1,series.length)),legendRows=Math.ceil(series.length/legendColumns);
@@ -486,9 +487,10 @@
 
   }
 
-  const charts=[{metric:'enrollments',family:'participation',label:'Matrículas em disciplinas'},{metric:'approvals',family:'participation',label:'Aprovações em disciplinas'},{metric:'sections',family:'occupation',label:'Turmas oferecidas'},{metric:'enrollments_per_section',family:'occupation',label:'Matriculados por turma'}],participationMax=Math.max(0,...ps.flatMap(p=>restrictedParticipationMetrics.flatMap(metric=>ys.map(year=>restrictedGet('disciplines',metric,year,p.id)))).filter(M.numeric).map(r=>r.value)),panels=charts.map(chart=>restrictedCombinedChart({section:'disciplines',level:null,...chart,metrics:[chart.metric]},ps,ys,chart.family==='participation'?participationMax:null)).join('');
+  const charts=[{metric:'enrollments',family:'participation',label:'Matrículas em disciplinas'},{metric:'approvals',family:'participation',label:'Aprovações em disciplinas'},{metric:'sections',family:'occupation',label:'Turmas oferecidas'}],participationMax=Math.max(0,...ps.flatMap(p=>restrictedParticipationMetrics.flatMap(metric=>ys.map(year=>restrictedGet('disciplines',metric,year,p.id)))).filter(M.numeric).map(r=>r.value)),panels=charts.map(chart=>restrictedCombinedChart({section:'disciplines',level:null,...chart,metrics:[chart.metric]},ps,ys,chart.family==='participation'?participationMax:null)).join('');
+  const means=`<article class="panel"><div class="panel-heading"><h3>Matrículas médias por turma</h3></div>${enrollmentsPerSectionTable(ps,ys,restrictedGet)}</article>`;
 
-  return filters+controls+`<div class="chart-grid" data-restricted-dashboard>${panels}</div>`;
+  return filters+controls+`<div class="chart-grid" data-restricted-dashboard>${panels}${means}</div>`;
 
  }
 
@@ -533,7 +535,7 @@
    return `<li class="source-row">${url?`<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${title} ↗</a>`:`<span>${title}</span>`}<small>${esc(sourceAccessLabel(s.access))}</small></li>`;
   }).join('');
 
-  return `<div class="toolbar">${tableDownloadButton()}</div>${coverage}<ul class="source-list" aria-label="Fontes da pós-graduação">${sourceRows}</ul><div class="section-heading"><div><h2>Critérios de leitura</h2></div></div><div class="methods-grid"><article class="method"><h3>ND, NA, zero e estimativa</h3><p><strong>ND</strong>: não há informação suficiente na base. <strong>NA</strong>: o indicador não se aplica. <strong>0</strong>: zero documentado. <strong>≈</strong>: valor aproximado, com método indicado. Ausências não são convertidas em zero nem incluídas no denominador das médias.</p></article><article class="method"><h3>Titulações e matrículas</h3><p>Titulações são diplomas concedidos; doutorado agrega DO e DD (doutorado direto). Matrículas regulares são contagens anuais nos programas, separadas dos alunos especiais.</p></article><article class="method"><h3>Disciplinas e participação</h3><p>Matrículas em disciplinas são vínculos com turmas, não pessoas distintas. Produtos de turmas × médias publicadas são aproximações; matrículas e aprovações assim derivadas preservam o arredondamento.</p></article><article class="method"><h3>Participações percentuais</h3><p>Denominador fixo: ${esc(unitLabel)}. Cada percentual usa todos os programas configurados no mesmo ano e nível, mesmo quando alguns estão desmarcados. A média dos percentuais anuais não é a participação nos totais acumulados.</p></article><article class="method"><h3>Médias e taxas</h3><p>As barras comparam a média aritmética dos indicadores anuais no intervalo selecionado. A cobertura acompanha a tabela. Matrículas por turma usam a soma dos produtos de turmas × médias dividida pelo número de turmas dentro de cada ano; a taxa de aprovação usa os vínculos aprovados e matriculados.</p></article><article class="method"><h3>Cortes de tamanho das turmas</h3><p>Menos de cinco inclui zero e exclui cinco; a faixa de cinco a trinta inclui os dois limites; mais de trinta exclui trinta. As três faixas particionam o total de turmas e usam contagens por turma. Relatórios gerais por período podem comprovar uma turma; para exatamente duas, o complemento usa a média e uma contagem independente, sob a precisão explicitada. Desvio-padrão e ausência de linha não criam contagens.</p></article><article class="method"><h3>Cobertura e períodos sem dados</h3><p>A comparação usa o mesmo recorte dos programas configurados. As pendências de comprovação ou conciliação são detalhadas por ano e programa nesta página. Valores obtidos fora da interseção comum permanecem identificados como disponíveis individualmente. Arquivos com perfil específico ficam no módulo próprio e não completam automaticamente a base principal.</p></article><article class="method"><h3>Programa e associação histórica</h3><p>Programa não é departamento. A associação histórica de uma oferta depende da fonte do programa ou da área. O prefixo do código não define programa. Quando indicado na origem, a associação aplica ao histórico a área da ficha atual ou o vínculo unívoco nas relações públicas atuais de disciplinas, sob hipótese de manutenção. Essa classificação é indicada como hipótese, sem alegar comprovação da área histórica. Ofertas compartilhadas conservam os vínculos documentados.</p></article></div>${sourceLimits('degrees')}${(D.notes||D.methodology_notes||[]).length?`<details class="table-disclosure"><summary>Observações documentadas na extração</summary><div class="panel" style="padding:18px">${(D.notes||D.methodology_notes||[]).map(n=>`<p class="mini-note" style="margin-bottom:8px">${esc(typeof n==='string'?n:JSON.stringify(n))}</p>`).join('')}</div></details>`:''}`;
+  return `<div class="toolbar">${tableDownloadButton()}</div>${coverage}<ul class="source-list" aria-label="Fontes da pós-graduação">${sourceRows}</ul><div class="section-heading"><div><h2>Critérios de leitura</h2></div></div><div class="methods-grid"><article class="method"><h3>ND, NA, zero e estimativa</h3><p><strong>ND</strong>: não há informação suficiente na base. <strong>NA</strong>: o indicador não se aplica. <strong>0</strong>: zero documentado. <strong>≈</strong>: valor aproximado, com método indicado. Ausências não são convertidas em zero nem incluídas no denominador das médias.</p></article><article class="method"><h3>Titulações e matrículas</h3><p>Titulações são diplomas concedidos; doutorado agrega DO e DD (doutorado direto). Matrículas regulares são contagens anuais nos programas, separadas dos alunos especiais.</p></article><article class="method"><h3>Disciplinas e participação</h3><p>Matrículas em disciplinas são vínculos com turmas, não pessoas distintas. Produtos de turmas × médias publicadas são aproximações; matrículas e aprovações assim derivadas preservam o arredondamento.</p></article><article class="method"><h3>Participações percentuais</h3><p>Denominador fixo: ${esc(unitLabel)}. Cada percentual usa todos os programas configurados no mesmo ano e nível, mesmo quando alguns estão desmarcados. A média dos percentuais anuais não é a participação nos totais acumulados.</p></article><article class="method"><h3>Médias e taxas</h3><p>O CSV inclui a média aritmética dos indicadores anuais no intervalo selecionado e a quantidade de anos com dados. Matrículas por turma usam a soma dos produtos de turmas × médias dividida pelo número de turmas dentro de cada ano; a taxa de aprovação usa os vínculos aprovados e matriculados.</p></article><article class="method"><h3>Cortes de tamanho das turmas</h3><p>Menos de cinco inclui zero e exclui cinco; a faixa de cinco a trinta inclui os dois limites; mais de trinta exclui trinta. As três faixas particionam o total de turmas e usam contagens por turma. Relatórios gerais por período podem comprovar uma turma; para exatamente duas, o complemento usa a média e uma contagem independente, sob a precisão explicitada. Desvio-padrão e ausência de linha não criam contagens.</p></article><article class="method"><h3>Cobertura e períodos sem dados</h3><p>A comparação usa o mesmo recorte dos programas configurados. As pendências de comprovação ou conciliação são detalhadas por ano e programa nesta página. Valores obtidos fora da interseção comum permanecem identificados como disponíveis individualmente. Arquivos com perfil específico ficam no módulo próprio e não completam automaticamente a base principal.</p></article><article class="method"><h3>Programa e associação histórica</h3><p>Programa não é departamento. A associação histórica de uma oferta depende da fonte do programa ou da área. O prefixo do código não define programa. Quando indicado na origem, a associação aplica ao histórico a área da ficha atual ou o vínculo unívoco nas relações públicas atuais de disciplinas, sob hipótese de manutenção. Essa classificação é indicada como hipótese, sem alegar comprovação da área histórica. Ofertas compartilhadas conservam os vínculos documentados.</p></article></div>${sourceLimits('degrees')}${(D.notes||D.methodology_notes||[]).length?`<details class="table-disclosure"><summary>Observações documentadas na extração</summary><div class="panel" style="padding:18px">${(D.notes||D.methodology_notes||[]).map(n=>`<p class="mini-note" style="margin-bottom:8px">${esc(typeof n==='string'?n:JSON.stringify(n))}</p>`).join('')}</div></details>`:''}`;
 
  }
 

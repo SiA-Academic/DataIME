@@ -133,7 +133,6 @@
   .chart-grid .chart-container{flex:1;min-height:0}
 }
 @media print{.chart-grid .chart-container{min-height:0}}
-.post-indicator-period+.post-indicator-period{margin-top:22px}
 .indicators-download{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px;padding:22px}
 .indicators-download h2{font-size:17px;margin-bottom:7px}
 .indicators-download p{font-size:12px;line-height:1.6;color:var(--muted)}

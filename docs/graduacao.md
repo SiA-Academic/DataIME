@@ -4,7 +4,7 @@ O painel **Dados do IME** reúne as consultas de Graduação e Pós-graduação.
 
 ## Uso
 
-Selecione cursos, departamentos e anos para comparar os indicadores. Os gráficos permitem abrir a origem dos valores e exportar a imagem em SVG. Cada visão também oferece download das tabelas em CSV.
+Selecione cursos, departamentos e anos para comparar os indicadores. Os gráficos mostram a evolução anual ou semestral e permitem consultar a origem de cada ponto ou baixar a imagem em SVG. Indicadores como matrículas por turma e dimensão média das turmas aparecem em tabelas. O CSV da consulta inclui os valores observados e as médias do período selecionado.
 
 Nos gráficos de evolução, **Mediana móvel · 3 anos** começa desligada. Ao ativá-la, cada série ganha uma linha de traço contínuo com 40% de opacidade. A série original e seus pontos permanecem opacos. A mediana usa o valor central entre o ano anterior, o atual e o seguinte, dentro do período selecionado. A linha só aparece onde os três anos têm dados da mesma série e, nos gráficos semestrais, do mesmo semestre. O SVG exporta a visualização escolhida.
 

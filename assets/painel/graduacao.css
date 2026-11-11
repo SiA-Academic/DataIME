@@ -13,7 +13,6 @@
 .grad-series-download h2{font-size:17px;margin:0 0 7px}
 .grad-series-download p{font-size:12px;color:var(--muted);line-height:1.6;margin:0;max-width:600px}
 .grad-series-download .button{white-space:normal}
-.grad-value-label{fill:var(--ink);font-weight:650}
 .grad-curricula-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr))}
 .grad-source-ref{white-space:normal!important;min-width:230px;font-size:10px!important;overflow-wrap:anywhere}
 #grad-source-content{padding:20px 22px;max-height:65vh;overflow:auto}
