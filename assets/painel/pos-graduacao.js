@@ -79,7 +79,7 @@
 
  const disciplineLabels={courses:'Disciplinas oferecidas',sections:'Turmas',enrollments:'Matrículas em disciplinas',approvals:'Aprovações aproximadas',enrollments_per_section:'Matrículas médias por turma',approval_rate:'Taxa de aprovação aproximada'};
 
- const requestedLabels={sections:'Número de turmas',enrollments:'Matrículas em disciplinas',sections_lt5:'Turmas com menos de 5 matriculados',sections_5_to_30:'Turmas com 5 a 30 matriculados',sections_gt30:'Turmas com mais de 30 matriculados',degrees:'Diplomados',credits_offered:'Créditos ofertados',curricular_hours:'Carga horária curricular total'};
+ const requestedLabels={sections:'Número de turmas',enrollments:'Matrículas em disciplinas',sections_lt5:'Turmas com menos de 5 alunos',sections_5_to_30:'Turmas com 5 a 30 alunos',sections_gt30:'Turmas com mais de 30 alunos',degrees:'Diplomados',credits_offered:'Créditos ofertados',curricular_hours:'Carga horária curricular total'};
 
  const sectionSizeMetrics=['sections_lt5','sections_5_to_30','sections_gt30'];
  const extendedDisciplineMetrics=['credits_offered','curricular_hours',...sectionSizeMetrics];

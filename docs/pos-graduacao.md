@@ -20,7 +20,7 @@ Titulações são diplomas concedidos. Matrículas regulares anuais e matrícula
 
 A carga curricular total é o campo histórico da oferta, incluindo estudos; não mede horas efetivamente ministradas por docente. A classificação de ofertas pela área atual da ficha adota a hipótese de manutenção do vínculo histórico, quando indicada na origem. O prefixo do código de disciplina não define o programa.
 
-As faixas de tamanho são: menos de cinco; de cinco a trinta, incluindo os dois limites; e mais de trinta. A faixa intermediária é o total menos as duas faixas externas, somente com contagens completas e conciliadas. As três faixas somam o total de turmas. Contagens individuais não são reconstruídas a partir de desvios padrão arredondados. Ofertas encontradas no catálogo e ausentes do relatório anual não são convertidas em matrículas zero nem incorporadas automaticamente à atividade observada.
+As faixas de tamanho são: **menos de 5 alunos** (0–4); de 5 a 30 alunos, incluindo os dois limites; e **mais de 30 alunos** (31 ou mais). A faixa intermediária é o total menos as duas faixas externas, somente com contagens completas e conciliadas. As três faixas somam o total de turmas. Contagens individuais não são reconstruídas a partir de desvios padrão arredondados. Ofertas encontradas no catálogo e ausentes do relatório anual não são convertidas em matrículas zero nem incorporadas automaticamente à atividade observada.
 
 ## Fontes e recorte público
 
