@@ -5,11 +5,14 @@
 <link href="../../../assets/sia.css" rel="stylesheet"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <meta content="light dark" name="color-scheme"/>
-<meta content="#183644" name="theme-color"/>
+<meta content="#142d69" name="theme-color"/>
 <meta content="Sistema institucional de apoio ao acompanhamento docente dos programas de pós-graduação da Universidade de São Paulo." name="description"/><title>Detalhe do docente · SIA-Doce | Sistema de Informações Acadêmicas</title>
 <link href="../../css/controle.css" rel="stylesheet"/>
+<link href="../../css/producao.css" rel="stylesheet"/>
 <link href="../../css/sia-doce.css" rel="stylesheet"/>
 <script defer="" src="../../dados/dados.js"></script>
+<script defer="" src="../../dados/producao.js"></script>
+<script defer="" src="../../js/producao.js"></script>
 <script defer="" src="../../js/paginas.js"></script></head>
 <body class="site-body" data-pagina="docentes/detalhe"><a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
 <div class="app-shell" id="appShell">
@@ -38,8 +41,8 @@
 <button class="rail-close" id="mobileMenuClose" type="button">Fechar menu</button>
 <div class="rail-links"><a href="../../index.html">Visão geral</a>
 <a href="../../docentes/index.html">Docentes</a>
-<div class="rail-children somente-institucional"><a href="../../docentes/index.html#docentesTable">Lista de docentes</a>
-<a href="../../docentes/index.html#docenteMetrics">Indicadores</a></div><span class="rail-heading" id="rail-producao">Produção docente</span>
+<div class="rail-children"><a href="../../docentes/index.html#docentesTable" data-ancora-publica="lista-publica-titulo">Lista de docentes</a>
+<a href="../../docentes/index.html#docenteMetrics" data-ancora-publica="consulta-agregada">Indicadores</a></div><span class="rail-heading" id="rail-producao">Produção docente</span>
 <div aria-labelledby="rail-producao" class="rail-children" role="group"><a href="../../producao/index.html">Produção por ano</a>
 <a href="../../producao/analise-geral/index.html">Análise geral</a></div><a href="../../titulados/index.html">Titulações</a>
 <div class="rail-children"><a href="../../titulados/index.html#por-orientador"><span class="somente-publico">Por ano</span><span class="somente-institucional">Por orientador e ano</span></a>
@@ -51,8 +54,11 @@
 <div>
 <p class="eyebrow">SIA-Doce · Docentes</p>
 <h1>Detalhe do docente</h1>
-<p class="lead">Informações consolidadas a partir de Janus e Lattes.</p></div></section>
-<section aria-label="Consulta agregada" class="consulta-agregada somente-publico" id="consulta-agregada"></section>
+<p class="lead"><span class="somente-institucional">Informações consolidadas a partir de Janus e Lattes.</span><span class="somente-publico">Credenciamento, currículo Lattes e produção bibliográfica.</span></p></div></section>
+<section aria-labelledby="perfil-publico-nome" class="production-page somente-publico"><div class="production-card production-detail">
+<div class="production-detail-heading"><div><h2 id="perfil-publico-nome"></h2><p id="perfil-publico-resumo"></p></div>
+<div class="global-actions" id="perfil-publico-links"><a class="button quiet" href="../index.html#lista-publica-titulo">Voltar à lista</a></div></div>
+<div id="perfil-publico-historico"></div><div id="perfil-publico-artigos"></div></div></section>
 <section aria-labelledby="docenteDetailTitle" class="docente-detail docente-detail-page somente-institucional" id="docenteDetail">
 <div id="docenteDetailContent"></div></section></main>
 <footer class="site-footer footer">

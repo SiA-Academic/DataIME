@@ -14,6 +14,24 @@ window.SIADOCE_DADOS = {
       "total": 203
     },
     "ausentes": 4,
+    "curriculos_pendentes": [
+      {
+        "docente_id": "doc-045",
+        "nome": "Eduardo Martins Guerra"
+      },
+      {
+        "docente_id": "doc-049",
+        "nome": "Higor Amario de Souza"
+      },
+      {
+        "docente_id": "doc-043",
+        "nome": "Marcelo Matheus Gauy"
+      },
+      {
+        "docente_id": "doc-046",
+        "nome": "Raphael Yokoingawa de Camargo"
+      }
+    ],
     "producao": [
       {
         "ano": 2022,

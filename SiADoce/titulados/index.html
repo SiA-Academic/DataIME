@@ -5,7 +5,7 @@
 <link href="../../assets/sia.css" rel="stylesheet"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <meta content="light dark" name="color-scheme"/>
-<meta content="#183644" name="theme-color"/>
+<meta content="#142d69" name="theme-color"/>
 <meta content="Sistema institucional de apoio ao acompanhamento docente dos programas de pós-graduação da Universidade de São Paulo." name="description"/><title>Titulações · SIA-Doce | Sistema de Informações Acadêmicas</title>
 <link href="../css/controle.css" rel="stylesheet"/>
 <link href="../css/titulados.css" rel="stylesheet"/>
@@ -40,8 +40,8 @@
 <button class="rail-close" id="mobileMenuClose" type="button">Fechar menu</button>
 <div class="rail-links"><a href="../index.html">Visão geral</a>
 <a href="../docentes/index.html">Docentes</a>
-<div class="rail-children somente-institucional"><a href="../docentes/index.html#docentesTable">Lista de docentes</a>
-<a href="../docentes/index.html#docenteMetrics">Indicadores</a></div><span class="rail-heading" id="rail-producao">Produção docente</span>
+<div class="rail-children"><a href="../docentes/index.html#docentesTable" data-ancora-publica="lista-publica-titulo">Lista de docentes</a>
+<a href="../docentes/index.html#docenteMetrics" data-ancora-publica="consulta-agregada">Indicadores</a></div><span class="rail-heading" id="rail-producao">Produção docente</span>
 <div aria-labelledby="rail-producao" class="rail-children" role="group"><a href="../producao/index.html">Produção por ano</a>
 <a href="../producao/analise-geral/index.html">Análise geral</a></div><a aria-current="page" href="../titulados/index.html">Titulações</a>
 <div class="rail-children"><a href="../titulados/index.html#por-orientador"><span class="somente-publico">Por ano</span><span class="somente-institucional">Por orientador e ano</span></a>
@@ -53,7 +53,7 @@
 <div>
 <p class="eyebrow">Formação · mestrado e doutorado</p>
 <h1>Titulações</h1>
-<p class="lead">Titulações anuais e evolução mensal de mestrado, doutorado e doutorado direto.</p>
+<p class="lead"><span class="somente-institucional">Quantidades por orientador e evolução mensal, em uma só página.</span><span class="somente-publico">Titulações anuais e evolução mensal de mestrado, doutorado e doutorado direto.</span></p>
 <p class="annual-period">Período considerado: <strong></strong></p></div>
 <div class="global-actions"><a class="button quiet" href="../index.html">Página inicial</a>
 <button class="button primary" id="annual-print" type="button">Imprimir</button></div></section>
@@ -68,7 +68,12 @@
 <article class="annual-metric-do"><span>Doutorado e direto</span><strong></strong><small>DO/DD · teses</small></article>
 <article class="annual-metric-total"><span>Total de titulações</span><strong></strong><small>no período e nesta lista</small></article></div>
 <div class="annual-table-card">
-<section aria-label="Consulta agregada" class="consulta-agregada somente-publico" id="consulta-agregada"></section>
+<div class="somente-publico">
+<div class="annual-table-toolbar"><h2>Titulações por ano</h2></div>
+<div class="annual-table-scroll" role="region" tabindex="0" aria-label="Totais anuais de titulações"><table class="annual-table annual-program-table" aria-describedby="annual-coverage">
+<caption class="annual-sr-only">Titulações do grupo acompanhado, por ano e modalidade.</caption>
+<thead><tr><th scope="col">Ano</th><th scope="col">Mestrado</th><th scope="col">Doutorado e direto</th><th scope="col">Total</th></tr></thead>
+<tbody></tbody><tfoot></tfoot></table></div></div>
 <div class="annual-table-toolbar somente-institucional">
 <div>
 <h2>Orientadores × anos</h2>
@@ -78,7 +83,9 @@
 <div aria-label="Tabela anual de titulações; role para ver todos os anos e orientadores" class="annual-table-scroll somente-institucional" role="region" tabindex="0"><table aria-describedby="annual-reading-note annual-coverage" class="annual-table"><caption class="annual-sr-only">Quantidades por orientador e ano. Cada ano contém as colunas ME e DO/DD. Valores zero indicam ausência de defesas no intervalo coberto.</caption><thead></thead>
 <tbody></tbody><tfoot></tfoot></table></div>
 <p class="annual-empty" hidden="" id="annual-empty">Nenhum orientador encontrado para esta busca.</p>
-<div class="annual-coverage" id="annual-coverage"></div></div></section>
+<div class="annual-coverage" id="annual-coverage"><strong>Cobertura dos dados</strong><div id="annual-coverage-years"></div>
+<p>O grupo inclui docentes plenos, específicos e vencidos com orientando, inclusive quem não tem titulações. O credenciamento considera <a class="arquivo-institucional" data-arquivo-institucional="../orientadores.pdf">orientadores.pdf</a> e os orientandos no Janus. Cada titulação é atribuída à orientação principal.</p>
+<p>Fonte das titulações e do período: <a class="arquivo-institucional" data-arquivo-institucional="../janus.pdf">janus.pdf</a>, relatório Estatísticas por orientador. A data de situação define o ano e o mês de cada titulação.</p></div></div></section>
 <section aria-label="Titulações mensais" class="monthly-page" id="evolucao-mensal">
 <div class="titulations-section-heading">
 <h2>Evolução mensal das titulações</h2>

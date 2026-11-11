@@ -56,6 +56,8 @@ def resumo(base):
 
     producao = ler("producao-docente")
     docentes = producao["docentes"]
+    cadastro_publicacoes = {d["id"]: d["nome"] for d in docentes}
+    lattes_ausentes = ler("lattes-ausentes")
     ativos = ler("alunos-ativos")["totais"]
     mensal = ler("indicadores-mensais")
     titulos = ler("titulados-por-ano")
@@ -78,7 +80,9 @@ def resumo(base):
             "periodo": producao["periodo"],
             "categorias": Counter(d["categoria"] for d in docentes),
             "alunos": {k: ativos[k] for k in ("mestrado", "doutorado", "doutorado_direto", "total")},
-            "ausentes": ler("lattes-ausentes")["total_ausentes"],
+            "ausentes": lattes_ausentes["total_ausentes"],
+            "curriculos_pendentes": [{"docente_id": d["docente_id"], "nome": cadastro_publicacoes[d["docente_id"]]}
+                                    for d in lattes_ausentes["docentes"] if d["docente_id"] in cadastro_publicacoes],
             "producao": totais_por_ano,
             "criterio": {k: producao["criterio_quadrienio"][k] for k in ("inicio", "fim")},
             "alertas": {"docentes": alertas.docentes, "tipos": alertas.tipos},

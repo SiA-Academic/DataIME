@@ -1,4 +1,11 @@
+/* As telas de produção usam o tema original do SIA-Doce. */
+@import url("sia-doce.css") layer(portal);
+
 .production-heading { min-height: 0; padding-block: 1.6rem; margin-bottom: .7rem; }
+.data-table.faculty-directory { width: 100%; min-width: 0; }
+.faculty-directory th[scope="row"] { position: static; background: transparent; color: var(--primary); text-align: left; }
+.faculty-directory a { text-decoration: underline; text-underline-offset: .15em; }
+.faculty-directory thead th { position: sticky; top: 0; z-index: 1; }
 .production-page { width: min(calc(100% - 2.5rem), var(--shell)); margin: 0 auto 4rem; }
 .production-metrics { display: grid; grid-template-columns: minmax(0,.7fr) minmax(0,1.1fr) minmax(0,1fr) minmax(0,1.6fr); margin-bottom: .9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--entry); overflow: hidden; }
 .production-metrics article { display: grid; grid-template-columns: auto minmax(0,1fr); align-items: baseline; align-content: start; gap: .1rem .45rem; padding: .6rem .85rem; border-left: 1px solid var(--border); }

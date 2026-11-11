@@ -52,6 +52,9 @@
 .annual-count-me { color: #12605a; background: #e1f2ed; }
 .annual-count-do { color: #294b86; background: #e5ecf8; }
 .annual-count.annual-zero { color: var(--muted); background: transparent; font-weight: 400; }
+.annual-table.annual-program-table { min-width: 0; }
+.annual-program-table th:first-child { text-align: left; padding-left: 1.15rem; }
+.annual-program-table tbody th small { display: block; font-size: .7rem; font-weight: 400; color: var(--secondary); }
 .annual-table tfoot th, .annual-table tfoot td { position: sticky; bottom: 0; z-index: 3; font-weight: 700; background: var(--blue-bg); border-top: 2px solid var(--border); }
 .annual-table tfoot .annual-name { z-index: 4; }
 .annual-coverage { padding: 1.3rem 1.75rem; font-size: .8rem; color: var(--secondary); border-top: 1px solid var(--border); line-height: 1.65; }

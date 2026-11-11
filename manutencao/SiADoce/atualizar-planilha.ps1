@@ -104,14 +104,15 @@ try {
   if (Test-Path -LiteralPath $latestPath) {
     try {
       $previousManifest = Get-Content -LiteralPath $latestPath -Raw -Encoding UTF8 | ConvertFrom-Json
-      if ($previousManifest.pacote -and (Test-Path -LiteralPath $previousManifest.pacote -PathType Leaf)) {
-        $previousPackage = $previousManifest.pacote
-      } elseif ($previousManifest.pacote_relativo) {
+      if ($previousManifest.pacote_relativo) {
         $candidatePath = [IO.Path]::GetFullPath((Join-Path $historyRoot $previousManifest.pacote_relativo))
         if ($candidatePath.StartsWith($historyRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase) -and
             (Test-Path -LiteralPath $candidatePath -PathType Leaf)) {
           $previousPackage = $candidatePath
         }
+      }
+      if (-not $previousPackage -and $previousManifest.pacote -and (Test-Path -LiteralPath $previousManifest.pacote -PathType Leaf)) {
+        $previousPackage = $previousManifest.pacote
       }
     } catch { Write-Warning "Historico anterior ilegivel; a geracao prosseguira sem comparacao." }
   }

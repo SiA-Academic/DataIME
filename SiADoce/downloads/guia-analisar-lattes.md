@@ -128,7 +128,7 @@ Mantenha Python 3.10 ou superior, PowerShell 7 e `pdftotext` instalados e dispon
 
 ## Arquivos para compartilhar
 
-O pacote `distribuicao/analisador-lattes.zip` reúne o analisador para Windows, Mac e Linux, o catálogo e este guia. O build também o inclui em `public/downloads/analisador-lattes.zip`, junto de `guia-analisar-lattes.md`, para download no site. Extraia-o antes de usar. As dependências da instalação inicial precisam ser instaladas no computador de cada docente.
+O pacote `distribuicao/analisador-lattes.zip` reúne o analisador para Windows, macOS e Linux, o catálogo e este guia. Na página **Produção docente**, a seção **Analisar outro currículo** oferece o ZIP e o guia para download. Extraia o pacote e instale as dependências no computador em que o currículo será processado.
 
 **O `.sh` ou `.ps1` isolado não basta.** Envie os seguintes arquivos, preservando a estrutura de pastas:
 

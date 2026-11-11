@@ -5,11 +5,13 @@
 <link href="../../assets/sia.css" rel="stylesheet"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <meta content="light dark" name="color-scheme"/>
-<meta content="#183644" name="theme-color"/>
+<meta content="#142d69" name="theme-color"/>
 <meta content="Sistema institucional de apoio ao acompanhamento docente dos programas de pós-graduação da Universidade de São Paulo." name="description"/><title>Acompanhamento docente · SIA-Doce | Sistema de Informações Acadêmicas</title>
 <link href="../css/controle.css" rel="stylesheet"/>
+<link href="../css/producao.css" rel="stylesheet"/>
 <link href="../css/sia-doce.css" rel="stylesheet"/>
 <script defer="" src="../dados/dados.js"></script>
+<script defer="" src="../dados/producao.js"></script>
 <script defer="" src="../js/paginas.js"></script></head>
 <body class="site-body" data-pagina="docentes"><a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
 <div class="app-shell" id="appShell">
@@ -38,8 +40,8 @@
 <button class="rail-close" id="mobileMenuClose" type="button">Fechar menu</button>
 <div class="rail-links"><a href="../index.html">Visão geral</a>
 <a aria-current="page" href="../docentes/index.html">Docentes</a>
-<div class="rail-children somente-institucional"><a href="../docentes/index.html#docentesTable">Lista de docentes</a>
-<a href="../docentes/index.html#docenteMetrics">Indicadores</a></div><span class="rail-heading" id="rail-producao">Produção docente</span>
+<div class="rail-children"><a href="../docentes/index.html#docentesTable" data-ancora-publica="lista-publica-titulo">Lista de docentes</a>
+<a href="../docentes/index.html#docenteMetrics" data-ancora-publica="consulta-agregada">Indicadores</a></div><span class="rail-heading" id="rail-producao">Produção docente</span>
 <div aria-labelledby="rail-producao" class="rail-children" role="group"><a href="../producao/index.html">Produção por ano</a>
 <a href="../producao/analise-geral/index.html">Análise geral</a></div><a href="../titulados/index.html">Titulações</a>
 <div class="rail-children"><a href="../titulados/index.html#por-orientador"><span class="somente-publico">Por ano</span><span class="somente-institucional">Por orientador e ano</span></a>
@@ -56,13 +58,26 @@
 <p class="lead">Dados consolidados do Janus e do Currículo Lattes, com indicadores e alertas de acompanhamento.</p></div>
 <div class="global-actions"><a class="button quiet" href="../producao/analise-geral/index.html">Análise geral</a>
 <button class="button primary somente-institucional" id="exportDocentesPdf" type="button">Exportar docentes.pdf</button></div></section>
-<section aria-label="Consulta agregada" class="consulta-agregada somente-publico" id="consulta-agregada"></section>
+<section class="production-page somente-publico" aria-labelledby="lista-publica-titulo">
+<div class="production-card">
+<div class="production-toolbar">
+<div><h2 id="lista-publica-titulo">Lista de docentes</h2><p id="lista-publica-contagem" role="status"></p></div>
+<div class="production-filters">
+<label>Credenciamento<select id="lista-publica-categoria"><option value="">Todos</option></select></label>
+<label>Buscar docente<input autocomplete="off" id="lista-publica-busca" placeholder="Nome do docente" type="search"/></label>
+</div></div>
+<div class="production-table-scroll" role="region" tabindex="0" aria-label="Docentes e currículos">
+<table class="data-table faculty-directory"><thead><tr><th scope="col">Docente</th><th scope="col">Credenciamento</th><th scope="col">Currículo Lattes</th></tr></thead>
+<tbody id="lista-publica-docentes"></tbody></table></div>
+</div>
+<section aria-label="Indicadores do grupo acompanhado" class="consulta-agregada" id="consulta-agregada"></section>
+</section>
 <section aria-labelledby="docentesTitle" class="panel active somente-institucional" id="docentesPanel">
 <div class="section-title">
 <div>
 <h2 id="docentesTitle">Docentes</h2>
 <p>Visualização consolidada de orientações Janus e produção Lattes.</p>
-<p class="cell-muted">161 titulações no período dos docentes acompanhados: plenos, específicos e vencidos com orientando. Tabelas, gráficos, contagens e médias usam esse mesmo grupo.</p></div></div>
+<p class="cell-muted" hidden id="docente-titulacoes-fonte"><span></span> titulações no período dos docentes acompanhados: plenos, específicos e vencidos com orientando. Tabelas, gráficos, contagens e médias usam esse mesmo grupo.</p></div></div>
 <div class="docente-top-grid">
 <div class="metric-grid" id="docenteMetrics"></div>
 <section aria-labelledby="docenteOverviewTitle" class="docente-overview">

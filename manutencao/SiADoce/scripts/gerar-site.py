@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -13,7 +14,7 @@ PUBLIC = REPO / 'SiADoce'
 DEFAULT_OUTPUT = REPO / 'SiADoce-institucional'
 MARKER = '.sia-doce-institucional'
 from grupos_analise import GRUPOS, carregar_excecoes, grupo_analise
-from publicacoes_site import exportar_analise
+from publicacoes_site import exportar_analise, perfil_lattes
 
 sys.path.append(str(ROOT / '.trabalho/dependencias'))
 try:
@@ -122,6 +123,30 @@ def validate_destination(destination):
         raise ValueError(f'O destino contém outros arquivos. Escolha uma pasta vazia: {destination}')
 
 
+def exportar_extratos(directory, data):
+    cadastro = {docente['id']: docente for docente in data['producao']['docentes']}
+    for base, arquivo in (('publicacoes_periodicos', 'publicacoes.md'), ('publicacoes_conferencias', 'eventos.md')):
+        fonte = data[base]
+        extrato = {k: fonte[k] for k in ('title', 'fonte', 'atualizado_em', 'periodo_analise', 'desde_ano', 'ate_ano', 'tipo')}
+        docentes = []
+        for ficha in fonte['publicacoes_por_docente']:
+            docente = cadastro.get(ficha['docente_id'])
+            if docente is None:
+                continue
+            registros = [{k: item[k] for k in ('ano', 'tipo', 'titulo', 'veiculo', 'fonte', 'referencia')}
+                         for item in ficha['publicacoes']]
+            campos = {k: ficha[k] for k in ('docente_id', 'total', 'total_periodicos', 'total_anais_congressos')}
+            campos.update(nome=docente['nome'], lattes_atualizado_em=docente.get('lattes_atualizado_em'),
+                          lattes_url=perfil_lattes(docente['lattes_url']) if docente.get('lattes_url') else None,
+                          publicacoes=registros)
+            docentes.append(campos)
+        extrato['publicacoes_por_docente'] = docentes
+        extrato['publicacoes_sem_docente'] = []
+        cabecalho = yaml.safe_dump(extrato, allow_unicode=True, sort_keys=False, width=120)
+        (directory / arquivo).write_text('---\n' + cabecalho + '---\n\nExtração dos Lattes dos docentes acompanhados.\n',
+                                         encoding='utf-8', newline='\n')
+
+
 def stage_site(staging, root, data):
     # A interface distribuída é a mesma nas duas edições. Os recursos de acesso
     # institucional são acrescentados a partir de uma lista explícita.
@@ -146,6 +171,7 @@ def stage_site(staging, root, data):
     target.write_text('window.SIADOCE_DADOS = ' + json.dumps(data, ensure_ascii=False, separators=(',', ':'))
                       + ';\n', encoding='utf-8')
     exportar_analise(target.parent, data)
+    exportar_extratos(staging / 'downloads', data)
     (staging / 'controle').mkdir(exist_ok=True)
     shutil.copy2(root / 'content/controle/lattes-docentes.csv', staging / 'controle/lattes-docentes.csv')
     (staging / MARKER).write_text('Instância institucional gerada pelo SIA-Doce.\n', encoding='utf-8')
@@ -157,37 +183,65 @@ def build(destination):
     # Mantém as entradas temporárias igualmente fora do índice do repositório.
     work = ROOT / '.trabalho' if destination == DEFAULT_OUTPUT else destination.parent
     work.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(dir=work, prefix='sia-doce-') as temp:
-        stage, previous = Path(temp) / 'novo', Path(temp) / 'anterior'
+    temp = Path(tempfile.mkdtemp(dir=work, prefix='sia-doce-'))
+    stage, previous = temp / 'novo', temp / 'anterior'
+    instalado = False
+    try:
         stage_site(stage, ROOT, data)
         if destination != DEFAULT_OUTPUT:
             adapt_external_paths(stage)
         if destination.exists():
-            destination.rename(previous)
+            mover_instalacao(destination, previous)
         try:
-            stage.rename(destination)
+            mover_instalacao(stage, destination)
+            instalado = True
         except OSError:
             if previous.exists():
-                previous.rename(destination)
+                try:
+                    mover_instalacao(previous, destination)
+                except OSError as error:
+                    raise OSError(f'A instalação anterior está preservada em {previous}.') from error
             raise
+    finally:
+        if instalado or not previous.exists():
+            shutil.rmtree(temp)
     print(f'Instância institucional: {destination / "index.html"}')
+
+
+def mover_instalacao(origem, destino):
+    # A sincronização do Windows pode manter um arquivo aberto logo após a cópia.
+    for espera in (0.2, 0.5, 1, 2, 4):
+        try:
+            origem.rename(destino)
+            return
+        except OSError as erro:
+            if getattr(erro, 'winerror', None) not in (5, 32, 33):
+                raise
+            time.sleep(espera)
+    origem.rename(destino)
 
 
 def refresh_portal(destination):
     # O agregador é o próprio gerador do portal, com seleção explícita dos campos.
     downloads = ('analisador-lattes.zip', 'guia-analisar-lattes.md')
+    extratos = ('publicacoes.md', 'eventos.md')
     work = ROOT / '.trabalho'
     work.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(dir=work) as temp:
         staging = Path(temp)
         target = staging / 'dados.js'
         subprocess.run([sys.executable, PUBLIC / 'dados/resumir.py', ROOT, '--saida', target], check=True)
-        shutil.copy2(destination / 'dados/publicacoes.js', staging / 'publicacoes.js')
+        bases_bibliograficas = ('publicacoes.js', 'producao.js')
+        for name in bases_bibliograficas:
+            shutil.copy2(destination / 'dados' / name, staging / name)
         for name in downloads:
             shutil.copy2(ROOT / 'static/downloads' / name, staging / name)
+        for name in extratos:
+            shutil.copy2(destination / 'downloads' / name, staging / name)
         target.replace(PUBLIC / 'dados/dados.js')
-        (staging / 'publicacoes.js').replace(PUBLIC / 'dados/publicacoes.js')
-        for name in downloads:
+        for name in bases_bibliograficas:
+            (staging / name).replace(PUBLIC / 'dados' / name)
+        for name in downloads + extratos:
             (staging / name).replace(PUBLIC / 'downloads' / name)
     print(f'Resumos e analisador atualizados em {PUBLIC}.')
 

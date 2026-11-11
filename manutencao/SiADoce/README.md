@@ -12,6 +12,8 @@ Abra o PowerShell na pasta que contém este guia. Coloque os novos relatórios e
 
 O comando lê os PDFs, recalcula os indicadores, gera a instância institucional em `../../SiADoce-institucional/` e atualiza os resumos e o analisador em `../../SiADoce/`. Confira os resultados antes de enviar as alterações ao Git. Para atualizar somente a instância institucional, execute `.\build-public.ps1`. Para repor apenas o HTML e os dados do navegador após alterar a interface, use `-UsarDadosPreparados`.
 
+A página **Produção docente** usa o histórico anual em `../../SiADoce/dados/producao.js`. A atualização preserva as contagens por faixa, as referências de periódicos e eventos, as pendências e os anos sem cobertura do currículo.
+
 A análise geral começa com o mínimo de quatro artigos. A atualização grava os nomes, as referências, as classificações e os links bibliográficos em `../../SiADoce/dados/publicacoes.js`. O navegador usa esses dados para calcular o placar e mostrar as fichas por docente. O arquivo local `../../SiADoce-institucional/dados/analise-publicacoes.json` acrescenta os filtros de credenciamento e os critérios de orientação em **Mais critérios**.
 
 Para gerar a instância em outro diretório de acesso institucional, informe uma pasta dedicada à instalação.
@@ -32,7 +34,7 @@ python -m pip install PyYAML
 .\build-public.ps1 -AtualizarPortal
 ```
 
-A importação inicial lê o acervo na estrutura abaixo. Ela preserva as correspondências já estabelecidas entre docentes e currículos, as exclusões de cadastro e as conferências editoriais. Depois dessa primeira cópia, as atualizações usam os arquivos presentes nesta pasta de manutenção.
+A importação inicial lê o acervo na estrutura abaixo. Ela preserva as correspondências já estabelecidas entre docentes e currículos, as exclusões de cadastro e as conferências editoriais. Também copia as execuções de `atualizacoes/`, os resultados de `analises-avulsas/` e o PDF de exemplo, quando disponíveis. Esses históricos ficam na instalação local. A próxima atualização da planilha compara o resultado com o pacote anterior desta instalação.
 
 | Entrada de trabalho | Uso |
 | --- | --- |

@@ -1,8 +1,7 @@
 (function () {
   "use strict";
   const app = document.getElementById("production-app");
-  if (!app) return;
-  const data = window.SIADOCE_DADOS.producao || {};
+  const data = window.SIADOCE_DADOS?.producao || window.SIADOCE_PRODUCAO || {};
   const people = data.docentes || [];
   const years = [...new Set((data.anos || []).map(Number))].sort((a, b) => a - b);
   const yearSelect = document.getElementById("production-year");
@@ -16,7 +15,6 @@
   const number = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
   const labels = { pleno: "Pleno", especifico: "Específico", vencido_com_orientando: "Vencido com orientando" };
   let sortKey = "nome", sortDirection = 1, selectedId = "", selectedYear = null;
-  yearSelect.value = "all";
 
   function element(tag, text, className) {
     const node = document.createElement(tag);
@@ -349,7 +347,7 @@
       score.append(element("strong", pub.faixa), element("small", isEvent ? "Faixa preliminar do evento" : `Percentil ${metric(pub.percentil)}`));
       if (["A1", "A2", "A3", "A4"].includes(pub.faixa)) score.append(element("small", pub.pontos == null ? "Pontos indisponíveis" : `${format.format(pub.pontos)} ponto(s)`));
       else score.append(element("small", "Fora da soma A1–A4"));
-      score.append(safeLink("Ver critério", "#criterios-producao"));
+      score.append(safeLink("Ver critério", app ? "#criterios-producao" : "producao/index.html#criterios-producao"));
     } else if (pub.status === "pendente_tipo") {
       score.append(element("strong", "Em revisão"), element("small", "Modalidade do trabalho"),
         element("small", "Sem pontos atribuídos"));
@@ -357,7 +355,7 @@
       score.append(element("strong", "Não elegível"), element("small", "Fora da contagem e dos pontos"));
     } else if (isEvent && pub.status === "pendente_evento" && pub.faixa_evento_referencia) {
       score.append(element("strong", pub.faixa_evento_referencia), element("small", "Faixa candidata · não pontuada"),
-        element("small", "Sem pontos atribuídos"), safeLink("Ver critério", "#criterios-producao"));
+        element("small", "Sem pontos atribuídos"), safeLink("Ver critério", app ? "#criterios-producao" : "producao/index.html#criterios-producao"));
     } else {
       score.append(element("strong", "—"), element("small", "Sem pontos atribuídos"));
     }
@@ -469,6 +467,11 @@
     detail.hidden = false;
     if (focus) { detail.scrollIntoView({ block: "start", behavior: "smooth" }); title.focus({ preventScroll: true }); }
   }
+  window.SiADoceProductionViews = Object.freeze({
+    facultyGroup, historyNode, appendPublicationGroups, appendClassifiedJournals, annual, dateText, coverageMessage, pointText, eventCounts
+  });
+  if (!app) return;
+  yearSelect.value = "all";
   yearSelect.addEventListener("change", () => {
     if (selectedYears().length > 1 && sortKey === "pontos") {
       sortKey = "nome"; sortDirection = 1;
@@ -488,8 +491,16 @@
       render();
     });
   });
-  window.SiADoceProductionViews = Object.freeze({
-    facultyGroup, historyNode, appendPublicationGroups, appendClassifiedJournals, annual, dateText, coverageMessage, pointText, eventCounts
-  });
-  render();
+  if (Array.isArray(data.docentes)) {
+    const requested = new URL(window.location.href).searchParams.get("docente");
+    const person = requested && people.find(item => item.id === requested);
+    if (person) search.value = person.nome;
+    render();
+  } else {
+    const notice = element("p", "Não foi possível carregar o histórico de produção docente.", "production-empty");
+    notice.setAttribute("role", "alert");
+    app.prepend(notice);
+    app.querySelector(".production-metrics").hidden = true;
+    table.closest(".production-card").hidden = true;
+  }
 })();

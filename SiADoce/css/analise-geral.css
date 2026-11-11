@@ -1,7 +1,3 @@
-/* Mantém os controles de navegação do portal e dá precedência ao tema original da análise. */
-@import url("sia-doce.css") layer(portal);
-.site-body { --font: inherit; --font-display: inherit; }
-
 .production-page.sim-page { width: min(38.5rem, calc(100% - 1.5rem)); margin: 0 auto 3rem; font-variant-numeric: tabular-nums; }
 .sim-title { padding: 1.4rem 0 .9rem; }
 .sim-title h1 { margin: 0; color: var(--navy-dark); font-size: clamp(1.55rem, 3vw, 2rem); line-height: 1.15; }

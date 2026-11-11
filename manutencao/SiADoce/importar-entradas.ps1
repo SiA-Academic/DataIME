@@ -17,6 +17,7 @@ $required = @(
 $optional = @(
     'static/areas.md', 'static/configuracoes_padrao.md', 'static/NORMAS', 'static/DIRETRIZES',
     'static/modelos-maycon'
+    'walner.pdf'
 )
 foreach ($name in $required) {
     if (-not (Test-Path -LiteralPath (Join-Path $source $name))) { throw "Entrada ausente na origem: $name" }
@@ -58,4 +59,5 @@ if (Test-Path -LiteralPath $groupsSource -PathType Leaf) {
     }
     [IO.File]::WriteAllText($groupsTarget, (ConvertTo-Json -InputObject $exceptions), [Text.UTF8Encoding]::new($false))
 }
-Write-Host 'Entradas institucionais copiadas para a pasta de manutenção.'
+& (Join-Path $PSScriptRoot 'scripts/importar-historico.ps1') -Origem $source
+Write-Host 'Entradas e históricos institucionais copiados para a pasta de manutenção.'

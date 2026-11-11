@@ -1,4 +1,6 @@
 (function () {
+  document.getElementById("annual-print").addEventListener("click", () => window.print());
+  if (!window.SIADOCE_DADOS?.institucional) return;
   const search = document.getElementById("annual-search");
   if (!search) return;
   const rows = Array.from(document.querySelectorAll("[data-annual-row]"));
@@ -6,7 +8,7 @@
   const normalize = (value) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
   const names = rows.map((row) => normalize(row.dataset.name));
   const headers = Array.from(document.querySelectorAll("[data-sort-column]"));
-  const tbody = document.querySelector(".annual-table tbody");
+  const tbody = document.querySelector(".annual-table-scroll.somente-institucional tbody");
   const collator = new Intl.Collator("pt-BR", { sensitivity: "base", numeric: true });
   let sortColumn = 0;
   let sortDirection = "ascending";
@@ -68,5 +70,4 @@
     document.getElementById("annual-row-count").textContent = `${visible} de ${rows.length} orientadores`;
     document.getElementById("annual-empty").hidden = visible > 0;
   });
-  document.getElementById("annual-print").addEventListener("click", () => window.print());
 })();

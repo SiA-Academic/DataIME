@@ -5,12 +5,12 @@
 <link href="../../assets/sia.css" rel="stylesheet"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <meta content="light dark" name="color-scheme"/>
-<meta content="#183644" name="theme-color"/>
+<meta content="#142d69" name="theme-color"/>
 <meta content="Sistema institucional de apoio ao acompanhamento docente dos programas de pós-graduação da Universidade de São Paulo." name="description"/><title>Produção docente · SIA-Doce | Sistema de Informações Acadêmicas</title>
 <link href="../css/controle.css" rel="stylesheet"/>
 <link href="../css/producao.css" rel="stylesheet"/>
-<link href="../css/sia-doce.css" rel="stylesheet"/>
 <script defer="" src="../dados/dados.js"></script>
+<script defer="" src="../dados/producao.js"></script>
 <script defer="" src="../js/paginas.js"></script></head>
 <body class="site-body" data-pagina="producao"><a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
 <div class="app-shell" id="appShell">
@@ -39,8 +39,8 @@
 <button class="rail-close" id="mobileMenuClose" type="button">Fechar menu</button>
 <div class="rail-links"><a href="../index.html">Visão geral</a>
 <a href="../docentes/index.html">Docentes</a>
-<div class="rail-children somente-institucional"><a href="../docentes/index.html#docentesTable">Lista de docentes</a>
-<a href="../docentes/index.html#docenteMetrics">Indicadores</a></div><span class="rail-heading" id="rail-producao">Produção docente</span>
+<div class="rail-children"><a href="../docentes/index.html#docentesTable" data-ancora-publica="lista-publica-titulo">Lista de docentes</a>
+<a href="../docentes/index.html#docenteMetrics" data-ancora-publica="consulta-agregada">Indicadores</a></div><span class="rail-heading" id="rail-producao">Produção docente</span>
 <div aria-labelledby="rail-producao" class="rail-children" role="group"><a aria-current="page" href="../producao/index.html">Produção por ano</a>
 <a href="../producao/analise-geral/index.html">Análise geral</a></div><a href="../titulados/index.html">Titulações</a>
 <div class="rail-children"><a href="../titulados/index.html#por-orientador"><span class="somente-publico">Por ano</span><span class="somente-institucional">Por orientador e ano</span></a>
@@ -52,17 +52,16 @@
 <div>
 <p class="eyebrow">Acompanhamento · recredenciamento</p>
 <h1>Produção docente</h1></div>
-<div class="global-actions"><a class="button primary" href="../producao/analise-geral/index.html">Análise geral</a>
+<div class="global-actions"><a class="button primary" href="analise-geral/index.html">Análise das publicações</a>
 <a class="button" href="https://docs.google.com/spreadsheets/d/1TF6Fhi7EjhiSU59mGqVsbbR55OeQdjZiTvHvhSxLeOc/edit?usp=drivesdk" rel="noopener external" target="_blank">Abrir planilha no Google Drive</a>
 <a class="button quiet" href="#criterios-producao">Entender os critérios</a></div></section>
 <section class="production-page" data-detail-url="docentes/detalhe/index.html" id="production-app">
-<section aria-label="Consulta agregada" class="consulta-agregada somente-publico" id="consulta-agregada"></section>
-<div aria-live="polite" class="production-metrics somente-institucional">
+<div aria-live="polite" class="production-metrics">
 <article><strong id="production-count">—</strong><span>Docentes</span></article>
 <article><strong id="production-classified">—</strong><span>Artigos classificados</span><small>Periódicos · A1–A8</small></article>
 <article><strong id="production-pending">—</strong><span>Artigos pendentes</span><small>Em periódicos</small></article>
 <article><strong id="production-events">—</strong><span>Registros em eventos</span><small id="production-events-summary"></small></article><small class="production-coverage-note" id="production-missing-cv"></small></div>
-<div class="production-card somente-institucional">
+<div class="production-card">
 <div class="production-toolbar">
 <div>
 <h2>Histórico por docente</h2>
@@ -185,7 +184,9 @@
 <p class="production-policy-source"><a href="https://www.gov.br/capes/pt-br/acesso-a-informacao/acoes-e-programas/avaliacao/sobre-a-avaliacao/areas-avaliacao/sobre-as-areas-de-avaliacao/colegio-de-ciencias-exatas-tecnologicas-e-multidisciplinar/ciencias-exatas-e-da-terra/ciencia-da-computacao/computacao-ficha.pdf/@@display-file/file#page=7" rel="external">Ficha · item 2.4, pp. 7–8</a> · <a href="https://www.gov.br/capes/pt-br/acesso-a-informacao/acoes-e-programas/avaliacao/sobre-a-avaliacao/areas-avaliacao/sobre-as-areas-de-avaliacao/colegio-de-ciencias-exatas-tecnologicas-e-multidisciplinar/ciencias-exatas-e-da-terra/ciencia-da-computacao/computacao-docarea.pdf/@@display-file/file#page=20" rel="external">Área · pp. 20–21</a> e <a href="https://www.gov.br/capes/pt-br/acesso-a-informacao/acoes-e-programas/avaliacao/sobre-a-avaliacao/areas-avaliacao/sobre-as-areas-de-avaliacao/colegio-de-ciencias-exatas-tecnologicas-e-multidisciplinar/ciencias-exatas-e-da-terra/ciencia-da-computacao/computacao-docarea.pdf/@@display-file/file#page=28" rel="external">28–29</a></p></section></div>
 <h3>Fontes</h3>
 <div class="production-source-links"><a href="https://docs.google.com/spreadsheets/d/1TF6Fhi7EjhiSU59mGqVsbbR55OeQdjZiTvHvhSxLeOc/edit?usp=drivesdk" rel="noopener external" target="_blank">Periódicos e eventos no Google Drive</a>
+<a class="somente-publico" download="" href="../downloads/publicacoes.md">Publicações extraídas dos Lattes</a>
 <a class="arquivo-institucional somente-institucional" data-arquivo-institucional="../publicacoes.md" data-download="">Publicações extraídas dos Lattes</a>
+<a class="somente-publico" download="" href="../downloads/eventos.md">Registros de eventos</a>
 <a class="arquivo-institucional somente-institucional" data-arquivo-institucional="../eventos.md" data-download="">Registros de eventos</a>
 <a href="https://www.gov.br/capes/pt-br/acesso-a-informacao/acoes-e-programas/avaliacao/sobre-a-avaliacao/areas-avaliacao/sobre-as-areas-de-avaliacao/colegio-de-ciencias-exatas-tecnologicas-e-multidisciplinar/ciencias-exatas-e-da-terra/ciencia-da-computacao/computacao-ficha.pdf/@@display-file/file" rel="external">Ficha oficial de Computação 2025–2028</a>
 <a href="https://www.gov.br/capes/pt-br/acesso-a-informacao/acoes-e-programas/avaliacao/sobre-a-avaliacao/areas-avaliacao/sobre-as-areas-de-avaliacao/colegio-de-ciencias-exatas-tecnologicas-e-multidisciplinar/ciencias-exatas-e-da-terra/ciencia-da-computacao/computacao-docarea.pdf/@@display-file/file" rel="external">Documento de Área de Computação 2025–2028</a></div></section>
