@@ -1,6 +1,6 @@
 # SIA-Grad
 
-Sistema de Informações Acadêmicas – Graduação do IME-USP. Abra [o painel](index.html) ou retorne ao [portal SIA](../index.html).
+Sistema de Informações Acadêmicas – Graduação do IME-USP. [Abrir o painel de graduação](index.html).
 
 ## Uso
 

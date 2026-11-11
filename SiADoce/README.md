@@ -17,7 +17,7 @@ O acompanhamento considera docentes plenos, específicos e vencidos com orientan
 
 ## Execução e atualização
 
-O navegador abre as páginas HTML diretamente do disco ou em um servidor estático. Os gráficos, filtros e arquivos de dados são locais. As páginas usam a identidade visual em `../assets/sia.css` e os dados em `dados/dados.js`. O retorno ao portal está disponível no menu de todas as seções.
+O navegador abre as páginas HTML diretamente do disco ou em um servidor estático. Os gráficos, filtros e arquivos de dados são locais. As páginas usam a identidade visual em `../assets/sia.css` e os dados em `dados/dados.js`.
 
 Os [arquivos de manutenção](../manutencao/SiADoce/README.md) preparam os dados e geram a cópia institucional. Na análise geral, o campo **Mínimo de artigos** começa em quatro. Cada alteração de período, tipo de publicação, faixa ou mínimo recalcula o placar no navegador. **Restaurar proposta** recupera os critérios iniciais.
 

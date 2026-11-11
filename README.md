@@ -1,6 +1,6 @@
 # SIA · Sistema de Informações Acadêmicas
 
-O [portal SIA do IME-USP](https://sia-academic.github.io/SiA/) dá acesso a três sistemas independentes.
+O SIA do IME-USP reúne três sistemas independentes. Cada sistema é acessado por seu endereço direto.
 
 | Sistema | Consultas | Documentação |
 | --- | --- | --- |
@@ -10,7 +10,7 @@ O [portal SIA do IME-USP](https://sia-academic.github.io/SiA/) dá acesso a trê
 
 ## Uso local
 
-Abra `index.html` na raiz de uma cópia completa do repositório. O navegador carrega as páginas, estilos, scripts e bases estáticas diretamente. Os arquivos em `assets/` são compartilhados pelos sistemas. Para servir o portal por HTTP, execute `python -m http.server 8000 --bind 127.0.0.1` na raiz e abra `http://127.0.0.1:8000/`. Ao abrir o portal no computador ou em localhost, o acesso a Docentes seleciona a edição institucional quando ela está instalada.
+Abra `index.html` no diretório do sistema desejado. O navegador carrega as páginas, estilos, scripts e bases estáticas diretamente. Os arquivos em `assets/` são compartilhados pelos sistemas. Para servir os módulos por HTTP, execute `python -m http.server 8000 --bind 127.0.0.1` na raiz do repositório e abra, por exemplo, `http://127.0.0.1:8000/SiADoce/`. Para usar os dados institucionais no computador de trabalho, abra `SiADoce-institucional/index.html`.
 
 ## Dados e manutenção
 

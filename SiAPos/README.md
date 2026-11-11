@@ -1,6 +1,6 @@
 # SIA-Pos
 
-Sistema de Informações Acadêmicas – Pós-graduação do IME-USP. Abra [o painel](index.html) ou retorne ao [portal SIA](../index.html).
+Sistema de Informações Acadêmicas – Pós-graduação do IME-USP. [Abrir o painel de pós-graduação](index.html).
 
 ## Uso
 

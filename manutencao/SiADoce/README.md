@@ -20,7 +20,7 @@ Para gerar a instância em outro diretório de acesso institucional, informe uma
 .\build-public.ps1 -Saida 'D:\ConsultaInstitucional\SIA-Doce'
 ```
 
-A página inicial dessa instalação fica em `index.html`. O CSS e os documentos acompanham a cópia. Os atalhos para os demais sistemas abrem o portal do SIA.
+A página inicial dessa instalação fica em `index.html`. O CSS e os documentos acompanham a cópia.
 
 ## Preparar outro computador
 

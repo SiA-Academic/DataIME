@@ -209,22 +209,13 @@ dialog .source-credit a{color:var(--accent);text-underline-offset:2px}
   background: var(--sia-ink, #183644);
   font-size: 20px; letter-spacing: -.04em;
 }
-.sidebar .system-links {
-  margin: auto 16px 16px; padding: 12px 0 0;
-  border-top: 1px solid var(--line);
-  display: flex; align-items: center; flex-wrap: wrap; gap: 2px 8px;
-}
-.sidebar .system-links a { padding: 5px 3px; font-size: 12px; color: var(--accent); }
-.sidebar .system-links .portal-link { flex-basis: 100%; font-weight: 700; }
 .button:not(.secondary), .chart-tooltip, .toast {
   background: var(--sia-ink, #183644);
   border-color: var(--sia-ink, #183644);
 }
 .sidebar #main-nav a.sources-nav-link.active { background: var(--soft); }
 @media (max-width: 900px) {
-  .sidebar .system-links { margin: 0; padding: 4px 14px; gap: 12px; }
-  .sidebar .system-links .portal-link { flex-basis: auto; }
-  .sidebar nav:not(.system-links) { flex-wrap: wrap; overflow: visible; }
+  .sidebar nav { flex-wrap: wrap; overflow: visible; }
 }
 @media (max-width: 650px) {
   .chart-grid { width: 100%; }
